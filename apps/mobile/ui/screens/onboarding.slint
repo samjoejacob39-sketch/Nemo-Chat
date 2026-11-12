@@ -1,0 +1,492 @@
+// Onboarding: Welcome, Sign-up (with recovery reveal), Login, Terms.
+//
+// Verified against Slint 1.18.1:
+// - string members: character-count / is-empty / to-lowercase / to-uppercase
+// - color member fns, Math.*, pure functions inside components only.
+
+import { Theme } from "../theme.slint";
+import {
+    NookLogo, Back, Check,
+} from "../icons.slint";
+import {
+    ScreenBackground, GlassCard, PrimaryButton, GhostButton, TextButton,
+    NookField,
+} from "../widgets.slint";
+
+// ---------------------------------------------------------------------------
+// Welcome
+// ---------------------------------------------------------------------------
+
+export component WelcomeScreen inherits Rectangle {
+    callback sign-up;      // -> go to sign-up
+    callback log-in;       // -> go to login
+    background: transparent;
+
+    VerticalLayout {
+        padding-left: Theme.sp-6;
+        padding-right: Theme.sp-6;
+        padding-top: 92px;
+        padding-bottom: Theme.sp-7;
+        spacing: Theme.sp-5;
+
+        Rectangle {
+            height: 116px;
+            NookLogo {
+                size: 104px;
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+            }
+        }
+        Text {
+            text: "Nemo";
+            font-size: Theme.fs-hero;
+            font-weight: 800;
+            color: Theme.c-text;
+            horizontal-alignment: center;
+        }
+        Text {
+            text: "Your cozy corner to talk.";
+            font-size: Theme.fs-body-lg;
+            color: Theme.c-text-2;
+            horizontal-alignment: center;
+        }
+        Rectangle { vertical-stretch: 1; }
+
+        PrimaryButton {
+            text: "Create account";
+            clicked => { root.sign-up(); }
+        }
+        GhostButton {
+            text: "I already have an account";
+            clicked => { root.log-in(); }
+        }
+        Text {
+            text: "By continuing you agree to our Terms and Privacy Policy.";
+            font-size: Theme.fs-caption;
+            color: Theme.c-text-3;
+            horizontal-alignment: center;
+            wrap: word-wrap;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Sign-up
+// ---------------------------------------------------------------------------
+
+export component SignUpScreen inherits Rectangle {
+    callback back;                        // -> welcome
+    callback submit(string, string, string); // username, display-name, password
+    background: transparent;
+
+    in-out property <string> username: "";
+    in-out property <string> display-name: "";
+    in-out property <string> password: "";
+    in property <string> error: "";
+    in property <bool> busy: false;
+
+    // Pure heuristic over verified string members:
+    // 0 empty / 1 weak / 2 okay / 3 good / 4 strong
+    // Note: character-count is a pre-bound builtin call (used bare, no parens);
+    // to-lowercase/to-uppercase are member functions (used with parens).
+    pure function score() -> int {
+        let len = password.character-count;
+        if (len == 0) { return 0; }
+        let upper = password.to-lowercase() != password;  // has capitals
+        let lower = password.to-uppercase() != password;  // has lowercase
+        return Math.min(
+            (len >= 8 ? 1 : 0) + (len >= 12 ? 1 : 0) + (len >= 16 ? 1 : 0)
+                + (upper ? 1 : 0) + (lower ? 1 : 0),
+            4);
+    }
+    private property <int> score-now: score();
+
+    pure function strength-color(level: int) -> color {
+        if (level <= 1) { return Theme.danger; }
+        if (level == 2) { return #F5A524; }
+        if (level == 3) { return #E3C341; }
+        return Theme.online;
+    }
+    pure function strength-label(level: int) -> string {
+        if (level <= 1) { return "Weak"; }
+        if (level == 2) { return "Okay"; }
+        if (level == 3) { return "Good"; }
+        return "Strong";
+    }
+
+    VerticalLayout {
+        padding-left: Theme.sp-6;
+        padding-right: Theme.sp-6;
+        padding-top: 8px;
+        padding-bottom: Theme.sp-6;
+        spacing: Theme.sp-4;
+
+        HorizontalLayout {
+            height: Theme.bar-h;
+            alignment: start;
+            TouchArea {
+                width: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.back(); }
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 20px;
+                    background: Theme.c-surface-alpha;
+                    border-width: 1px;
+                    border-color: Theme.c-stroke-glass;
+                    Back {
+                        x: (parent.width - 22px) / 2;
+                        y: (parent.height - 22px) / 2;
+                        size: 22px;
+                        tint: Theme.c-text;
+                    }
+                }
+            }
+        }
+
+        Text {
+            text: "Create your account";
+            font-size: Theme.fs-large;
+            font-weight: 800;
+            color: Theme.c-text;
+        }
+        Text {
+            text: "Pick a handle friends can find you by.";
+            font-size: Theme.fs-body;
+            color: Theme.c-text-2;
+        }
+
+        NookField {
+            label: "Username";
+            placeholder: "e.g. maple_syrup";
+            text <=> root.username;
+            error: root.error;
+        }
+        NookField {
+            label: "Display name";
+            placeholder: "How you'll appear to others";
+            text <=> root.display-name;
+        }
+        NookField {
+            label: "Password";
+            placeholder: "At least 10 characters";
+            password: true;
+            text <=> root.password;
+        }
+
+        // Strength meter
+        HorizontalLayout {
+            spacing: 6px;
+            height: 22px;
+            alignment: start;
+            for i in 4: Rectangle {
+                width: 34px;
+                height: 6px;
+                y: (parent.height - self.height) / 2;
+                border-radius: 3px;
+                background: root.score-now >= (i + 1)
+                    ? root.strength-color(root.score-now)
+                    : Theme.c-hairline;
+            }
+            Text {
+                text: root.strength-label(root.score-now);
+                font-size: Theme.fs-caption;
+                font-weight: 600;
+                color: Theme.c-text-3;
+                vertical-alignment: center;
+            }
+        }
+
+        Rectangle { vertical-stretch: 1; }
+
+        PrimaryButton {
+            text: root.busy ? "Creating…" : "Create account";
+            enabled: !root.busy && root.score-now >= 2;
+            clicked => { root.submit(root.username, root.display-name, root.password); }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Recovery codes reveal (right after sign-up)
+// ---------------------------------------------------------------------------
+
+export component RecoveryScreen inherits Rectangle {
+    in property <[string]> codes;
+    callback saved;   // -> login
+    background: transparent;
+
+    VerticalLayout {
+        padding-left: Theme.sp-6;
+        padding-right: Theme.sp-6;
+        padding-top: 8px;
+        padding-bottom: Theme.sp-6;
+        spacing: Theme.sp-4;
+
+        Text {
+            text: "Save your recovery codes";
+            font-size: Theme.fs-large;
+            font-weight: 800;
+            color: Theme.c-text;
+        }
+        Text {
+            text: "Nemo has no email or phone. If you ever forget your password, a recovery code is the only way back in. Write them down and keep them somewhere safe.";
+            font-size: Theme.fs-body;
+            color: Theme.c-text-2;
+            wrap: word-wrap;
+        }
+
+        GlassCard {
+            vertical-stretch: 1;
+            VerticalLayout {
+                padding: Theme.sp-4;
+                spacing: Theme.sp-2;
+                alignment: center;
+                for code in root.codes: Text {
+                    text: code;
+                    font-size: Theme.fs-body-lg;
+                    font-weight: 700;
+                    color: Theme.c-text;
+                    horizontal-alignment: center;
+                    letter-spacing: 1.4px;
+                }
+            }
+        }
+
+        PrimaryButton {
+            text: "I've saved them";
+            clicked => { root.saved(); }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Login
+// ---------------------------------------------------------------------------
+
+export component LoginScreen inherits Rectangle {
+    callback back;
+    callback submit(string, string); // username, password
+    callback forgot;                 // -> recovery entry
+    background: transparent;
+
+    in-out property <string> username: "";
+    in-out property <string> password: "";
+    in property <string> error: "";
+    in property <bool> busy: false;
+
+    VerticalLayout {
+        padding-left: Theme.sp-6;
+        padding-right: Theme.sp-6;
+        padding-top: 8px;
+        padding-bottom: Theme.sp-6;
+        spacing: Theme.sp-4;
+
+        HorizontalLayout {
+            height: Theme.bar-h;
+            alignment: start;
+            TouchArea {
+                width: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.back(); }
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 20px;
+                    background: Theme.c-surface-alpha;
+                    border-width: 1px;
+                    border-color: Theme.c-stroke-glass;
+                    Back {
+                        x: (parent.width - 22px) / 2;
+                        y: (parent.height - 22px) / 2;
+                        size: 22px;
+                        tint: Theme.c-text;
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            height: 72px;
+            NookLogo {
+                compact: true;
+                size: 64px;
+                x: (parent.width - self.width) / 2;
+            }
+        }
+        Text {
+            text: "Welcome back";
+            font-size: Theme.fs-large;
+            font-weight: 800;
+            color: Theme.c-text;
+            horizontal-alignment: center;
+        }
+        Text {
+            text: "Log in to your nook.";
+            font-size: Theme.fs-body;
+            color: Theme.c-text-2;
+            horizontal-alignment: center;
+        }
+
+        Rectangle { height: Theme.sp-2; }
+
+        NookField {
+            label: "Username";
+            placeholder: "your handle";
+            text <=> root.username;
+            error: root.error;
+        }
+        NookField {
+            label: "Password";
+            placeholder: "••••••••••";
+            password: true;
+            text <=> root.password;
+        }
+
+        Rectangle { vertical-stretch: 1; }
+
+        PrimaryButton {
+            text: root.busy ? "Logging in…" : "Log in";
+            enabled: !root.busy;
+            clicked => { root.submit(root.username, root.password); }
+        }
+        TextButton {
+            text: "Use a recovery code instead";
+            clicked => { root.forgot(); }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Terms
+// ---------------------------------------------------------------------------
+
+export struct PolicySection {
+    heading: string,
+    body: string,
+}
+
+export component TermsScreen inherits Rectangle {
+    in property <string> doc-title;
+    in property <[PolicySection]> sections;
+    in property <bool> gate: true;              // require checkbox
+    callback agreed(bool);
+    callback continue-p;
+    callback back;
+    background: transparent;
+
+    in-out property <bool> accepted: false;
+
+    VerticalLayout {
+        padding-left: Theme.sp-5;
+        padding-right: Theme.sp-5;
+        padding-top: 8px;
+        padding-bottom: Theme.sp-5;
+        spacing: Theme.sp-3;
+
+        HorizontalLayout {
+            height: Theme.bar-h;
+            alignment: start;
+            TouchArea {
+                width: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.back(); }
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 20px;
+                    background: Theme.c-surface-alpha;
+                    border-width: 1px;
+                    border-color: Theme.c-stroke-glass;
+                    Back {
+                        x: (parent.width - 22px) / 2;
+                        y: (parent.height - 22px) / 2;
+                        size: 22px;
+                        tint: Theme.c-text;
+                    }
+                }
+            }
+        }
+
+        Text {
+            text: root.doc-title;
+            font-size: Theme.fs-title;
+            font-weight: 800;
+            color: Theme.c-text;
+        }
+
+        Rectangle {
+            vertical-stretch: 1;
+            border-radius: Theme.r-card;
+            background: Theme.c-surface-alpha;
+            border-width: 1px;
+            border-color: Theme.c-stroke-glass;
+            clip: true;
+            Flickable {
+                VerticalLayout {
+                    padding-top: Theme.sp-4;
+                    padding-bottom: Theme.sp-4;
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    spacing: Theme.sp-3;
+                    for s in root.sections: VerticalLayout {
+                        spacing: 5px;
+                        Text {
+                            text: s.heading;
+                            font-size: Theme.fs-body;
+                            font-weight: 700;
+                            color: Theme.c-text;
+                            wrap: word-wrap;
+                        }
+                        Text {
+                            text: s.body;
+                            font-size: Theme.fs-small;
+                            color: Theme.c-text-2;
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Agreement checkbox
+        if root.gate: HorizontalLayout {
+            spacing: Theme.sp-3;
+            alignment: start;
+            TouchArea {
+                width: 30px;
+                mouse-cursor: pointer;
+                clicked => { root.accepted = !root.accepted; root.agreed(root.accepted); }
+                Rectangle {
+                    width: 26px;
+                    height: 26px;
+                    y: 2px;
+                    border-radius: 8px;
+                    background: root.accepted ? Theme.accent : transparent;
+                    border-width: 1.6px;
+                    border-color: root.accepted ? Theme.accent : Theme.c-text-3;
+                    Check {
+                        x: (parent.width - 18px) / 2;
+                        y: (parent.height - 18px) / 2;
+                        size: 18px;
+                        tint: white;
+                    }
+                }
+            }
+            Text {
+                text: "I have read and agree to these terms.";
+                font-size: Theme.fs-small;
+                color: Theme.c-text-2;
+                wrap: word-wrap;
+                vertical-alignment: center;
+            }
+        }
+
+        PrimaryButton {
+            text: "Continue";
+            enabled: !root.gate || root.accepted;
+            clicked => { root.continue-p(); }
+        }
+    }
+}

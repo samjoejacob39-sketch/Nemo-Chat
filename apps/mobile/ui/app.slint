@@ -1,0 +1,233 @@
+// Nook — root window. Screens are imported and switched here.
+//
+// `screen` selects the visible screen; the demo bar (enabled by the desktop
+// preview binary via `demo-mode`) lets you flip through every screen manually.
+
+import { Theme } from "theme.slint";
+import { ScreenBackground } from "widgets.slint";
+import {
+    WelcomeScreen, SignUpScreen, RecoveryScreen, LoginScreen, TermsScreen,
+    PolicySection,
+} from "screens/onboarding.slint";
+import { ChatsScreen, ChatScreen, UiChat, UiBubble } from "screens/chats.slint";
+import {
+    NotificationsScreen, FindScreen, ProfileScreen, SettingsScreen,
+    UiPerson, UiActivity,
+} from "screens/social.slint";
+import {
+    CreateGroupScreen, GroupInfoScreen, UiFriendPick, UiMember,
+} from "screens/groups.slint";
+
+// Demo-only screen picker (drawn last so it sits on top).
+// Two rows, each tab with a fixed 54px hit target (a bare TouchArea in a
+// layout would collapse to zero width and be unclickable).
+component DemoBar inherits Rectangle {
+    in property <string> screen;
+    callback pick(string);
+
+    height: 48px;
+    background: #0E163399;
+    VerticalLayout {
+        padding-top: 3px;
+        padding-bottom: 3px;
+        spacing: 2px;
+        HorizontalLayout {
+            alignment: center;
+            spacing: 1px;
+            for t in [
+                { label: "welcome", id: "welcome" },
+                { label: "signup", id: "signup" },
+                { label: "codes", id: "recovery" },
+                { label: "login", id: "login" },
+                { label: "terms", id: "terms" },
+                { label: "chats", id: "chats" },
+                { label: "chat", id: "chat" },
+            ]: TouchArea {
+                width: 54px;
+                height: 20px;
+                mouse-cursor: pointer;
+                clicked => { root.pick(t.id); }
+                Text {
+                    width: parent.width;
+                    height: parent.height;
+                    text: t.label;
+                    font-size: 8px;
+                    font-weight: 700;
+                    color: root.screen == t.id ? white : #FFFFFF99;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+        HorizontalLayout {
+            alignment: center;
+            spacing: 1px;
+            for t in [
+                { label: "notifs", id: "notifications" },
+                { label: "find", id: "find" },
+                { label: "profile", id: "profile" },
+                { label: "settings", id: "settings" },
+                { label: "new group", id: "newgroup" },
+                { label: "members", id: "groupinfo" },
+            ]: TouchArea {
+                width: 54px;
+                height: 20px;
+                mouse-cursor: pointer;
+                clicked => { root.pick(t.id); }
+                Text {
+                    width: parent.width;
+                    height: parent.height;
+                    text: t.label;
+                    font-size: 8px;
+                    font-weight: 700;
+                    color: root.screen == t.id ? white : #FFFFFF99;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+}
+
+export component AppWindow inherits Window {
+    width: 390px;
+    height: 844px;
+    title: "Nemo";
+    background: transparent;
+
+    // Which screen is visible. Driven from Rust.
+    in-out property <string> screen: "welcome";
+    // Demo harness only: show the screen-picker bar (set by the dev binary).
+    in property <bool> demo-mode: false;
+
+    // Demo data (fed from Rust by the preview binary).
+    in property <[UiChat]> chats;
+    in property <[UiBubble]> messages;
+    in property <string> typing-name: "";
+    in property <[string]> recovery-codes;
+    in property <string> policy-title: "";
+    in property <[PolicySection]> policy-sections;
+    in property <[UiPerson]> requests;
+    in property <[UiActivity]> activity;
+    in property <[UiPerson]> find-results;
+    in property <string> me-name: "";
+    in property <string> me-handle: "";
+    in property <string> me-bio: "";
+    in property <string> me-initials: "";
+    in property <int> me-variant: 0;
+    in property <int> friend-count: 0;
+    in property <int> group-count: 0;
+    in property <[UiFriendPick]> friend-picks;
+    in property <[UiMember]> group-members;
+    in property <string> group-name: "";
+
+    ScreenBackground { }
+
+    if screen == "welcome": WelcomeScreen {
+        sign-up => { root.screen = "signup"; }
+        log-in => { root.screen = "login"; }
+    }
+    if screen == "signup": SignUpScreen {
+        back => { root.screen = "welcome"; }
+        submit(u, d, p) => { root.screen = "recovery"; }
+    }
+    if screen == "recovery": RecoveryScreen {
+        codes: root.recovery-codes;
+        saved => { root.screen = "terms"; }
+    }
+    if screen == "login": LoginScreen {
+        back => { root.screen = "welcome"; }
+        submit(u, p) => { root.screen = "chats"; }
+    }
+    if screen == "terms": TermsScreen {
+        doc-title: root.policy-title;
+        sections: root.policy-sections;
+        back => { root.screen = "signup"; }
+        continue-p => { root.screen = "chats"; }
+    }
+    if screen == "chats": ChatsScreen {
+        chats: root.chats;
+        request-count: 2;
+        unseen-activity: 2;
+        open-chat(i) => { root.screen = "chat"; }
+        open-notifications => { root.screen = "notifications"; }
+        open-find => { root.screen = "find"; }
+        open-profile => { root.screen = "profile"; }
+    }
+    if screen == "chat": ChatScreen {
+        title: "Maya Chen";
+        subtitle: "online";
+        other-online: true;
+        peer-initials: "MC";
+        peer-variant: 1;
+        is-group: false;
+        messages: root.messages;
+        typing-name: root.typing-name;
+        chat-index: 0;
+        back => { root.screen = "chats"; }
+        open-info => { root.screen = "groupinfo"; }
+    }
+    if screen == "notifications": NotificationsScreen {
+        requests: root.requests;
+        activity: root.activity;
+        back => { root.screen = "chats"; }
+        accept-request(id) => { }
+        decline-request(id) => { }
+    }
+    if screen == "find": FindScreen {
+        suggested: root.find-results;
+        pending-count: 2;
+        search-changed(q) => { }
+        add-friend(id) => { }
+        open-chats => { root.screen = "chats"; }
+        open-profile => { root.screen = "profile"; }
+    }
+    if screen == "profile": ProfileScreen {
+        display-name: root.me-name;
+        handle: root.me-handle;
+        bio: root.me-bio;
+        initials: root.me-initials;
+        variant: root.me-variant;
+        friend-count: root.friend-count;
+        group-count: root.group-count;
+        open-settings => { root.screen = "settings"; }
+        open-chats => { root.screen = "chats"; }
+        open-find => { root.screen = "find"; }
+        log-out => { root.screen = "welcome"; }
+    }
+    if screen == "settings": SettingsScreen {
+        dark: Theme.is-dark;
+        back => { root.screen = "profile"; }
+        toggled-dark(v) => { Theme.is-dark = v; }
+        toggled-read-receipts(v) => { }
+        toggled-push(v) => { }
+        toggled-sounds(v) => { }
+        change-password => { root.screen = "recovery"; }
+        show-recovery-codes => { root.screen = "recovery"; }
+        open-policy(p) => { root.screen = "terms"; }
+        delete-account => { }
+    }
+    if screen == "newgroup": CreateGroupScreen {
+        friends: root.friend-picks;
+        back => { root.screen = "chats"; }
+        search-changed(q) => { }
+        toggle-member(id) => { }
+        create => { root.screen = "chats"; }
+    }
+    if screen == "groupinfo": GroupInfoScreen {
+        group-name: root.group-name;
+        group-initials: "TC";
+        group-variant: 2;
+        member-count: root.group-members.length;
+        members: root.group-members;
+        is-admin: true;
+        back => { root.screen = "chat"; }
+        leave => { root.screen = "chats"; }
+    }
+
+    // Demo-only screen picker (drawn last so it sits on top).
+    if root.demo-mode: DemoBar {
+        screen: root.screen;
+        pick(s) => { root.screen = s; }
+    }
+}

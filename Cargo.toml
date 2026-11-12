@@ -1,0 +1,57 @@
+[workspace]
+resolver = "2"
+members = [
+    "apps/server",
+    "apps/mobile",
+    "crates/shared",
+    "tools/icongen",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.92"
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+# --- backend / async ---
+tokio = { version = "1.54", features = ["full"] }
+axum = { version = "0.8", features = ["ws", "multipart"] }
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.7", features = ["cors", "trace", "limit"] }
+tokio-tungstenite = { version = "0.30", default-features = false, features = ["connect", "rustls-tls-webpki-roots"] }
+futures-util = "0.3"
+sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "migrate", "macros"] }
+# --- serialization / ids / time ---
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.29", features = ["v4", "v7", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+# --- crypto / security ---
+argon2 = "0.6"
+getrandom = "0.4"
+sha2 = "0.11"
+hex = "0.4"
+# --- errors / logs / utils ---
+thiserror = "2.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+regex = "1.13"
+base64 = "0.23"
+mime_guess = "2.0"
+dashmap = "6.2"
+dotenvy = "0.15"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp"] }
+
+# --- TLS ---
+# ring-based provider keeps Android builds free of cmake/aws-lc-rs.
+rustls = { version = "0.23", default-features = false, features = ["ring", "logging", "std", "tls12"] }
+
+[profile.release]
+opt-level = "s"
+lto = "thin"
+strip = "debuginfo"
+codegen-units = 1
+
+[profile.dev.package.image]
+opt-level = 3

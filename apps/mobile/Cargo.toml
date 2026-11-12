@@ -1,0 +1,74 @@
+[package]
+name = "nook-mobile"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lib]
+name = "nook_mobile"
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[[bin]]
+name = "nook-mobile"
+path = "src/main.rs"
+
+[dependencies]
+nook-shared = { path = "../../crates/shared" }
+slint = { version = "1.18", default-features = false, features = [
+    "compat-1-2",
+    "std",
+    "backend-winit",
+    "renderer-femtovg",
+    "backend-android-activity-06",
+] }
+tokio = { workspace = true }
+tokio-tungstenite = { workspace = true }
+futures-util = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+image = { workspace = true }
+rustls = { workspace = true }
+webpki-roots = "1.0"
+reqwest = { version = "0.13", default-features = false, features = [
+    "rustls-no-provider",
+    "json",
+    "multipart",
+    "stream",
+    "gzip",
+    "charset",
+    "http2",
+] }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+base64 = { workspace = true }
+
+# desktop dev helpers
+[target.'cfg(not(target_os = "android"))'.dependencies]
+rfd = "0.15"
+keyring = { version = "4", default-features = true }
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.22"
+ndk-context = "0.1"
+android_logger = "0.15"
+
+[build-dependencies]
+slint-build = "1.18"
+
+[package.metadata.android]
+package = "com.nook.app"
+build_targets = ["aarch64-linux-android"]
+label = "Nemo"
+[package.metadata.android.sdk]
+min_sdk_version = 33
+target_sdk_version = 34
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.INTERNET"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.ACCESS_NETWORK_STATE"

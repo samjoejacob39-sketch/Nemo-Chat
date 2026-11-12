@@ -1,0 +1,15 @@
+# Rust
+/target
+**/target
+
+# Local env / secrets
+.env
+.env.local
+
+# Local data (postgres binaries, media uploads, app caches)
+/data
+/apps/server/data
+
+# OS junk
+.DS_Store
+Thumbs.db

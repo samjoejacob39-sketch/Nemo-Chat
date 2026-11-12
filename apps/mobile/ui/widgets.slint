@@ -1,0 +1,754 @@
+// Nemo Blue Glass — reusable widget library.
+// GlassCard, buttons, fields, avatar, toggle, nav, badges, top bars.
+
+import { Theme } from "theme.slint";
+import {
+    ChevronLeft, Eye, EyeOff, Search, NavChat, NavFind, NavProfile, Close,
+} from "icons.slint";
+
+// ---------------------------------------------------------------------------
+// Background
+// ---------------------------------------------------------------------------
+
+export component ScreenBackground inherits Rectangle {
+    background: @linear-gradient(180deg, Theme.c-bg-1 0%, Theme.c-bg-2 100%);
+
+    Rectangle { // top-left blue blob
+        width: 360px;
+        height: 360px;
+        x: -130px;
+        y: -150px;
+        border-radius: self.width / 2;
+        background: Theme.c-blob-1;
+        opacity: Theme.is-dark ? 0.45 : 0.75;
+    }
+    Rectangle { // right violet blob
+        width: 300px;
+        height: 300px;
+        x: parent.width - 150px;
+        y: 140px;
+        border-radius: self.width / 2;
+        background: Theme.c-blob-2;
+        opacity: Theme.is-dark ? 0.4 : 0.7;
+    }
+    Rectangle { // lower blue haze
+        width: 420px;
+        height: 420px;
+        x: parent.width / 2 - 300px;
+        y: parent.height - 260px;
+        border-radius: self.width / 2;
+        background: Theme.c-blob-1;
+        opacity: Theme.is-dark ? 0.3 : 0.5;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Glass surfaces
+// ---------------------------------------------------------------------------
+
+export component GlassCard inherits Rectangle {
+    in property <length> radius: Theme.r-card;
+    in property <bool> strong: false;
+
+    border-radius: radius;
+    background: strong
+        ? Theme.c-surface-strong
+        : @linear-gradient(180deg, Theme.c-glass-top 0%, Theme.c-glass-bottom 62%, Theme.c-glass-bottom 100%);
+    border-width: 1px;
+    border-color: Theme.c-stroke-glass;
+    drop-shadow-blur: strong ? 28px : 14px;
+    drop-shadow-color: Theme.c-shadow-soft;
+    drop-shadow-offset-y: strong ? 10px : 4px;
+    drop-shadow-offset-x: 0px;
+    @children
+    // Specular top edge: the bright 1px line that sells the glass.
+    Rectangle {
+        x: 1px;
+        y: 1px;
+        width: parent.width - 2px;
+        height: 1px;
+        border-radius: 1px;
+        background: @linear-gradient(90deg, transparent 0%, Theme.c-glass-edge 30%, Theme.c-glass-edge 70%, transparent 100%);
+        opacity: strong ? 1 : 0.85;
+    }
+    // Faint bottom edge for depth.
+    Rectangle {
+        x: 1px;
+        y: parent.height - 2px;
+        width: parent.width - 2px;
+        height: 1px;
+        border-radius: 1px;
+        background: @linear-gradient(90deg, transparent 0%, Theme.c-stroke-glass 50%, transparent 100%);
+        opacity: 0.5;
+    }
+}
+
+export component Hairline inherits Rectangle {
+    height: 1px;
+    background: Theme.c-hairline;
+}
+
+// ---------------------------------------------------------------------------
+// Buttons
+// ---------------------------------------------------------------------------
+
+export component PrimaryButton inherits Rectangle {
+    in property <string> text;
+    in property <bool> enabled: true;
+    callback clicked;
+
+    height: 52px;
+    min-width: 160px;
+    border-radius: self.height / 2;
+    background: enabled
+        ? @linear-gradient(180deg, #4D8DFF 0%, #2F6BFF 58%, #1E52E8 100%)
+        : Theme.c-text-3;
+    drop-shadow-blur: enabled ? 18px : 0px;
+    drop-shadow-color: rgba(47, 107, 255, 0.32);
+    drop-shadow-offset-y: enabled ? 6px : 0px;
+    drop-shadow-offset-x: 0px;
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+        Rectangle {
+            border-radius: root.border-radius;
+            background: white;
+            opacity: touch.pressed ? 0.16 : 0;
+            animate opacity { duration: 90ms; }
+        }
+    }
+    Text {
+        text: root.text;
+        font-size: Theme.fs-body-lg;
+        font-weight: 700;
+        color: Theme.on-accent;
+        vertical-alignment: center;
+        horizontal-alignment: center;
+    }
+}
+
+export component GhostButton inherits Rectangle {
+    in property <string> text;
+    in property <bool> enabled: true;
+    in property <bool> danger: false;
+    callback clicked;
+
+    height: 52px;
+    min-width: 140px;
+    border-radius: self.height / 2;
+    background: transparent;
+    border-width: 1.5px;
+    border-color: danger ? Theme.danger : Theme.accent;
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+        Rectangle {
+            border-radius: root.border-radius;
+            background: danger ? Theme.danger : Theme.accent;
+            opacity: touch.pressed ? 0.14 : 0;
+            animate opacity { duration: 90ms; }
+        }
+    }
+    Text {
+        text: root.text;
+        font-size: Theme.fs-body-lg;
+        font-weight: 700;
+        color: danger ? Theme.danger : Theme.accent;
+        vertical-alignment: center;
+        horizontal-alignment: center;
+    }
+}
+
+export component TextButton inherits Rectangle {
+    in property <string> text;
+    in property <bool> enabled: true;
+    in property <bool> danger: false;
+    callback clicked;
+
+    height: 40px;
+    border-radius: 12px;
+    background: transparent;
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+    Text {
+        text: root.text;
+        font-size: Theme.fs-body;
+        font-weight: 600;
+        color: !root.enabled ? Theme.c-text-3 : root.danger ? Theme.danger : Theme.accent;
+        vertical-alignment: center;
+        horizontal-alignment: center;
+    }
+}
+
+export component IconButton inherits Rectangle {
+    in property <length> size: 44px;
+    in property <bool> filled: false;
+    in property <bool> danger: false;
+    in property <bool> enabled: true;
+    callback clicked;
+
+    width: size;
+    height: size;
+    border-radius: self.width / 2;
+    background: filled
+        ? (danger ? Theme.danger : Theme.accent)
+        : Theme.c-surface-alpha;
+    border-width: filled ? 0px : 1px;
+    border-color: Theme.c-stroke-glass;
+    drop-shadow-blur: 10px;
+    drop-shadow-color: Theme.c-shadow-soft;
+    drop-shadow-offset-y: 2px;
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+        Rectangle {
+            border-radius: root.border-radius;
+            background: white;
+            opacity: touch.pressed ? 0.2 : 0;
+            animate opacity { duration: 90ms; }
+        }
+    }
+    @children
+}
+
+// ---------------------------------------------------------------------------
+// Text fields
+// ---------------------------------------------------------------------------
+
+export component NookField inherits Rectangle {
+    in property <string> label: "";
+    in property <string> placeholder: "";
+    in property <bool> password: false;
+    in property <string> error: "";
+    in property <bool> enabled: true;
+    in-out property <string> text: "";
+    callback accepted(string);
+    private property <bool> reveal: false;
+
+    background: transparent;
+    // Give the composite a real intrinsic height so it hugs its content
+    // when used as a layout child (a bare Rectangle reports preferred 0).
+    height: inner.preferred-height;
+
+    inner := VerticalLayout {
+        spacing: 6px;
+        if label != "": Text {
+            text: root.label;
+            font-size: Theme.fs-small;
+            font-weight: 600;
+            color: Theme.c-text-2;
+        }
+        Rectangle {
+            height: 54px;
+            border-radius: Theme.r-input;
+            background: Theme.c-surface-strong;
+            border-width: 1.5px;
+            border-color: input.has-focus ? Theme.accent
+                : root.error != "" ? Theme.danger
+                : Theme.c-hairline;
+            drop-shadow-blur: input.has-focus ? 12px : 0px;
+            drop-shadow-color: rgba(47, 107, 255, 0.18);
+            drop-shadow-offset-y: 0px;
+
+            input := TextInput {
+                x: 16px;
+                y: 0;
+                width: root.password ? parent.width - 62px : parent.width - 32px;
+                height: parent.height;
+                text <=> root.text;
+                font-size: Theme.fs-body-lg;
+                color: Theme.c-text;
+                input-type: root.password && !root.reveal ? InputType.password : InputType.text;
+                enabled: root.enabled;
+                accepted() => { root.accepted(root.text); }
+                vertical-alignment: center;
+            }
+            if root.text == "" && root.enabled: Text {
+                x: 16px;
+                y: 0;
+                height: parent.height;
+                text: root.placeholder;
+                font-size: Theme.fs-body-lg;
+                color: Theme.c-text-3;
+                vertical-alignment: center;
+            }
+            if root.password: TouchArea {
+                x: parent.width - 46px;
+                y: (parent.height - 34px) / 2;
+                width: 34px;
+                height: 34px;
+                mouse-cursor: pointer;
+                clicked => { root.reveal = !root.reveal; }
+                if root.reveal: Eye {
+                    x: 5px; y: 5px;
+                    size: 24px;
+                    tint: Theme.accent;
+                }
+                if !root.reveal: EyeOff {
+                    x: 5px; y: 5px;
+                    size: 24px;
+                    tint: Theme.c-text-3;
+                }
+            }
+        }
+        if root.error != "": Text {
+            text: root.error;
+            font-size: Theme.fs-caption;
+            font-weight: 600;
+            color: Theme.danger;
+        }
+    }
+}
+
+export component SearchField inherits Rectangle {
+    in-out property <string> text: "";
+    in property <string> placeholder: "Search";
+    callback text-changed(string);   // fires on user edit and on clear
+    height: 46px;
+    border-radius: self.height / 2;
+    background: Theme.c-surface-alpha;
+    border-width: 1px;
+    border-color: Theme.c-stroke-glass;
+
+    changed text => { root.text-changed(root.text); }
+
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 12px;
+        spacing: 8px;
+        alignment: center;
+        Search { size: 20px; tint: Theme.c-text-3; }
+        input := TextInput {
+            vertical-alignment: center;
+            text <=> root.text;
+            font-size: Theme.fs-body;
+            color: Theme.c-text;
+        }
+        if root.text == "": Text {
+            text: root.placeholder;
+            font-size: Theme.fs-body;
+            color: Theme.c-text-3;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+        }
+        if root.text != "": TouchArea {
+            width: 26px;
+            mouse-cursor: pointer;
+            clicked => { root.text = ""; }
+            Close { size: 16px; tint: Theme.c-text-3; }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Avatar
+// ---------------------------------------------------------------------------
+
+export component Avatar inherits Rectangle {
+    in property <string> initials: "?";
+    in property <int> variant: 0;
+    in property <bool> online: false;
+    in property <length> size: 52px;
+    in property <bool> has-image: false;
+    in property <image> image;
+
+    pure function grad(i: int) -> brush {
+        if (i == 0) { return @linear-gradient(150deg, #5B95FF 0%, #2F6BFF 85%); }
+        if (i == 1) { return @linear-gradient(150deg, #8F7BFF 0%, #5A48E8 85%); }
+        if (i == 2) { return @linear-gradient(150deg, #38C6FF 0%, #2E7CF6 85%); }
+        if (i == 3) { return @linear-gradient(150deg, #FF8FAB 0%, #E85C9C 85%); }
+        if (i == 4) { return @linear-gradient(150deg, #59D4A6 0%, #23A56F 85%); }
+        return @linear-gradient(150deg, #FFB35C 0%, #F0822E 85%);
+    }
+
+    width: size;
+    height: size;
+    border-radius: self.width / 2;
+    background: grad(variant);
+    clip: true;
+
+    if has-image: Image {
+        width: parent.width;
+        height: parent.height;
+        source: parent.image;
+    }
+    if !has-image: Text {
+        text: parent.initials;
+        font-size: parent.size * 0.38;
+        font-weight: 700;
+        color: white;
+        vertical-alignment: center;
+        horizontal-alignment: center;
+    }
+    if online: Rectangle {
+        width: parent.size * 0.26;
+        height: parent.size * 0.26;
+        x: parent.size - self.width - 1px;
+        y: parent.size - self.height - 1px;
+        border-radius: self.width / 2;
+        background: Theme.online;
+        border-width: 2.5px;
+        border-color: Theme.is-dark ? Theme.d-bg-1 : white;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Toggle
+// ---------------------------------------------------------------------------
+
+export component Toggle inherits Rectangle {
+    in-out property <bool> checked: false;
+    callback toggled(bool);
+
+    width: 52px;
+    height: 32px;
+    border-radius: self.height / 2;
+    background: checked ? Theme.accent : Theme.c-text-3;
+    animate background { duration: 160ms; }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => {
+            root.checked = !root.checked;
+            root.toggled(root.checked);
+        }
+    }
+    Rectangle {
+        width: 26px;
+        height: 26px;
+        y: 3px;
+        x: root.checked ? root.width - self.width - 3px : 3px;
+        border-radius: self.width / 2;
+        background: white;
+        drop-shadow-blur: 4px;
+        drop-shadow-color: rgba(0, 0, 0, 0.25);
+        animate x { duration: 160ms; easing: Theme.ease-out; }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Badges & pills
+// ---------------------------------------------------------------------------
+
+export component CountBadge inherits Rectangle {
+    in property <int> count;
+    in property <color> bg: Theme.danger;
+
+    width: count > 99 ? 27px : 20px;
+    height: 20px;
+    border-radius: self.height / 2;
+    background: bg;
+    visible: count > 0;
+    if count > 99: Text {
+        width: parent.width;
+        height: parent.height;
+        text: "99+";
+        font-size: 11px;
+        font-weight: 700;
+        color: white;
+        vertical-alignment: center;
+        horizontal-alignment: center;
+    }
+    if count <= 99: Text {
+        width: parent.width;
+        height: parent.height;
+        text: count;   // int coerces to string on assignment
+        font-size: 11px;
+        font-weight: 700;
+        color: white;
+        vertical-alignment: center;
+        horizontal-alignment: center;
+    }
+}
+
+export component PillTag inherits Rectangle {
+    in property <string> text;
+    in property <color> bg: Theme.c-accent-soft;
+    in property <color> fg: Theme.accent;
+
+    height: 26px;
+    width: text.character-count * 7.2px + 20px;
+    border-radius: self.height / 2;
+    background: bg;
+    Text {
+        x: 10px;
+        y: (parent.height - self.height) / 2;
+        text: root.text;
+        font-size: Theme.fs-caption;
+        font-weight: 700;
+        color: root.fg;
+    }
+}
+
+export component SectionLabel inherits Rectangle {
+    in property <string> text;
+    height: 22px;
+    background: transparent;
+    Text {
+        y: (parent.height - self.height) / 2;
+        text: root.text;
+        font-size: Theme.fs-caption;
+        font-weight: 700;
+        letter-spacing: 1.1px;
+        color: Theme.c-text-3;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Top bar
+// ---------------------------------------------------------------------------
+
+export component TopBar inherits Rectangle {
+    in property <string> title;
+    in property <bool> show-back: true;
+    callback back;
+
+    height: Theme.bar-h;
+    background: transparent;
+
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 12px;
+        spacing: 8px;
+        alignment: start;
+
+        if show-back: TouchArea {
+            width: 40px;
+            mouse-cursor: pointer;
+            clicked => { root.back(); }
+            Rectangle {
+                width: 40px;
+                height: 40px;
+                y: 0;
+                border-radius: 20px;
+                background: Theme.c-surface-alpha;
+                border-width: 1px;
+                border-color: Theme.c-stroke-glass;
+                ChevronLeft {
+                    x: (parent.width - 22px) / 2;
+                    y: (parent.height - 22px) / 2;
+                    size: 22px;
+                    tint: Theme.c-text;
+                }
+            }
+        }
+        Text {
+            text: root.title;
+            font-size: Theme.fs-title;
+            font-weight: 700;
+            color: Theme.c-text;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+        @children
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Bottom navigation
+// ---------------------------------------------------------------------------
+
+export component NavBar inherits Rectangle {
+    in property <int> selected: 0;   // 0 = chats, 1 = find, 2 = profile
+    in property <int> unread: 0;     // chats tab badge
+    in property <int> requests: 0;   // find tab badge
+    callback select(int);
+
+    width: 240px;
+    height: Theme.nav-h;
+    border-radius: 32px;
+    background: @linear-gradient(180deg, Theme.c-glass-top 0%, Theme.c-nav-glass 45%, Theme.c-glass-bottom 100%);
+    border-width: 1px;
+    border-color: Theme.c-stroke-glass;
+    drop-shadow-blur: 26px;
+    drop-shadow-color: Theme.c-shadow;
+    drop-shadow-offset-y: 10px;
+
+    // Specular top edge.
+    Rectangle {
+        x: 4px;
+        y: 1px;
+        width: parent.width - 8px;
+        height: 1px;
+        border-radius: 1px;
+        background: @linear-gradient(90deg, transparent 0%, Theme.c-glass-edge 40%, Theme.c-glass-edge 60%, transparent 100%);
+        opacity: 0.9;
+    }
+
+    // --- Chats ---
+    TouchArea {
+        x: 10px;
+        width: (parent.width - 20px) / 3;
+        height: parent.height;
+        mouse-cursor: pointer;
+        clicked => { root.select(0); }
+        Rectangle {
+            width: 48px;
+            height: 48px;
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            border-radius: 24px;
+            background: root.selected == 0
+                ? @linear-gradient(180deg, #4D8DFF 0%, #2F6BFF 100%)
+                : transparent;
+            drop-shadow-blur: root.selected == 0 ? 12px : 0px;
+            drop-shadow-color: rgba(47, 107, 255, 0.4);
+            NavChat {
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                size: 24px;
+                selected: root.selected == 0;
+                tint: root.selected == 0 ? white : Theme.c-text-2;
+            }
+            CountBadge {
+                count: root.unread;
+                x: 30px;
+                y: -1px;
+            }
+        }
+    }
+    // --- Find ---
+    TouchArea {
+        x: 10px + (parent.width - 20px) / 3;
+        width: (parent.width - 20px) / 3;
+        height: parent.height;
+        mouse-cursor: pointer;
+        clicked => { root.select(1); }
+        Rectangle {
+            width: 48px;
+            height: 48px;
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            border-radius: 24px;
+            background: root.selected == 1
+                ? @linear-gradient(180deg, #4D8DFF 0%, #2F6BFF 100%)
+                : transparent;
+            drop-shadow-blur: root.selected == 1 ? 12px : 0px;
+            drop-shadow-color: rgba(47, 107, 255, 0.4);
+            NavFind {
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                size: 24px;
+                tint: root.selected == 1 ? white : Theme.c-text-2;
+            }
+            CountBadge {
+                count: root.requests;
+                x: 30px;
+                y: -1px;
+            }
+        }
+    }
+    // --- Profile ---
+    TouchArea {
+        x: 10px + 2 * ((parent.width - 20px) / 3);
+        width: (parent.width - 20px) / 3;
+        height: parent.height;
+        mouse-cursor: pointer;
+        clicked => { root.select(2); }
+        Rectangle {
+            width: 48px;
+            height: 48px;
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
+            border-radius: 24px;
+            background: root.selected == 2
+                ? @linear-gradient(180deg, #4D8DFF 0%, #2F6BFF 100%)
+                : transparent;
+            drop-shadow-blur: root.selected == 2 ? 12px : 0px;
+            drop-shadow-color: rgba(47, 107, 255, 0.4);
+            NavProfile {
+                x: (parent.width - self.width) / 2;
+                y: (parent.height - self.height) / 2;
+                size: 24px;
+                selected: root.selected == 2;
+                tint: root.selected == 2 ? white : Theme.c-text-2;
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Misc
+// ---------------------------------------------------------------------------
+
+export component EmptyState inherits Rectangle {
+    in property <string> title;
+    in property <string> subtitle: "";
+    height: 220px;
+    background: transparent;
+    VerticalLayout {
+        alignment: center;
+        spacing: 10px;
+        Rectangle {
+            width: 72px;
+            height: 72px;
+            border-radius: 36px;
+            background: Theme.c-accent-soft;
+            NavChat {
+                x: (parent.width - 34px) / 2;
+                y: (parent.height - 34px) / 2;
+                size: 34px;
+                tint: Theme.accent;
+            }
+        }
+        Text {
+            text: root.title;
+            font-size: Theme.fs-body-lg;
+            font-weight: 700;
+            color: Theme.c-text-2;
+            horizontal-alignment: center;
+        }
+        if root.subtitle != "": Text {
+            text: root.subtitle;
+            font-size: Theme.fs-small;
+            color: Theme.c-text-3;
+            horizontal-alignment: center;
+            width: 260px;
+            wrap: word-wrap;
+        }
+    }
+}
+
+export component TypingBubble inherits Rectangle {
+    width: 66px;
+    height: 40px;
+    border-radius: Theme.r-bubble;
+    background: Theme.c-bubble-in;
+    Rectangle {
+        width: 8px;
+        height: 8px;
+        x: 16px;
+        y: 16px;
+        border-radius: 4px;
+        background: Theme.c-text-3;
+        opacity: 0.45;
+    }
+    Rectangle {
+        width: 8px;
+        height: 8px;
+        x: 29px;
+        y: 16px;
+        border-radius: 4px;
+        background: Theme.c-text-3;
+        opacity: 0.75;
+    }
+    Rectangle {
+        width: 8px;
+        height: 8px;
+        x: 42px;
+        y: 16px;
+        border-radius: 4px;
+        background: Theme.c-text-3;
+        opacity: 1.0;
+    }
+}

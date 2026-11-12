@@ -1,0 +1,753 @@
+// Chats list and the chat view (bubbles, composer, date separators).
+//
+// Verified against Slint 1.18.1 compiler sources:
+// - `"" + int + "text"` string concat is valid (int coerces to string).
+// - Flickable canonical props: content-x/y/width/height, visible-width/height.
+// - Conditional `if` elements are absent from the item tree when false, so
+//   they never take layout space. (`visible: false` lowers to a Clip wrapper
+//   whose layout info has stretch 1 - it would absorb extra layout space,
+//   so it must not be used for conditional rows inside layouts.)
+// - Layout children accept `cross-axis-self-alignment` (CrossAxisAlignment);
+//   layouts accept `cross-axis-alignment` for the container default.
+// - Text measuring: an element's `preferred-width`/`preferred-height` are
+//   readable; wrapped Text reports its preferred height for the assigned
+//   width, which is how bubble cards auto-size here.
+
+import { Theme } from "../theme.slint";
+import {
+    ChevronLeft, ChevronRight, Bell, BellFilled, Compose, Send, Smile,
+    DotsVertical, CheckDouble, Pin, MutedIcon, Plus, NookLogo,
+} from "../icons.slint";
+import {
+    ScreenBackground, GlassCard, Hairline, PrimaryButton,
+    SearchField, Avatar, CountBadge, EmptyState, TypingBubble, NavBar,
+} from "../widgets.slint";
+
+// ---------------------------------------------------------------------------
+// Shared row models (instantiated by Rust)
+// ---------------------------------------------------------------------------
+
+export struct UiChat {
+    index: int,
+    title: string,
+    subtitle: string,
+    time: string,
+    unread: int,
+    initials: string,
+    variant: int,
+    has-avatar: bool,
+    avatar: image,
+    online: bool,
+    muted: bool,
+    pinned: bool,
+}
+
+export struct UiBubble {
+    index: int,
+    kind: int,          // 0 text, 1 image-only, 2 system notice
+    text: string,
+    mine: bool,
+    read: bool,
+    time: string,
+    day: string,
+    is-day-sep: bool,
+    sender: string,
+    has-image: bool,
+    image: image,
+}
+
+// ---------------------------------------------------------------------------
+// Chat list row
+// ---------------------------------------------------------------------------
+
+component ChatRow inherits Rectangle {
+    in property <UiChat> chat;
+    callback open-chat;
+    height: 76px;
+    background: transparent;
+
+    TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.open-chat(); }
+        GlassCard {
+            radius: Theme.r-row;
+            HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 14px;
+                spacing: Theme.sp-3;
+                Avatar {
+                    size: 48px;
+                    initials: chat.initials;
+                    variant: chat.variant;
+                    has-image: chat.has-avatar;
+                    image: chat.avatar;
+                    online: chat.online;
+                }
+                VerticalLayout {
+                    height: 44px;
+                    cross-axis-self-alignment: center;
+                    spacing: 3px;
+                    HorizontalLayout {
+                        spacing: 6px;
+                        Text {
+                            text: chat.title;
+                            font-size: Theme.fs-body-lg;
+                            font-weight: chat.unread > 0 ? 800 : 600;
+                            color: Theme.c-text;
+                            overflow: elide;
+                            horizontal-stretch: 1;
+                        }
+                        if chat.muted: MutedIcon {
+                            size: 15px;
+                            tint: Theme.c-text-3;
+                        }
+                        if chat.pinned: Pin {
+                            size: 15px;
+                            tint: Theme.c-text-3;
+                        }
+                    }
+                    Text {
+                        text: chat.subtitle;
+                        font-size: Theme.fs-small;
+                        color: chat.unread > 0 ? Theme.c-text : Theme.c-text-2;
+                        font-weight: chat.unread > 0 ? 600 : 400;
+                        overflow: elide;
+                    }
+                }
+                VerticalLayout {
+                    width: 74px;
+                    cross-axis-self-alignment: center;
+                    spacing: 4px;
+                    Text {
+                        text: chat.time;
+                        font-size: Theme.fs-caption;
+                        color: Theme.c-text-3;
+                        horizontal-alignment: right;
+                    }
+                    HorizontalLayout {
+                        if chat.unread > 0: CountBadge {
+                            count: chat.unread;
+                            bg: chat.muted ? Theme.c-text-3 : Theme.accent;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Chats list screen
+// ---------------------------------------------------------------------------
+
+export component ChatsScreen inherits Rectangle {
+    // Data
+    in property <[UiChat]> chats;
+    in property <int> request-count: 0;
+    in property <int> unseen-activity: 0;
+    // Actions
+    callback open-chat(int);      // chats index
+    callback new-chat;
+    callback open-notifications;
+    callback open-profile;
+    callback open-find;
+    callback search-changed(string);
+    background: transparent;
+
+    VerticalLayout {
+        padding-left: Theme.sp-5;
+        padding-right: Theme.sp-5;
+        padding-top: 8px;
+        spacing: Theme.sp-3;
+
+        // Header
+        HorizontalLayout {
+            height: Theme.bar-h;
+            alignment: start;
+            spacing: Theme.sp-2;
+            Rectangle {
+                width: 40px;
+                NookLogo {
+                    compact: true;
+                    size: 34px;
+                    x: (parent.width - self.width) / 2;
+                    y: (parent.height - self.height) / 2;
+                }
+            }
+            Text {
+                text: "Chats";
+                font-size: Theme.fs-title;
+                font-weight: 800;
+                color: Theme.c-text;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            TouchArea {
+                width: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.open-notifications(); }
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    y: (parent.height - 40px) / 2;
+                    border-radius: 20px;
+                    background: Theme.c-surface-alpha;
+                    border-width: 1px;
+                    border-color: Theme.c-stroke-glass;
+                    Bell {
+                        x: (parent.width - 22px) / 2;
+                        y: (parent.height - 22px) / 2;
+                        size: 22px;
+                        tint: Theme.c-text;
+                    }
+                    CountBadge {
+                        count: root.unseen-activity;
+                        x: 26px;
+                        y: -3px;
+                    }
+                }
+            }
+            TouchArea {
+                width: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.new-chat(); }
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    y: (parent.height - 40px) / 2;
+                    border-radius: 20px;
+                    background: Theme.c-surface-alpha;
+                    border-width: 1px;
+                    border-color: Theme.c-stroke-glass;
+                    Compose {
+                        x: (parent.width - 22px) / 2;
+                        y: (parent.height - 22px) / 2;
+                        size: 22px;
+                        tint: Theme.c-text;
+                    }
+                }
+            }
+        }
+
+        SearchField {
+            text-changed(t) => { root.search-changed(t); }
+        }
+
+        // Notification summary card
+        if root.request-count > 0: TouchArea {
+            height: 64px;
+            mouse-cursor: pointer;
+            clicked => { root.open-notifications(); }
+            GlassCard {
+                HorizontalLayout {
+                    padding-left: Theme.sp-4;
+                    padding-right: Theme.sp-4;
+                    spacing: Theme.sp-3;
+                    Rectangle {
+                        width: 38px;
+                        height: 38px;
+                        cross-axis-self-alignment: center;
+                        border-radius: 19px;
+                        background: Theme.c-accent-soft;
+                        BellFilled {
+                            x: (parent.width - 20px) / 2;
+                            y: (parent.height - 20px) / 2;
+                            size: 20px;
+                            tint: Theme.accent;
+                        }
+                    }
+                    VerticalLayout {
+                        height: 40px;
+                        cross-axis-self-alignment: center;
+                        spacing: 2px;
+                        Text {
+                            text: root.request-count == 1
+                                ? "1 friend request"
+                                : ("" + root.request-count + " friend requests");
+                            font-size: Theme.fs-body;
+                            font-weight: 700;
+                            color: Theme.c-text;
+                        }
+                        Text {
+                            text: "Tap to review";
+                            font-size: Theme.fs-caption;
+                            color: Theme.c-text-2;
+                        }
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                    ChevronRight {
+                        size: 18px;
+                        cross-axis-self-alignment: center;
+                        tint: Theme.c-text-3;
+                    }
+                }
+            }
+        }
+
+        // Chat list
+        if root.chats.length == 0: Rectangle {
+            vertical-stretch: 1;
+            EmptyState {
+                y: (parent.height - self.height) / 2;
+                title: "No conversations yet";
+                subtitle: "Find friends to start chatting.";
+            }
+        }
+        if root.chats.length > 0: Flickable {
+            vertical-stretch: 1;
+            VerticalLayout {
+                spacing: Theme.sp-2;
+                padding-bottom: 96px;
+                for chat in root.chats: ChatRow {
+                    chat: chat;
+                    open-chat => { root.open-chat(chat.index); }
+                }
+            }
+        }
+    }
+
+    // Floating bottom nav
+    NavBar {
+        x: (parent.width - self.width) / 2;
+        y: parent.height - self.height - 14px;
+        selected: 0;
+        requests: root.request-count;
+        select(i) => {
+            if (i == 1) { root.open-find(); }
+            if (i == 2) { root.open-profile(); }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// One message row: date pill, system line or bubble card
+// ---------------------------------------------------------------------------
+
+// One message row: date pill, system line or bubble card.
+// The row is a VerticalLayout so it auto-sizes to whichever conditional
+// variant is present (conditionals are absent from the item tree when false,
+// so the row collapses to the single visible child's height).
+component ChatBubbleRow inherits VerticalLayout {
+    in property <UiBubble> bubble;
+    in property <bool> group: false;
+    // Usable row width, fed from the screen (whose width is fixed by the
+    // window). A child must not reference a layout parent's width directly:
+    // a layout's geometry is computed from its children's layout info, so
+    // that reference is reported as a binding loop.
+    in property <length> available-width: 340px;
+    callback open-image;
+
+    // Date separator
+    if bubble.is-day-sep: Text {
+        height: 30px;
+        text: bubble.day;
+        font-size: Theme.fs-caption;
+        font-weight: 700;
+        color: Theme.c-text-3;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    // System / notice line
+    if bubble.kind == 2 && !bubble.is-day-sep: Text {
+        height: 30px;
+        text: bubble.text;
+        font-size: Theme.fs-caption;
+        color: Theme.c-text-3;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+        overflow: elide;
+    }
+
+    // Bubble card. Width hugs content via the inner layout's preferred width
+    // (capped), height comes from the inner layout's preferred height (wrap
+    // aware for the message text).
+    if bubble.kind != 2 && !bubble.is-day-sep: HorizontalLayout {
+        spacing: 6px;
+        Rectangle {
+            width: 0px;
+            horizontal-stretch: bubble.mine ? 1 : 0;
+        }
+        card := Rectangle {
+            // Width hug: a wrapped Text's preferred width depends on the width
+            // it is given, so measuring it here creates a layout binding loop.
+            // An approximate char-count hug (fs-body averages ~8.5px/char)
+            // keeps the graph acyclic.
+            width: bubble.has-image ? 232px
+                : Math.min(root.available-width - 12px,
+                    Math.max(76px, bubble.text.character-count * 8.5px));
+            height: inner.preferred-height;
+            border-radius: Theme.r-bubble;
+            background: bubble.mine
+                ? @linear-gradient(160deg, #4D8DFF 0%, #2F6BFF 85%)
+                : Theme.c-bubble-in;
+            drop-shadow-blur: 8px;
+            drop-shadow-color: bubble.mine ? rgba(47, 107, 255, 0.25) : Theme.c-shadow-soft;
+
+            inner := VerticalLayout {
+                padding-top: 9px;
+                padding-bottom: 8px;
+                padding-left: 14px;
+                padding-right: 14px;
+                spacing: 3px;
+
+                if group && !bubble.mine: Text {
+                    text: bubble.sender;
+                    font-size: Theme.fs-caption;
+                    font-weight: 700;
+                    color: Theme.accent-hi;
+                }
+                if bubble.has-image: TouchArea {
+                    height: 190px;
+                    mouse-cursor: pointer;
+                    clicked => { root.open-image(); }
+                    Image {
+                        width: parent.width;
+                        height: parent.height;
+                        source: bubble.image;
+                    }
+                }
+                if bubble.text != "": Text {
+                    text: bubble.text;
+                    font-size: Theme.fs-body;
+                    color: bubble.mine ? white : Theme.c-text;
+                    wrap: word-wrap;
+                }
+                HorizontalLayout {
+                    alignment: end;
+                    spacing: 4px;
+                    Text {
+                        text: bubble.time;
+                        font-size: 10px;
+                        color: bubble.mine ? rgba(255, 255, 255, 0.75) : Theme.c-text-3;
+                    }
+                    if bubble.mine: CheckDouble {
+                        size: 13px;
+                        cross-axis-self-alignment: center;
+                        tint: bubble.read ? white : rgba(255, 255, 255, 0.55);
+                    }
+                }
+            }
+        }
+        Rectangle {
+            width: 0px;
+            horizontal-stretch: bubble.mine ? 0 : 1;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Chat view screen
+// ---------------------------------------------------------------------------
+
+export component ChatScreen inherits Rectangle {
+    in property <string> title;
+    in property <string> subtitle;        // "online" / member count
+    in property <bool> other-online: false;
+    in property <string> peer-initials: "";
+    in property <int> peer-variant: 0;
+    in property <bool> peer-has-avatar: false;
+    in property <image> peer-avatar;
+    in property <bool> is-group: false;
+    in property <[UiBubble]> messages;
+    in property <string> typing-name: "";
+    in property <bool> blocked: false;
+    in property <bool> can-send: true;
+    in property <int> chat-index: 0;
+
+    callback back;
+    callback send(string);
+    callback open-info;
+    callback open-image(int);      // message index with image
+    callback pick-image;
+    callback load-more;
+    background: transparent;
+
+    in-out property <string> draft: "";
+    in-out property <bool> emoji-open: false;
+    // Set by Rust while a load-more request is in flight; reset when done.
+    in-out property <bool> loading-older: false;
+    // Follow new messages until the user scrolls away from the bottom.
+    private property <bool> stick: true;
+    private property <bool> has-draft: !root.draft.replace-all(" ", "").is-empty;
+
+    function send-draft() {
+        if (!root.draft.replace-all(" ", "").is-empty) {
+            root.send(root.draft);
+            root.draft = "";
+        }
+    }
+
+    VerticalLayout {
+        // --- Top bar ---
+        HorizontalLayout {
+            height: Theme.bar-h + 8px;
+            padding-left: Theme.sp-4;
+            padding-right: Theme.sp-4;
+            padding-top: 8px;
+            spacing: Theme.sp-3;
+            alignment: start;
+
+            TouchArea {
+                width: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.back(); }
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    y: (parent.height - 40px) / 2;
+                    border-radius: 20px;
+                    background: Theme.c-surface-alpha;
+                    border-width: 1px;
+                    border-color: Theme.c-stroke-glass;
+                    ChevronLeft {
+                        x: (parent.width - 22px) / 2;
+                        y: (parent.height - 22px) / 2;
+                        size: 22px;
+                        tint: Theme.c-text;
+                    }
+                }
+            }
+            TouchArea {
+                width: 44px;
+                mouse-cursor: pointer;
+                clicked => { root.open-info(); }
+                Avatar {
+                    size: 44px;
+                    y: (parent.height - 44px) / 2;
+                    initials: root.peer-initials;
+                    variant: root.peer-variant;
+                    has-image: root.peer-has-avatar;
+                    image: root.peer-avatar;
+                    online: root.other-online;
+                }
+            }
+            VerticalLayout {
+                height: 44px;
+                cross-axis-self-alignment: center;
+                spacing: 1px;
+                Text {
+                    text: root.title;
+                    font-size: Theme.fs-body-lg;
+                    font-weight: 700;
+                    color: Theme.c-text;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+                Text {
+                    text: root.typing-name != ""
+                        ? (root.is-group ? (root.typing-name + " is typing…") : "typing…")
+                        : root.subtitle;
+                    font-size: Theme.fs-caption;
+                    color: root.typing-name != "" ? Theme.accent : Theme.c-text-2;
+                }
+            }
+            Rectangle { horizontal-stretch: 1; }
+            TouchArea {
+                width: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.open-info(); }
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    y: (parent.height - 40px) / 2;
+                    border-radius: 20px;
+                    background: Theme.c-surface-alpha;
+                    border-width: 1px;
+                    border-color: Theme.c-stroke-glass;
+                    DotsVertical {
+                        x: (parent.width - 22px) / 2;
+                        y: (parent.height - 22px) / 2;
+                        size: 22px;
+                        tint: Theme.c-text;
+                    }
+                }
+            }
+        }
+        Hairline { }
+
+        // --- Messages ---
+        if root.blocked: Rectangle {
+            vertical-stretch: 1;
+            EmptyState {
+                y: (parent.height - self.height) / 2;
+                title: "You can't message this account";
+                subtitle: "Blocking is active on one side.";
+            }
+        }
+        if !root.blocked: Flickable {
+            vertical-stretch: 1;
+
+            // Keep newest messages visible while following, and re-engage
+            // following whenever the user returns to the bottom.
+            changed content-height => {
+                if (root.stick
+                    || self.content-y >= -(self.content-height - self.height) - 60px) {
+                    self.content-y = -Math.max(0px, self.content-height - self.height);
+                }
+            }
+            changed content-y => {
+                root.stick = self.content-y >= -(self.content-height - self.height) - 60px;
+                if (self.content-y >= -40px && !root.loading-older && root.messages.length > 0) {
+                    root.loading-older = true;
+                    root.load-more();
+                }
+            }
+
+            VerticalLayout {
+                padding-left: Theme.sp-4;
+                padding-right: Theme.sp-4;
+                padding-top: Theme.sp-2;
+                padding-bottom: Theme.sp-2;
+                spacing: Theme.sp-2;
+                for msg in root.messages: ChatBubbleRow {
+                    bubble: msg;
+                    group: root.is-group;
+                    available-width: root.width - Theme.sp-4 * 2;
+                    open-image => { root.open-image(msg.index); }
+                }
+                // typing indicator row
+                if root.typing-name != "": HorizontalLayout {
+                    height: 40px;
+                    alignment: start;
+                    TypingBubble { }
+                }
+            }
+        }
+
+        // --- Emoji strip ---
+        if root.emoji-open && !root.blocked && root.can-send: HorizontalLayout {
+            height: 44px;
+            padding-left: Theme.sp-3;
+            padding-right: Theme.sp-3;
+            spacing: 6px;
+            alignment: start;
+            for e in ["👍", "❤️", "😂", "😮", "😢", "🎉", "🙏"]: TouchArea {
+                width: 44px;
+                mouse-cursor: pointer;
+                clicked => { root.draft = root.draft + e; }
+                Text {
+                    width: parent.width;
+                    height: parent.height;
+                    text: e;
+                    font-size: 22px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // --- Composer ---
+        if !root.blocked && root.can-send: HorizontalLayout {
+            height: 64px;
+            padding-left: Theme.sp-3;
+            padding-right: Theme.sp-3;
+            padding-top: Theme.sp-2;
+            padding-bottom: 12px;
+            spacing: Theme.sp-2;
+            alignment: start;
+
+            TouchArea {
+                width: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.pick-image(); }
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    y: (parent.height - 40px) / 2;
+                    border-radius: 20px;
+                    background: Theme.c-surface-alpha;
+                    border-width: 1px;
+                    border-color: Theme.c-stroke-glass;
+                    Plus {
+                        x: (parent.width - 20px) / 2;
+                        y: (parent.height - 20px) / 2;
+                        size: 20px;
+                        tint: Theme.c-text;
+                    }
+                }
+            }
+            GlassCard {
+                radius: 24px;
+                horizontal-stretch: 1;
+                height: 44px;
+                clip: true;
+                VerticalLayout {
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    padding-left: 14px;
+                    padding-right: 10px;
+                    input := TextInput {
+                        text <=> root.draft;
+                        font-size: Theme.fs-body;
+                        color: Theme.c-text;
+                        accepted() => { root.send-draft(); }
+                    }
+                }
+                if root.draft.is-empty: Text {
+                    x: 14px;
+                    y: (parent.height - self.height) / 2;
+                    text: "Message";
+                    font-size: Theme.fs-body;
+                    color: Theme.c-text-3;
+                }
+            }
+            TouchArea {
+                width: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.emoji-open = !root.emoji-open; }
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    y: (parent.height - 40px) / 2;
+                    border-radius: 20px;
+                    background: Theme.c-surface-alpha;
+                    border-width: 1px;
+                    border-color: Theme.c-stroke-glass;
+                    Smile {
+                        x: (parent.width - 22px) / 2;
+                        y: (parent.height - 22px) / 2;
+                        size: 22px;
+                        tint: Theme.c-text;
+                    }
+                }
+            }
+            TouchArea {
+                width: 44px;
+                mouse-cursor: pointer;
+                clicked => { root.send-draft(); }
+                Rectangle {
+                    width: 44px;
+                    height: 44px;
+                    y: (parent.height - 44px) / 2;
+                    border-radius: 22px;
+                    background: !root.has-draft
+                        ? Theme.c-surface-alpha
+                        : @linear-gradient(180deg, #4D8DFF 0%, #2F6BFF 100%);
+                    drop-shadow-blur: root.has-draft ? 10px : 0px;
+                    drop-shadow-color: rgba(47, 107, 255, 0.4);
+                    Send {
+                        x: (parent.width - 20px) / 2;
+                        y: (parent.height - 20px) / 2;
+                        size: 20px;
+                        tint: root.has-draft ? white : Theme.c-text-2;
+                    }
+                }
+            }
+        }
+
+        // --- Read-only notice ---
+        if !root.blocked && !root.can-send: Rectangle {
+            height: 48px;
+            Text {
+                width: parent.width;
+                height: parent.height;
+                text: "Only admins can send messages here.";
+                font-size: Theme.fs-caption;
+                color: Theme.c-text-3;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+    }
+}

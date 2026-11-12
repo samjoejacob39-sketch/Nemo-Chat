@@ -1,0 +1,338 @@
+// Group creation and group info screens.
+
+import { Theme } from "../theme.slint";
+import { Users, Check } from "../icons.slint";
+import {
+    GlassCard, Hairline, SearchField, Avatar, PrimaryButton, GhostButton,
+    PillTag, SectionLabel, TopBar, NookField,
+} from "../widgets.slint";
+import { Chip, LinkRow, ToggleRow } from "social.slint";
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+export struct UiFriendPick {
+    id: int,
+    name: string,
+    handle: string,
+    initials: string,
+    variant: int,
+    selected: bool,
+}
+
+export struct UiMember {
+    id: int,
+    name: string,
+    handle: string,
+    initials: string,
+    variant: int,
+    admin: bool,
+}
+
+// ---------------------------------------------------------------------------
+// Rows
+// ---------------------------------------------------------------------------
+
+component FriendPickRow inherits Rectangle {
+    in property <UiFriendPick> friend;
+    callback toggle;
+
+    height: 66px;
+
+    TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.toggle(); }
+        GlassCard {
+            radius: Theme.r-row;
+            HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 12px;
+                spacing: Theme.sp-3;
+                Avatar {
+                    size: 42px;
+                    cross-axis-self-alignment: center;
+                    initials: friend.initials;
+                    variant: friend.variant;
+                }
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    height: 40px;
+                    cross-axis-self-alignment: center;
+                    spacing: 2px;
+                    Text {
+                        text: friend.name;
+                        font-size: Theme.fs-body;
+                        font-weight: 700;
+                        color: Theme.c-text;
+                        overflow: elide;
+                    }
+                    Text {
+                        text: "@" + friend.handle;
+                        font-size: Theme.fs-caption;
+                        color: Theme.c-text-2;
+                        overflow: elide;
+                    }
+                }
+                Rectangle {
+                    width: 24px;
+                    height: 24px;
+                    cross-axis-self-alignment: center;
+                    border-radius: 12px;
+                    background: friend.selected ? Theme.accent : Theme.c-surface-alpha;
+                    border-width: friend.selected ? 0px : 1.5px;
+                    border-color: Theme.c-text-3;
+                    if friend.selected: Check {
+                        x: 5px;
+                        y: 5px;
+                        size: 14px;
+                        tint: white;
+                    }
+                }
+            }
+        }
+    }
+}
+
+component MemberRow inherits Rectangle {
+    in property <UiMember> member;
+    in property <bool> viewer-admin: false;
+    callback remove;
+
+    height: 60px;
+
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 12px;
+        spacing: 10px;
+        Avatar {
+            size: 36px;
+            cross-axis-self-alignment: center;
+            initials: member.initials;
+            variant: member.variant;
+        }
+        Text {
+            horizontal-stretch: 1;
+            text: member.name;
+            font-size: Theme.fs-body;
+            font-weight: 600;
+            color: Theme.c-text;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+        if member.admin: PillTag {
+            text: "Admin";
+            cross-axis-self-alignment: center;
+        }
+        if root.viewer-admin && !member.admin: Chip {
+            text: "Remove";
+            bg: Theme.c-surface-alpha;
+            fg: Theme.c-text-2;
+            cross-axis-self-alignment: center;
+            clicked => { root.remove(); }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Create group
+// ---------------------------------------------------------------------------
+
+export component CreateGroupScreen inherits Rectangle {
+    in property <[UiFriendPick]> friends;
+    in property <int> selected-count: 0;
+    in-out property <string> name: "";
+    in-out property <string> query: "";
+    callback back;
+    callback search-changed(string);
+    callback toggle-member(int);
+    callback create;
+    background: transparent;
+
+    VerticalLayout {
+        TopBar {
+            title: "New Group";
+            back => { root.back(); }
+        }
+
+        VerticalLayout {
+            padding-left: Theme.sp-4;
+            padding-right: Theme.sp-4;
+            padding-top: 4px;
+            padding-bottom: Theme.sp-3;
+            spacing: Theme.sp-3;
+
+            // Group identity card
+            GlassCard {
+                height: 112px;
+                HorizontalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    spacing: 14px;
+                    Rectangle {
+                        width: 56px;
+                        height: 56px;
+                        cross-axis-self-alignment: center;
+                        border-radius: 28px;
+                        background: Theme.c-accent-soft;
+                        Users {
+                            x: (parent.width - 28px) / 2;
+                            y: (parent.height - 28px) / 2;
+                            size: 28px;
+                            tint: Theme.accent;
+                        }
+                    }
+                    NookField {
+                        horizontal-stretch: 1;
+                        cross-axis-self-alignment: center;
+                        label: "Group name";
+                        placeholder: "e.g. Trail Crew";
+                        text <=> root.name;
+                    }
+                }
+            }
+
+            SearchField {
+                text <=> root.query;
+                text-changed(t) => { root.search-changed(t); }
+            }
+
+            SectionLabel { text: "ADD PEOPLE"; }
+
+            Flickable {
+                vertical-stretch: 1;
+                VerticalLayout {
+                    spacing: Theme.sp-2;
+                    padding-bottom: Theme.sp-3;
+                    for f in root.friends: FriendPickRow {
+                        friend: f;
+                        toggle => { root.toggle-member(f.id); }
+                    }
+                }
+            }
+
+            PrimaryButton {
+                text: "Create group (" + root.selected-count + ")";
+                enabled: root.name != "" && root.selected-count >= 1;
+                clicked => { root.create(); }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Group info
+// ---------------------------------------------------------------------------
+
+export component GroupInfoScreen inherits Rectangle {
+    in property <string> group-name: "";
+    in property <string> group-initials: "";
+    in property <int> group-variant: 0;
+    in property <int> member-count: 0;
+    in property <[UiMember]> members;
+    in property <bool> is-admin: false;
+    in-out property <bool> muted: false;
+    callback back;
+    callback leave;
+    background: transparent;
+
+    VerticalLayout {
+        TopBar {
+            title: "Group info";
+            back => { root.back(); }
+        }
+
+        Flickable {
+            vertical-stretch: 1;
+            VerticalLayout {
+                padding-left: Theme.sp-4;
+                padding-right: Theme.sp-4;
+                padding-top: 4px;
+                padding-bottom: Theme.sp-5;
+                spacing: Theme.sp-3;
+
+                // Hero card
+                GlassCard {
+                    strong: true;
+                    height: 196px;
+                    VerticalLayout {
+                        padding-top: 20px;
+                        padding-bottom: 18px;
+                        padding-left: 20px;
+                        padding-right: 20px;
+                        spacing: 8px;
+                        cross-axis-alignment: center;
+                        Avatar {
+                            size: 80px;
+                            initials: root.group-initials;
+                            variant: root.group-variant;
+                        }
+                        Text {
+                            height: 28px;
+                            text: root.group-name;
+                            font-size: Theme.fs-title;
+                            font-weight: 800;
+                            color: Theme.c-text;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            height: 16px;
+                            text: root.member-count + " members";
+                            font-size: Theme.fs-small;
+                            color: Theme.c-text-2;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+
+                GlassCard {
+                    height: 58px;
+                    VerticalLayout {
+                        ToggleRow {
+                            title: "Mute notifications";
+                            subtitle: "Silence this group";
+                            checked <=> root.muted;
+                        }
+                    }
+                }
+
+                SectionLabel { text: "MEMBERS · " + root.member-count; }
+                GlassCard {
+                    height: root.members.length * 60px;
+                    VerticalLayout {
+                        for m in root.members: MemberRow {
+                            member: m;
+                            viewer-admin: root.is-admin;
+                            remove => { }
+                        }
+                    }
+                }
+
+                if root.is-admin: SectionLabel { text: "ADMIN"; }
+                if root.is-admin: GlassCard {
+                    height: 117px;
+                    VerticalLayout {
+                        LinkRow {
+                            title: "Add members";
+                            subtitle: "Invite friends to this group";
+                            clicked => { }
+                        }
+                        Hairline { }
+                        LinkRow {
+                            title: "Rename group";
+                            clicked => { }
+                        }
+                    }
+                }
+
+                GhostButton {
+                    text: "Leave group";
+                    danger: true;
+                    clicked => { root.leave(); }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,952 @@
+// Notifications, Find Friends, Profile and Settings screens.
+//
+// Verified Slint 1.18.1 rules used here:
+// - `if` conditionals (absent from the item tree when false) instead of
+//   `visible:` for anything inside a layout.
+// - Layout children never set x/y; vertical centering uses
+//   `cross-axis-self-alignment: center`.
+// - Composite cards used as layout children get an explicit height (a bare
+//   Rectangle reports preferred height 0 and would collapse or balloon).
+// - Chip widths derive from `text.character-count` (pre-bound call, no parens).
+
+import { Theme } from "../theme.slint";
+import { ChevronRight, Gear } from "../icons.slint";
+import {
+    GlassCard, Hairline, SearchField, Avatar, EmptyState, NavBar, TopBar,
+    PillTag, SectionLabel, Toggle, GhostButton,
+} from "../widgets.slint";
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+export struct UiPerson {
+    id: int,
+    name: string,
+    handle: string,
+    initials: string,
+    variant: int,
+    online: bool,
+    subtitle: string,
+    state: int,          // 0 = can add, 1 = pending, 2 = friends
+    has-avatar: bool,
+    avatar: image,
+}
+
+export struct UiActivity {
+    id: int,
+    name: string,
+    initials: string,
+    variant: int,
+    action: string,
+    time: string,
+    unread: bool,
+}
+
+// ---------------------------------------------------------------------------
+// Action chip (auto width)
+// ---------------------------------------------------------------------------
+
+export component Chip inherits Rectangle {
+    in property <string> text: "";
+    in property <color> bg: Theme.c-accent-soft;
+    in property <color> fg: Theme.accent;
+    in property <bool> enabled: true;
+    callback clicked;
+
+    height: 32px;
+    width: text.character-count * 6.6px + 26px;
+    border-radius: self.height / 2;
+    background: root.bg;
+    border-width: 1px;
+    border-color: Theme.c-stroke-glass;
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+        Rectangle {
+            border-radius: root.border-radius;
+            background: white;
+            opacity: touch.pressed ? 0.18 : 0;
+            animate opacity { duration: 90ms; }
+        }
+    }
+    Text {
+        width: parent.width;
+        height: parent.height;
+        text: root.text;
+        font-size: Theme.fs-caption;
+        font-weight: 700;
+        color: root.fg;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Rows
+// ---------------------------------------------------------------------------
+
+component PersonRow inherits Rectangle {
+    in property <UiPerson> person;
+    callback primary;
+
+    height: 68px;
+
+    GlassCard {
+        radius: Theme.r-row;
+        HorizontalLayout {
+            padding-left: 12px;
+            padding-right: 12px;
+            spacing: Theme.sp-3;
+            Avatar {
+                size: 44px;
+                cross-axis-self-alignment: center;
+                initials: person.initials;
+                variant: person.variant;
+                online: person.online;
+                has-image: person.has-avatar;
+                image: person.avatar;
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                height: 42px;
+                cross-axis-self-alignment: center;
+                spacing: 2px;
+                Text {
+                    text: person.name;
+                    font-size: Theme.fs-body-lg;
+                    font-weight: 700;
+                    color: Theme.c-text;
+                    overflow: elide;
+                }
+                Text {
+                    text: "@" + person.handle;
+                    font-size: Theme.fs-caption;
+                    color: Theme.c-text-2;
+                    overflow: elide;
+                }
+            }
+            if person.state == 0: Chip {
+                text: "Add";
+                bg: Theme.accent;
+                fg: white;
+                cross-axis-self-alignment: center;
+                clicked => { root.primary(); }
+            }
+            if person.state == 1: Chip {
+                text: "Pending";
+                bg: Theme.c-surface-alpha;
+                fg: Theme.c-text-3;
+                enabled: false;
+                cross-axis-self-alignment: center;
+            }
+            if person.state == 2: Chip {
+                text: "Friends";
+                bg: Theme.c-accent-soft;
+                fg: Theme.accent;
+                enabled: false;
+                cross-axis-self-alignment: center;
+            }
+        }
+    }
+}
+
+component RequestRow inherits Rectangle {
+    in property <UiPerson> person;
+    callback accept;
+    callback decline;
+
+    height: 76px;
+
+    GlassCard {
+        radius: Theme.r-row;
+        HorizontalLayout {
+            padding-left: 12px;
+            padding-right: 10px;
+            spacing: 10px;
+            Avatar {
+                size: 48px;
+                cross-axis-self-alignment: center;
+                initials: person.initials;
+                variant: person.variant;
+                online: person.online;
+                has-image: person.has-avatar;
+                image: person.avatar;
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                height: 46px;
+                cross-axis-self-alignment: center;
+                spacing: 2px;
+                Text {
+                    text: person.name;
+                    font-size: Theme.fs-body-lg;
+                    font-weight: 700;
+                    color: Theme.c-text;
+                    overflow: elide;
+                }
+                Text {
+                    text: person.subtitle != "" ? person.subtitle : "@" + person.handle;
+                    font-size: Theme.fs-caption;
+                    color: Theme.c-text-2;
+                    overflow: elide;
+                }
+            }
+            Chip {
+                text: "Accept";
+                bg: Theme.accent;
+                fg: white;
+                cross-axis-self-alignment: center;
+                clicked => { root.accept(); }
+            }
+            Chip {
+                text: "Decline";
+                bg: Theme.danger-soft;
+                fg: Theme.danger;
+                cross-axis-self-alignment: center;
+                clicked => { root.decline(); }
+            }
+        }
+    }
+}
+
+component ActivityRow inherits Rectangle {
+    in property <string> name: "";
+    in property <string> initials: "";
+    in property <int> variant: 0;
+    in property <string> action: "";
+    in property <string> time: "";
+    in property <bool> unread: false;
+
+    height: 68px;
+
+    GlassCard {
+        radius: Theme.r-row;
+        HorizontalLayout {
+            padding-left: 12px;
+            padding-right: 14px;
+            spacing: Theme.sp-3;
+            Avatar {
+                size: 42px;
+                cross-axis-self-alignment: center;
+                initials: root.initials;
+                variant: root.variant;
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                height: 42px;
+                cross-axis-self-alignment: center;
+                spacing: 2px;
+                Text {
+                    text: root.name;
+                    font-size: Theme.fs-body;
+                    font-weight: 700;
+                    color: Theme.c-text;
+                    overflow: elide;
+                }
+                Text {
+                    text: root.action;
+                    font-size: Theme.fs-caption;
+                    color: Theme.c-text-2;
+                    overflow: elide;
+                }
+            }
+            Text {
+                text: root.time;
+                font-size: Theme.fs-caption;
+                color: Theme.c-text-3;
+                cross-axis-self-alignment: center;
+            }
+            if root.unread: Rectangle {
+                width: 8px;
+                height: 8px;
+                border-radius: 4px;
+                background: Theme.accent;
+                cross-axis-self-alignment: center;
+            }
+        }
+    }
+}
+
+// Settings-style link row (chevron on the right, optional danger styling).
+export component LinkRow inherits Rectangle {
+    in property <string> title: "";
+    in property <string> subtitle: "";
+    in property <bool> danger: false;
+    callback clicked;
+
+    height: 58px;
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+    HorizontalLayout {
+        padding-left: 16px;
+        padding-right: 14px;
+        spacing: Theme.sp-2;
+        VerticalLayout {
+            horizontal-stretch: 1;
+            height: 40px;
+            cross-axis-self-alignment: center;
+            spacing: 1px;
+            Text {
+                text: root.title;
+                font-size: Theme.fs-body;
+                font-weight: 600;
+                color: root.danger ? Theme.danger : Theme.c-text;
+                vertical-alignment: center;
+            }
+            if root.subtitle != "": Text {
+                text: root.subtitle;
+                font-size: Theme.fs-caption;
+                color: Theme.c-text-3;
+                vertical-alignment: center;
+                overflow: elide;
+            }
+        }
+        if !root.danger: ChevronRight {
+            size: 16px;
+            cross-axis-self-alignment: center;
+            tint: Theme.c-text-3;
+        }
+    }
+}
+
+// Settings row with a glass toggle switch.
+export component ToggleRow inherits Rectangle {
+    in property <string> title: "";
+    in property <string> subtitle: "";
+    in-out property <bool> checked: false;
+    callback toggled(bool);
+
+    height: 58px;
+
+    HorizontalLayout {
+        padding-left: 16px;
+        padding-right: 14px;
+        spacing: Theme.sp-3;
+        VerticalLayout {
+            horizontal-stretch: 1;
+            height: 40px;
+            cross-axis-self-alignment: center;
+            spacing: 1px;
+            Text {
+                text: root.title;
+                font-size: Theme.fs-body;
+                font-weight: 600;
+                color: Theme.c-text;
+                vertical-alignment: center;
+            }
+            if root.subtitle != "": Text {
+                text: root.subtitle;
+                font-size: Theme.fs-caption;
+                color: Theme.c-text-3;
+                vertical-alignment: center;
+                overflow: elide;
+            }
+        }
+        Toggle {
+            cross-axis-self-alignment: center;
+            checked: root.checked;
+            toggled(v) => {
+                root.checked = v;
+                root.toggled(v);
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Notifications (friend requests + activity)
+// ---------------------------------------------------------------------------
+
+export component NotificationsScreen inherits Rectangle {
+    in property <[UiPerson]> requests;
+    in property <[UiActivity]> activity;
+    in-out property <int> tab: 0;
+    callback back;
+    callback accept-request(int);
+    callback decline-request(int);
+    background: transparent;
+
+    VerticalLayout {
+        TopBar {
+            title: "Notifications";
+            back => { root.back(); }
+        }
+
+        VerticalLayout {
+            padding-left: Theme.sp-4;
+            padding-right: Theme.sp-4;
+            padding-top: 4px;
+            spacing: Theme.sp-3;
+
+            // Segmented glass switcher
+            Rectangle {
+                height: 42px;
+                border-radius: 21px;
+                background: Theme.c-surface-alpha;
+                border-width: 1px;
+                border-color: Theme.c-stroke-glass;
+
+                HorizontalLayout {
+                    padding: 4px;
+                    spacing: 4px;
+
+                    TouchArea {
+                        horizontal-stretch: 1;
+                        mouse-cursor: pointer;
+                        clicked => { root.tab = 0; }
+                        Rectangle {
+                            width: parent.width;
+                            height: parent.height;
+                            border-radius: 17px;
+                            background: root.tab == 0 ? Theme.c-surface-strong : transparent;
+                            drop-shadow-blur: root.tab == 0 ? 8px : 0px;
+                            drop-shadow-color: Theme.c-shadow-soft;
+                            animate background { duration: 160ms; }
+                            Text {
+                                width: parent.width;
+                                height: parent.height;
+                                text: "Requests · " + root.requests.length;
+                                font-size: Theme.fs-small;
+                                font-weight: 700;
+                                color: root.tab == 0 ? Theme.c-text : Theme.c-text-2;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                    TouchArea {
+                        horizontal-stretch: 1;
+                        mouse-cursor: pointer;
+                        clicked => { root.tab = 1; }
+                        Rectangle {
+                            width: parent.width;
+                            height: parent.height;
+                            border-radius: 17px;
+                            background: root.tab == 1 ? Theme.c-surface-strong : transparent;
+                            drop-shadow-blur: root.tab == 1 ? 8px : 0px;
+                            drop-shadow-color: Theme.c-shadow-soft;
+                            animate background { duration: 160ms; }
+                            Text {
+                                width: parent.width;
+                                height: parent.height;
+                                text: "Activity";
+                                font-size: Theme.fs-small;
+                                font-weight: 700;
+                                color: root.tab == 1 ? Theme.c-text : Theme.c-text-2;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Pending requests
+            if root.tab == 0 && root.requests.length == 0: Rectangle {
+                vertical-stretch: 1;
+                EmptyState {
+                    y: (parent.height - self.height) / 2;
+                    title: "No pending requests";
+                    subtitle: "New friend requests will appear here.";
+                }
+            }
+            if root.tab == 0 && root.requests.length > 0: Flickable {
+                vertical-stretch: 1;
+                VerticalLayout {
+                    spacing: Theme.sp-2;
+                    padding-bottom: Theme.sp-4;
+                    for req in root.requests: RequestRow {
+                        person: req;
+                        accept => { root.accept-request(req.id); }
+                        decline => { root.decline-request(req.id); }
+                    }
+                }
+            }
+
+            // Activity feed
+            if root.tab == 1 && root.activity.length == 0: Rectangle {
+                vertical-stretch: 1;
+                EmptyState {
+                    y: (parent.height - self.height) / 2;
+                    title: "All caught up";
+                    subtitle: "Reactions, requests and group invites show up here.";
+                }
+            }
+            if root.tab == 1 && root.activity.length > 0: Flickable {
+                vertical-stretch: 1;
+                VerticalLayout {
+                    spacing: Theme.sp-2;
+                    padding-bottom: Theme.sp-4;
+                    for item in root.activity: ActivityRow {
+                        name: item.name;
+                        initials: item.initials;
+                        variant: item.variant;
+                        action: item.action;
+                        time: item.time;
+                        unread: item.unread;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Find Friends
+// ---------------------------------------------------------------------------
+
+export component FindScreen inherits Rectangle {
+    in property <[UiPerson]> suggested;
+    in property <int> pending-count: 0;
+    in-out property <string> query: "";
+    callback search-changed(string);
+    callback add-friend(int);
+    callback open-chats;
+    callback open-profile;
+    background: transparent;
+
+    VerticalLayout {
+        padding-left: Theme.sp-5;
+        padding-right: Theme.sp-5;
+        padding-top: 8px;
+        spacing: Theme.sp-3;
+
+        HorizontalLayout {
+            height: Theme.bar-h;
+            spacing: Theme.sp-2;
+            Text {
+                text: "Find Friends";
+                font-size: Theme.fs-title;
+                font-weight: 800;
+                color: Theme.c-text;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            if root.pending-count > 0: PillTag {
+                text: root.pending-count + " pending";
+                cross-axis-self-alignment: center;
+            }
+        }
+
+        SearchField {
+            text <=> root.query;
+            text-changed(t) => { root.search-changed(t); }
+        }
+
+        SectionLabel { text: "SUGGESTED FOR YOU"; }
+
+        if root.suggested.length == 0: Rectangle {
+            vertical-stretch: 1;
+            EmptyState {
+                y: (parent.height - self.height) / 2;
+                title: "No one found";
+                subtitle: "Try a different name or username.";
+            }
+        }
+        if root.suggested.length > 0: Flickable {
+            vertical-stretch: 1;
+            VerticalLayout {
+                spacing: Theme.sp-2;
+                padding-bottom: 96px;
+                for p in root.suggested: PersonRow {
+                    person: p;
+                    primary => { root.add-friend(p.id); }
+                }
+            }
+        }
+    }
+
+    NavBar {
+        x: (parent.width - self.width) / 2;
+        y: parent.height - self.height - 14px;
+        selected: 1;
+        requests: root.pending-count;
+        select(i) => {
+            if (i == 0) { root.open-chats(); }
+            if (i == 2) { root.open-profile(); }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Profile
+// ---------------------------------------------------------------------------
+
+export component ProfileScreen inherits Rectangle {
+    in property <string> display-name: "";
+    in property <string> handle: "";
+    in property <string> bio: "";
+    in property <string> initials: "";
+    in property <int> variant: 0;
+    in property <bool> online: false;
+    in property <bool> has-avatar: false;
+    in property <image> avatar;
+    in property <int> friend-count: 0;
+    in property <int> group-count: 0;
+    callback open-settings;
+    callback open-chats;
+    callback open-find;
+    callback log-out;
+    background: transparent;
+
+    VerticalLayout {
+        padding-left: Theme.sp-4;
+        padding-right: Theme.sp-4;
+        padding-top: 8px;
+        spacing: Theme.sp-3;
+
+        HorizontalLayout {
+            height: Theme.bar-h;
+            spacing: Theme.sp-2;
+            Text {
+                text: "Profile";
+                font-size: Theme.fs-title;
+                font-weight: 800;
+                color: Theme.c-text;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            TouchArea {
+                width: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.open-settings(); }
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    y: (parent.height - 40px) / 2;
+                    border-radius: 20px;
+                    background: Theme.c-surface-alpha;
+                    border-width: 1px;
+                    border-color: Theme.c-stroke-glass;
+                    Gear {
+                        x: (parent.width - 20px) / 2;
+                        y: (parent.height - 20px) / 2;
+                        size: 20px;
+                        tint: Theme.c-text;
+                    }
+                }
+            }
+        }
+
+        Flickable {
+            vertical-stretch: 1;
+            VerticalLayout {
+                spacing: Theme.sp-3;
+                padding-bottom: 96px;
+
+                // Hero card
+                GlassCard {
+                    strong: true;
+                    height: 306px;
+                    VerticalLayout {
+                        padding-top: 18px;
+                        padding-bottom: 16px;
+                        padding-left: 20px;
+                        padding-right: 20px;
+                        spacing: 6px;
+                        cross-axis-alignment: center;
+                        Avatar {
+                            size: 84px;
+                            initials: root.initials;
+                            variant: root.variant;
+                            online: root.online;
+                            has-image: root.has-avatar;
+                            image: root.avatar;
+                        }
+                        Text {
+                            height: 30px;
+                            text: root.display-name;
+                            font-size: Theme.fs-large;
+                            font-weight: 800;
+                            color: Theme.c-text;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            height: 16px;
+                            text: "@" + root.handle;
+                            font-size: Theme.fs-small;
+                            color: Theme.c-text-2;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            height: 16px;
+                            width: 280px;
+                            text: root.bio;
+                            font-size: Theme.fs-small;
+                            color: Theme.c-text-2;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                            overflow: elide;
+                        }
+                        HorizontalLayout {
+                            height: 42px;
+                            spacing: Theme.sp-6;
+                            alignment: center;
+                            VerticalLayout {
+                                width: 80px;
+                                cross-axis-self-alignment: center;
+                                spacing: 0px;
+                                Text {
+                                    height: 26px;
+                                    text: root.friend-count;
+                                    font-size: Theme.fs-title;
+                                    font-weight: 800;
+                                    color: Theme.c-text;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                                Text {
+                                    height: 14px;
+                                    text: "Friends";
+                                    font-size: Theme.fs-caption;
+                                    color: Theme.c-text-3;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                            Rectangle {
+                                width: 1px;
+                                height: 28px;
+                                background: Theme.c-hairline;
+                                cross-axis-self-alignment: center;
+                            }
+                            VerticalLayout {
+                                width: 80px;
+                                cross-axis-self-alignment: center;
+                                spacing: 0px;
+                                Text {
+                                    height: 26px;
+                                    text: root.group-count;
+                                    font-size: Theme.fs-title;
+                                    font-weight: 800;
+                                    color: Theme.c-text;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                                Text {
+                                    height: 14px;
+                                    text: "Groups";
+                                    font-size: Theme.fs-caption;
+                                    color: Theme.c-text-3;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+                        GhostButton {
+                            text: "Edit profile";
+                            clicked => { root.open-settings(); }
+                        }
+                    }
+                }
+
+                SectionLabel { text: "ACCOUNT"; }
+                GlassCard {
+                    height: 117px;
+                    VerticalLayout {
+                        LinkRow {
+                            title: "Account settings";
+                            subtitle: "Password and recovery codes";
+                            clicked => { root.open-settings(); }
+                        }
+                        Hairline { }
+                        LinkRow {
+                            title: "Privacy & safety";
+                            subtitle: "Requests and blocked accounts";
+                            clicked => { root.open-settings(); }
+                        }
+                    }
+                }
+
+                GlassCard {
+                    height: 58px;
+                    VerticalLayout {
+                        LinkRow {
+                            title: "Log out";
+                            danger: true;
+                            clicked => { root.log-out(); }
+                        }
+                    }
+                }
+
+                Text {
+                    height: 30px;
+                    text: "Nemo 0.1.0 · Rust + Slint";
+                    font-size: Theme.fs-caption;
+                    color: Theme.c-text-3;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+
+    NavBar {
+        x: (parent.width - self.width) / 2;
+        y: parent.height - self.height - 14px;
+        selected: 2;
+        select(i) => {
+            if (i == 0) { root.open-chats(); }
+            if (i == 1) { root.open-find(); }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Settings
+// ---------------------------------------------------------------------------
+
+export component SettingsScreen inherits Rectangle {
+    in property <bool> dark: false;
+    in property <bool> read-receipts: true;
+    in property <bool> push: true;
+    in property <bool> sounds: true;
+    callback back;
+    callback toggled-dark(bool);
+    callback toggled-read-receipts(bool);
+    callback toggled-push(bool);
+    callback toggled-sounds(bool);
+    callback change-password;
+    callback show-recovery-codes;
+    callback open-policy(string);
+    callback delete-account;
+    background: transparent;
+
+    VerticalLayout {
+        TopBar {
+            title: "Settings";
+            back => { root.back(); }
+        }
+
+        Flickable {
+            vertical-stretch: 1;
+            VerticalLayout {
+                padding-left: Theme.sp-4;
+                padding-right: Theme.sp-4;
+                padding-top: 4px;
+                padding-bottom: Theme.sp-5;
+                spacing: Theme.sp-3;
+
+                SectionLabel { text: "ACCOUNT"; }
+                GlassCard {
+                    height: 117px;
+                    VerticalLayout {
+                        LinkRow {
+                            title: "Change password";
+                            subtitle: "You'll receive fresh recovery codes";
+                            clicked => { root.change-password(); }
+                        }
+                        Hairline { }
+                        LinkRow {
+                            title: "Recovery codes";
+                            subtitle: "View and regenerate";
+                            clicked => { root.show-recovery-codes(); }
+                        }
+                    }
+                }
+
+                SectionLabel { text: "PRIVACY"; }
+                GlassCard {
+                    height: 117px;
+                    VerticalLayout {
+                        ToggleRow {
+                            title: "Read receipts";
+                            subtitle: "Let friends see when you read messages";
+                            checked: root.read-receipts;
+                            toggled(v) => { root.toggled-read-receipts(v); }
+                        }
+                        Hairline { }
+                        LinkRow {
+                            title: "Who can send friend requests";
+                            subtitle: "Friends of friends";
+                            clicked => { }
+                        }
+                    }
+                }
+
+                SectionLabel { text: "NOTIFICATIONS"; }
+                GlassCard {
+                    height: 117px;
+                    VerticalLayout {
+                        ToggleRow {
+                            title: "Push notifications";
+                            subtitle: "New messages and requests";
+                            checked: root.push;
+                            toggled(v) => { root.toggled-push(v); }
+                        }
+                        Hairline { }
+                        ToggleRow {
+                            title: "Message sounds";
+                            checked: root.sounds;
+                            toggled(v) => { root.toggled-sounds(v); }
+                        }
+                    }
+                }
+
+                SectionLabel { text: "APPEARANCE"; }
+                GlassCard {
+                    height: 58px;
+                    VerticalLayout {
+                        ToggleRow {
+                            title: "Dark mode";
+                            subtitle: "Deep navy glass theme";
+                            checked: root.dark;
+                            toggled(v) => { root.toggled-dark(v); }
+                        }
+                    }
+                }
+
+                SectionLabel { text: "LEGAL"; }
+                GlassCard {
+                    height: 176px;
+                    VerticalLayout {
+                        LinkRow {
+                            title: "Terms of service";
+                            clicked => { root.open-policy("terms"); }
+                        }
+                        Hairline { }
+                        LinkRow {
+                            title: "Privacy policy";
+                            clicked => { root.open-policy("privacy"); }
+                        }
+                        Hairline { }
+                        LinkRow {
+                            title: "Community guidelines";
+                            clicked => { root.open-policy("guidelines"); }
+                        }
+                    }
+                }
+
+                SectionLabel { text: "DANGER ZONE"; }
+                GlassCard {
+                    height: 58px;
+                    VerticalLayout {
+                        LinkRow {
+                            title: "Delete account";
+                            subtitle: "This cannot be undone";
+                            danger: true;
+                            clicked => { root.delete-account(); }
+                        }
+                    }
+                }
+
+                Text {
+                    height: 40px;
+                    text: "Nemo 0.1.0 · made with Rust and Slint";
+                    font-size: Theme.fs-caption;
+                    color: Theme.c-text-3;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+}
