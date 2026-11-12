@@ -196,6 +196,8 @@ export component AppWindow inherits Window {
     }
     if screen == "find": FindScreen {
         suggested: root.find-results;
+        requests: root.requests;
+        friends: root.find-results;
         pending-count: 2;
         search-changed(q) => { }
         add-friend(id) => { }
