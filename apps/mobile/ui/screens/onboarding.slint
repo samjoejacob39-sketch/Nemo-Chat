@@ -807,53 +807,413 @@ export component SignUpScreen inherits Rectangle {
 
 // ---------------------------------------------------------------------------
 // Recovery codes reveal (right after sign-up)
-// ---------------------------------------------------------------------------
-
+// Recovery codes screen — monochrome Liquid Glass (mobile-first).
 export component RecoveryScreen inherits Rectangle {
     in property <[string]> codes;
-    callback saved;   // -> login
+    callback saved;   // -> terms
     background: transparent;
 
+    in-out property <bool> dark: Theme.is-dark;
+    in-out property <bool> confirmed: false;
+
+    property <color> ink: dark ? #f3f3f1 : #171717;
+    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
+    property <color> muted: dark ? #a1a19d : #777774;
+    property <color> line: dark ? rgba(255,255,255,0.11) : rgba(25,25,25,0.09);
+    property <color> glass: dark ? rgba(42,42,42,0.58) : rgba(255,255,255,0.57);
+    property <color> glass-strong: dark ? rgba(52,52,52,0.76) : rgba(255,255,255,0.76);
+    property <color> field: dark ? rgba(18,18,18,0.62) : rgba(247,247,248,0.74);
+
     VerticalLayout {
-        padding-left: Theme.sp-6;
-        padding-right: Theme.sp-6;
-        padding-top: 8px;
-        padding-bottom: Theme.sp-6;
-        spacing: Theme.sp-4;
+        padding-left: 18px;
+        padding-right: 18px;
+        padding-top: 18px;
+        padding-bottom: 16px;
+        spacing: 0px;
 
-        Text {
-            text: "Save your recovery codes";
-            font-size: Theme.fs-large;
-            font-weight: 800;
-            color: Theme.c-text;
-        }
-        Text {
-            text: "Nemo has no email or phone. If you ever forget your password, a recovery code is the only way back in. Write them down and keep them somewhere safe.";
-            font-size: Theme.fs-body;
-            color: Theme.c-text-2;
-            wrap: word-wrap;
+        // Ambient blobs
+        Rectangle {
+            height: 0px;
+            Rectangle {
+                x: -155px; y: parent.height * 0.18;
+                width: 300px; height: 300px;
+                border-radius: 150px;
+                background: dark
+                    ? @radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(180,180,180,0.08) 68%, transparent 72%)
+                    : @radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.12) 68%, transparent 72%);
+                opacity: 0.55;
+            }
+            Rectangle {
+                x: parent.width - 220px; y: parent.height - 120px;
+                width: 360px; height: 360px;
+                border-radius: 180px;
+                background: dark
+                    ? @radial-gradient(circle, rgba(255,255,255,0.10) 0%, rgba(180,180,185,0.06) 68%, transparent 72%)
+                    : @radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(180,180,185,0.12) 68%, transparent 72%);
+                opacity: 0.55;
+            }
         }
 
-        GlassCard {
+        // Top bar
+        HorizontalLayout {
+            height: 34px;
+            alignment: start;
+            spacing: 0px;
+            TouchArea {
+                width: 38px; height: 38px;
+                mouse-cursor: pointer;
+                clicked => { }
+                Rectangle {
+                    width: 38px; height: 38px;
+                    border-radius: 19px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 16px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 5px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: "←";
+                        font-size: 18px;
+                        color: ink-soft;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+            Rectangle { horizontal-stretch: 1; }
+            Text {
+                text: "ACCOUNT SECURITY · 03 / 14";
+                font-size: 10px;
+                font-weight: 750;
+                color: muted;
+                letter-spacing: 1.6px;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            Text {
+                text: "nemo.";
+                font-size: 17px;
+                font-weight: 800;
+                color: ink;
+                letter-spacing: -0.45px;
+                vertical-alignment: center;
+            }
+        }
+
+        // Content
+        Rectangle {
             vertical-stretch: 1;
             VerticalLayout {
-                padding: Theme.sp-4;
-                spacing: Theme.sp-2;
                 alignment: center;
-                for code in root.codes: Text {
-                    text: code;
-                    font-size: Theme.fs-body-lg;
-                    font-weight: 700;
-                    color: Theme.c-text;
-                    horizontal-alignment: center;
-                    letter-spacing: 1.4px;
+                spacing: 16px;
+
+                // Icon
+                Rectangle {
+                    width: 68px; height: 68px;
+                    x: (parent.width - 68px) / 2;
+                    border-radius: 23px;
+                    background: glass-strong;
+                    border-width: 1px;
+                    border-color: rgba(255,255,255,0.95);
+                    drop-shadow-blur: 32px;
+                    drop-shadow-color: rgba(0,0,0,0.09);
+                    drop-shadow-offset-y: 12px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: "🔐";
+                        font-size: 29px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                // Heading
+                VerticalLayout {
+                    spacing: 6px;
+                    alignment: center;
+                    Text {
+                        text: "Save your recovery codes";
+                        font-size: 27px;
+                        font-weight: 780;
+                        color: ink;
+                        letter-spacing: -1.4px;
+                        horizontal-alignment: center;
+                    }
+                    Text {
+                        text: "These codes are your backup way into Nemo if you ever lose access to your password.";
+                        font-size: 13px;
+                        color: muted;
+                        horizontal-alignment: center;
+                        wrap: word-wrap;
+                    }
+                }
+
+                // Security notice
+                Rectangle {
+                    border-radius: 18px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: rgba(255,255,255,0.84);
+                    HorizontalLayout {
+                        padding-left: 14px; padding-right: 14px;
+                        padding-top: 13px; padding-bottom: 13px;
+                        spacing: 11px;
+                        alignment: start;
+                        Rectangle {
+                            width: 17px; height: 17px;
+                            // shield icon placeholder
+                            Text { text: "🛡"; font-size: 14px; }
+                        }
+                    VerticalLayout {
+                        horizontal-stretch: 1;
+                        spacing: 3px;
+                        Text {
+                            text: "Keep these codes private";
+                            font-size: 12px;
+                            font-weight: 700;
+                            color: ink;
+                        }
+                        Text {
+                            text: "Each code can be used once. Anyone with one of your codes may be able to access your account.";
+                            font-size: 11px;
+                            color: muted;
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+                }
+
+                // Codes card
+                Rectangle {
+                    border-radius: 23px;
+                    background: glass-strong;
+                    border-width: 1px;
+                    border-color: rgba(255,255,255,0.94);
+                    drop-shadow-blur: 32px;
+                    drop-shadow-color: rgba(0,0,0,0.055);
+                    drop-shadow-offset-y: 12px;
+                    clip: true;
+
+                    // top specular
+                    Rectangle {
+                        x: 14px; y: 1px;
+                        width: parent.width - 28px; height: 1px;
+                        background: @linear-gradient(90deg, transparent 0%, rgba(255,255,255,1) 50%, transparent 100%);
+                    }
+
+                    VerticalLayout {
+                        padding-left: 14px;
+                        padding-right: 14px;
+                        padding-top: 15px;
+                        padding-bottom: 13px;
+                        spacing: 12px;
+
+                        HorizontalLayout {
+                            alignment: space-between;
+                            Text {
+                                text: "Your recovery codes";
+                                font-size: 12px;
+                                font-weight: 750;
+                                color: ink;
+                            }
+                            Rectangle {
+                                width: 80px; height: 20px;
+                                border-radius: 10px;
+                                background: rgba(20,20,24,0.06);
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: "Preview only";
+                                    font-size: 9px;
+                                    font-weight: 800;
+                                    color: muted;
+                                    letter-spacing: 1.2px;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+
+                        // Code list (single column, one per row)
+                        VerticalLayout {
+                            spacing: 6px;
+                            for code in root.codes: Rectangle {
+                                height: 42px;
+                                border-radius: 12px;
+                                background: field;
+                                border-width: 1px;
+                                border-color: rgba(255,255,255,0.92);
+                                HorizontalLayout {
+                                    padding-left: 11px; padding-right: 9px;
+                                    spacing: 8px;
+                                    alignment: center;
+                                    Text {
+                                        horizontal-stretch: 1;
+                                        text: code;
+                                        font-size: 11px;
+                                        font-weight: 650;
+                                        color: ink;
+                                        letter-spacing: 0.35px;
+                                        vertical-alignment: center;
+                                    }
+                                    TouchArea {
+                                        width: 27px; height: 30px;
+                                        mouse-cursor: pointer;
+                                        Rectangle {
+                                            width: 27px; height: 30px;
+                                            border-radius: 8px;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Actions
+                        HorizontalLayout {
+                            spacing: 9px;
+                            TouchArea {
+                                horizontal-stretch: 1;
+                                height: 42px;
+                                mouse-cursor: pointer;
+                                clicked => { }
+                                Rectangle {
+                                    width: parent.width;
+                                    height: 42px;
+                                    border-radius: 13px;
+                                    background: glass;
+                                    border-width: 1px;
+                                    border-color: rgba(255,255,255,0.94);
+                                    drop-shadow-blur: 14px;
+                                    drop-shadow-color: rgba(0,0,0,0.035);
+                                    drop-shadow-offset-y: 5px;
+                                    HorizontalLayout {
+                                        alignment: center;
+                                        spacing: 7px;
+                                        Text { text: "Copy all"; font-size: 11px; font-weight: 720; color: ink-soft; vertical-alignment: center; }
+                                    }
+                                }
+                            }
+                            TouchArea {
+                                horizontal-stretch: 1;
+                                height: 42px;
+                                mouse-cursor: pointer;
+                                clicked => { }
+                                Rectangle {
+                                    width: parent.width;
+                                    height: 42px;
+                                    border-radius: 13px;
+                                    background: glass;
+                                    border-width: 1px;
+                                    border-color: rgba(255,255,255,0.94);
+                                    drop-shadow-blur: 14px;
+                                    drop-shadow-color: rgba(0,0,0,0.035);
+                                    drop-shadow-offset-y: 5px;
+                                    HorizontalLayout {
+                                        alignment: center;
+                                        spacing: 7px;
+                                        Text { text: "Save as file"; font-size: 11px; font-weight: 720; color: ink-soft; vertical-alignment: center; }
+                                    }
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: "Store them somewhere private. Don't share them or keep them in a public place.";
+                            font-size: 10px;
+                            color: muted;
+                            horizontal-alignment: center;
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+
+                // Confirm checkbox
+                TouchArea {
+                    height: 50px;
+                    mouse-cursor: pointer;
+                    clicked => { root.confirmed = !root.confirmed; }
+                    Rectangle {
+                        width: parent.width;
+                        height: 50px;
+                        border-radius: 15px;
+                        background: glass;
+                        border-width: 1px;
+                        border-color: rgba(255,255,255,0.82);
+                        HorizontalLayout {
+                            padding-left: 12px; padding-right: 12px;
+                            spacing: 10px;
+                            alignment: start;
+                            Rectangle {
+                                width: 19px; height: 19px;
+                                border-radius: 6px;
+                                background: root.confirmed ? ink : glass-strong;
+                                border-width: 1px;
+                                border-color: root.confirmed ? ink : #9b9ba0;
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: root.confirmed ? "✓" : "";
+                                    font-size: 11px;
+                                    color: dark ? #171717 : #ffffff;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                            Text {
+                                horizontal-stretch: 1;
+                                text: "I've saved my recovery codes somewhere safe.";
+                                font-size: 11px;
+                                font-weight: 600;
+                                color: #55555b;
+                                vertical-alignment: center;
+                                wrap: word-wrap;
+                            }
+                        }
+                    }
+                }
+
+                // Continue button
+                TouchArea {
+                    height: 52px;
+                    mouse-cursor: pointer;
+                    clicked => {
+                        if (root.confirmed) { root.saved(); }
+                    }
+                    Rectangle {
+                        width: parent.width;
+                        height: 52px;
+                        border-radius: 16px;
+                        background: root.confirmed
+                            ? @linear-gradient(180deg, #303034 0%, #111113 100%)
+                            : rgba(25,25,27,0.34);
+                        border-width: 1px;
+                        border-color: rgba(255,255,255,0.2);
+                        drop-shadow-blur: root.confirmed ? 23px : 0px;
+                        drop-shadow-color: rgba(0,0,0,0.17);
+                        drop-shadow-offset-y: 10px;
+                        opacity: root.confirmed ? 1.0 : 0.34;
+                        Text {
+                            width: parent.width;
+                            height: parent.height;
+                            text: "Continue";
+                            font-size: 13px;
+                            font-weight: 750;
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
                 }
             }
         }
 
-        PrimaryButton {
-            text: "I've saved them";
-            clicked => { root.saved(); }
+        // Footer
+        Text {
+            text: "NEMO · YOUR ACCOUNT, YOUR CONTROL";
+            font-size: 9px;
+            color: muted;
+            letter-spacing: 0.35px;
+            horizontal-alignment: center;
         }
     }
 }
