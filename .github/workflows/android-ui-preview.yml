@@ -15,16 +15,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          api-level: 34
-          ndk-version: 27.2.12479018
+        run: |
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          ls /usr/local/lib/android/sdk/ndk || true
+          # Install NDK if not present
+          SDK=/usr/local/lib/android/sdk
+          echo "ANDROID_HOME=$SDK" >> $GITHUB_ENV
+          SDKMANAGER=$(find $SDK -name sdkmanager -type f | head -1)
+          if [ ! -d $SDK/ndk/27.2.12479018 ]; then
+            yes | $SDKMANAGER "ndk;27.2.12479018" || true
+          fi
+          NDK=$(ls -d /usr/local/lib/android/sdk/ndk/* | sort -V | tail -1)
+          echo "ANDROID_NDK_ROOT=$NDK" >> $GITHUB_ENV
+          echo "Using NDK: $NDK"
 
       - name: Install cargo-apk
         run: cargo install cargo-apk --locked
