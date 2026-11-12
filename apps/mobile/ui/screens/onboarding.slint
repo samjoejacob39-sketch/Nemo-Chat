@@ -1220,8 +1220,7 @@ export component RecoveryScreen inherits Rectangle {
 
 // ---------------------------------------------------------------------------
 // Login
-// ---------------------------------------------------------------------------
-
+// Login screen — monochrome Liquid Glass (mobile-first).
 export component LoginScreen inherits Rectangle {
     callback back;
     callback submit(string, string); // username, password
@@ -1232,85 +1231,423 @@ export component LoginScreen inherits Rectangle {
     in-out property <string> password: "";
     in property <string> error: "";
     in property <bool> busy: false;
+    in-out property <bool> dark: Theme.is-dark;
+    in-out property <bool> show-password: false;
+    in-out property <bool> remember: false;
+
+    property <color> ink: dark ? #f4f4f4 : #171717;
+    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
+    property <color> muted: dark ? #aaa : #777;
+    property <color> muted-2: dark ? #777 : #999;
+    property <color> line: dark ? rgba(255,255,255,0.10) : rgba(25,25,25,0.10);
+    property <color> line-strong: dark ? rgba(255,255,255,0.16) : rgba(25,25,25,0.16);
+    property <color> glass: dark ? rgba(43,43,43,0.62) : rgba(255,255,255,0.62);
+    property <color> glass-strong: dark ? rgba(52,52,52,0.82) : rgba(255,255,255,0.82);
+    property <color> glass-soft: dark ? rgba(55,55,55,0.40) : rgba(255,255,255,0.42);
+    property <color> field: dark ? rgba(25,25,25,0.48) : rgba(255,255,255,0.55);
+    property <color> button: dark ? #f1f1f1 : #171717;
+    property <color> button-text: dark ? #171717 : #ffffff;
 
     VerticalLayout {
-        padding-left: Theme.sp-6;
-        padding-right: Theme.sp-6;
-        padding-top: 8px;
-        padding-bottom: Theme.sp-6;
-        spacing: Theme.sp-4;
+        padding-left: 24px;
+        padding-right: 24px;
+        padding-top: 18px;
+        padding-bottom: 22px;
+        spacing: 0px;
 
+        // Ambient blobs
+        Rectangle {
+            height: 0px;
+            Rectangle {
+                x: -260px; y: parent.height * 0.18;
+                width: 430px; height: 430px;
+                border-radius: 215px;
+                background: dark
+                    ? @radial-gradient(circle, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.035) 54%, transparent 72%)
+                    : @radial-gradient(circle, rgba(255,255,255,0.80) 0%, rgba(195,195,195,0.22) 54%, transparent 72%);
+                opacity: 0.8;
+            }
+            Rectangle {
+                x: parent.width - 210px; y: parent.height - 120px;
+                width: 340px; height: 340px;
+                border-radius: 170px;
+                background: dark
+                    ? @radial-gradient(circle, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 58%, transparent 74%)
+                    : @radial-gradient(circle, rgba(255,255,255,0.80) 0%, rgba(195,195,195,0.22) 58%, transparent 74%);
+                opacity: 0.8;
+            }
+        }
+
+        // Top bar
         HorizontalLayout {
-            height: Theme.bar-h;
+            height: 46px;
             alignment: start;
+            spacing: 0px;
+            Rectangle {
+                width: 34px; height: 34px;
+                border-radius: 12px;
+                background: @linear-gradient(145deg, glass-strong 0%, glass-soft 100%);
+                border-width: 1px;
+                border-color: line-strong;
+                drop-shadow-blur: 14px;
+                drop-shadow-color: rgba(0,0,0,0.07);
+                drop-shadow-offset-y: 5px;
+                Text {
+                    width: parent.width; height: parent.height;
+                    text: "N";
+                    font-size: 16px;
+                    font-weight: 800;
+                    color: ink;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+            Text {
+                text: "Nemo";
+                font-size: 20px;
+                font-weight: 720;
+                color: ink;
+                letter-spacing: -0.9px;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
             TouchArea {
-                width: 40px;
+                width: 42px; height: 42px;
                 mouse-cursor: pointer;
-                clicked => { root.back(); }
+                clicked => { root.dark = !root.dark; Theme.is-dark = root.dark; }
                 Rectangle {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 20px;
-                    background: Theme.c-surface-alpha;
+                    width: 42px; height: 42px;
+                    border-radius: 15px;
+                    background: glass;
                     border-width: 1px;
-                    border-color: Theme.c-stroke-glass;
-                    Back {
-                        x: (parent.width - 22px) / 2;
-                        y: (parent.height - 22px) / 2;
-                        size: 22px;
-                        tint: Theme.c-text;
+                    border-color: line;
+                    drop-shadow-blur: 15px;
+                    drop-shadow-color: rgba(0,0,0,0.035);
+                    drop-shadow-offset-y: 5px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: root.dark ? "☀" : "☾";
+                        font-size: 17px;
+                        color: ink;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
                     }
                 }
             }
         }
 
+        // Main content
         Rectangle {
-            height: 72px;
-            NookLogo {
-                compact: true;
-                size: 64px;
-                x: (parent.width - self.width) / 2;
+            vertical-stretch: 1;
+            VerticalLayout {
+                alignment: center;
+                spacing: 0px;
+
+                // Eyebrow
+                Rectangle {
+                    height: 28px;
+                    HorizontalLayout {
+                        alignment: start;
+                        spacing: 8px;
+                        Rectangle {
+                            width: 6px; height: 6px;
+                            border-radius: 3px;
+                            background: ink;
+                            opacity: 0.7;
+                        }
+                        Text {
+                            text: "YOUR SPACE, YOUR PEOPLE";
+                            font-size: 11px;
+                            font-weight: 700;
+                            color: muted;
+                            letter-spacing: 1.1px;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+
+                Text {
+                    text: "Welcome\nback.";
+                    font-size: 42px;
+                    font-weight: 720;
+                    color: ink;
+                    letter-spacing: -2.7px;
+                }
+                Text {
+                    text: "Sign in to pick up where your conversations left off.";
+                    font-size: 14px;
+                    color: muted;
+                }
+
+                // Form card
+                Rectangle {
+                    border-radius: 24px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 24px;
+                    drop-shadow-color: dark ? rgba(0,0,0,0.36) : rgba(0,0,0,0.08);
+                    drop-shadow-offset-y: 12px;
+                    clip: true;
+
+                    VerticalLayout {
+                        padding-left: 18px;
+                        padding-right: 18px;
+                        padding-top: 18px;
+                        padding-bottom: 18px;
+                        spacing: 14px;
+
+                        // Username field
+                        VerticalLayout {
+                            spacing: 6px;
+                            Text {
+                                text: "Username";
+                                font-size: 11px;
+                                font-weight: 650;
+                                color: ink-soft;
+                            }
+                            Rectangle {
+                                height: 50px;
+                                border-radius: 16px;
+                                background: field;
+                                border-width: 1px;
+                                border-color: line;
+                                HorizontalLayout {
+                                    padding-left: 14px; padding-right: 14px;
+                                    spacing: 10px;
+                                    alignment: center;
+                                    Text {
+                                        text: "👤";
+                                        font-size: 14px;
+                                        color: muted;
+                                        vertical-alignment: center;
+                                    }
+                                    TextInput {
+                                        horizontal-stretch: 1;
+                                        text <=> root.username;
+                                        font-size: 14px;
+                                        color: ink;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Password field
+                        VerticalLayout {
+                            spacing: 6px;
+                            Text {
+                                text: "Password";
+                                font-size: 11px;
+                                font-weight: 650;
+                                color: ink-soft;
+                            }
+                            Rectangle {
+                                height: 50px;
+                                border-radius: 16px;
+                                background: field;
+                                border-width: 1px;
+                                border-color: line;
+                                HorizontalLayout {
+                                    padding-left: 14px; padding-right: 10px;
+                                    spacing: 10px;
+                                    alignment: center;
+                                    Text {
+                                        text: "🔒";
+                                        font-size: 14px;
+                                        color: muted;
+                                        vertical-alignment: center;
+                                    }
+                                    TextInput {
+                                        horizontal-stretch: 1;
+                                        text <=> root.password;
+                                        font-size: 14px;
+                                        color: ink;
+                                        vertical-alignment: center;
+                                        input-type: root.show-password ? InputType.text : InputType.password;
+                                    }
+                                    TouchArea {
+                                        width: 32px; height: 32px;
+                                        mouse-cursor: pointer;
+                                        clicked => { root.show-password = !root.show-password; }
+                                        Rectangle {
+                                            width: 32px; height: 32px;
+                                            border-radius: 8px;
+                                            Text {
+                                                width: parent.width; height: parent.height;
+                                                text: root.show-password ? "Hide" : "Show";
+                                                font-size: 10px;
+                                                color: muted;
+                                                horizontal-alignment: center;
+                                                vertical-alignment: center;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Form meta
+                        HorizontalLayout {
+                            alignment: center;
+                            spacing: 0px;
+                            TouchArea {
+                                width: 120px; height: 30px;
+                                mouse-cursor: pointer;
+                                clicked => { root.remember = !root.remember; }
+                                HorizontalLayout {
+                                    spacing: 8px;
+                                    alignment: start;
+                                    Rectangle {
+                                        width: 16px; height: 16px;
+                                        border-radius: 4px;
+                                        background: root.remember ? ink : glass-strong;
+                                        border-width: 1px;
+                                        border-color: root.remember ? ink : muted;
+                                        Text {
+                                            width: parent.width; height: parent.height;
+                                            text: root.remember ? "✓" : "";
+                                            font-size: 10px;
+                                            color: dark ? #171717 : #ffffff;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
+                                    Text {
+                                        text: "Remember me";
+                                        font-size: 11px;
+                                        color: muted;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                            }
+                            Rectangle { horizontal-stretch: 1; }
+                            TouchArea {
+                                width: 120px; height: 30px;
+                                mouse-cursor: pointer;
+                                clicked => { root.forgot(); }
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: "Forgot password?";
+                                    font-size: 11px;
+                                    font-weight: 650;
+                                    color: ink-soft;
+                                    horizontal-alignment: right;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+
+                        // Sign in button
+                        TouchArea {
+                            height: 54px;
+                            mouse-cursor: pointer;
+                            clicked => { root.submit(root.username, root.password); }
+                            Rectangle {
+                                width: parent.width;
+                                height: 54px;
+                                border-radius: 18px;
+                                background: button;
+                                border-width: 1px;
+                                border-color: rgba(255,255,255,0.16);
+                                drop-shadow-blur: 18px;
+                                drop-shadow-color: dark ? rgba(0,0,0,0.28) : rgba(0,0,0,0.16);
+                                drop-shadow-offset-y: 8px;
+                                opacity: 1.0;
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 8px;
+                                    Text {
+                                        text: root.busy ? "Signing in…" : "Sign in";
+                                        font-size: 14px;
+                                        font-weight: 700;
+                                        color: button-text;
+                                        vertical-alignment: center;
+                                    }
+                                    Text {
+                                        text: "→";
+                                        font-size: 16px;
+                                        color: button-text;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Divider
+                        HorizontalLayout {
+                            alignment: center;
+                            spacing: 12px;
+                            Rectangle { horizontal-stretch: 1; height: 1px; background: line; }
+                            Text {
+                                text: "OR";
+                                font-size: 10px;
+                                color: muted;
+                                vertical-alignment: center;
+                            }
+                            Rectangle { horizontal-stretch: 1; height: 1px; background: line; }
+                        }
+
+                        // Recovery row
+                        HorizontalLayout {
+                            alignment: center;
+                            spacing: 6px;
+                            Text {
+                                text: "Have a recovery code?";
+                                font-size: 11px;
+                                color: muted;
+                                vertical-alignment: center;
+                            }
+                            TouchArea {
+                                width: 110px; height: 24px;
+                                mouse-cursor: pointer;
+                                clicked => { root.forgot(); }
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: "Recover account";
+                                    font-size: 11px;
+                                    font-weight: 650;
+                                    color: ink-soft;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Bottom
+                Text {
+                    text: "New to Nemo?  Create an account";
+                    font-size: 12px;
+                    color: muted;
+                    horizontal-alignment: center;
+                }
+                TouchArea {
+                    height: 24px;
+                    mouse-cursor: pointer;
+                    clicked => { root.back(); } // placeholder; should go to signup
+                }
+
+                // Footnote
+                HorizontalLayout {
+                    alignment: center;
+                    spacing: 6px;
+                    padding-top: 16px;
+                    Rectangle {
+                        width: 13px; height: 13px;
+                        border-radius: 3px;
+                        border-width: 1px;
+                        border-color: muted;
+                    }
+                    Text {
+                        text: "Private account access · Sign in securely";
+                        font-size: 10px;
+                        color: muted;
+                        vertical-alignment: center;
+                    }
+                }
             }
-        }
-        Text {
-            text: "Welcome back";
-            font-size: Theme.fs-large;
-            font-weight: 800;
-            color: Theme.c-text;
-            horizontal-alignment: center;
-        }
-        Text {
-            text: "Log in to your nook.";
-            font-size: Theme.fs-body;
-            color: Theme.c-text-2;
-            horizontal-alignment: center;
-        }
-
-        Rectangle { height: Theme.sp-2; }
-
-        NookField {
-            label: "Username";
-            placeholder: "your handle";
-            text <=> root.username;
-            error: root.error;
-        }
-        NookField {
-            label: "Password";
-            placeholder: "••••••••••";
-            password: true;
-            text <=> root.password;
-        }
-
-        Rectangle { vertical-stretch: 1; }
-
-        PrimaryButton {
-            text: root.busy ? "Logging in…" : "Log in";
-            enabled: !root.busy;
-            clicked => { root.submit(root.username, root.password); }
-        }
-        TextButton {
-            text: "Use a recovery code instead";
-            clicked => { root.forgot(); }
         }
     }
 }
