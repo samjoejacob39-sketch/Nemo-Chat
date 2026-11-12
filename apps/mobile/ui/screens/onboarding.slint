@@ -1324,126 +1324,400 @@ export struct PolicySection {
     body: string,
 }
 
+// Terms & Policies screen — monochrome Liquid Glass (mobile-first).
 export component TermsScreen inherits Rectangle {
     in property <string> doc-title;
     in property <[PolicySection]> sections;
-    in property <bool> gate: true;              // require checkbox
+    in property <bool> gate: true;
     callback agreed(bool);
     callback continue-p;
     callback back;
     background: transparent;
 
+    in-out property <bool> dark: Theme.is-dark;
     in-out property <bool> accepted: false;
+    in-out property <int> read-progress: 0;
+    in-out property <bool> reached-end: false;
+
+    property <color> ink: dark ? #f3f3f3 : #171717;
+    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
+    property <color> muted: dark ? #aaa : #777;
+    property <color> soft: dark ? #777 : #a3a3a3;
+    property <color> line: dark ? rgba(255,255,255,0.11) : rgba(20,20,20,0.09);
+    property <color> glass: dark ? rgba(43,43,43,0.70) : rgba(255,255,255,0.68);
+    property <color> glass-strong: dark ? rgba(50,50,50,0.88) : rgba(255,255,255,0.84);
+    property <color> glass-low: dark ? rgba(255,255,255,0.055) : rgba(255,255,255,0.40);
+    property <color> track: dark ? #414141 : #d5d5d5;
+    property <color> button: dark ? #f1f1f1 : #161616;
+    property <color> button-text: dark ? #151515 : #ffffff;
 
     VerticalLayout {
-        padding-left: Theme.sp-5;
-        padding-right: Theme.sp-5;
-        padding-top: 8px;
-        padding-bottom: Theme.sp-5;
-        spacing: Theme.sp-3;
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-top: 10px;
+        padding-bottom: 18px;
+        spacing: 0px;
 
+        // Ambient blobs
+        Rectangle {
+            height: 0px;
+            Rectangle {
+                x: parent.width - 100px;
+                y: -110px;
+                width: 260px;
+                height: 260px;
+                border-radius: 130px;
+                background: dark
+                    ? rgba(255,255,255,0.12)
+                    : rgba(255,255,255,0.86);
+                opacity: 0.55;
+            }
+            Rectangle {
+                x: -130px;
+                y: parent.height - 60px;
+                width: 220px;
+                height: 220px;
+                border-radius: 110px;
+                background: dark
+                    ? rgba(255,255,255,0.07)
+                    : rgba(0,0,0,0.07);
+                opacity: 0.55;
+            }
+        }
+
+        // Top bar
         HorizontalLayout {
-            height: Theme.bar-h;
+            height: 42px;
             alignment: start;
+            spacing: 0px;
             TouchArea {
-                width: 40px;
+                width: 42px; height: 42px;
                 mouse-cursor: pointer;
                 clicked => { root.back(); }
                 Rectangle {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 20px;
-                    background: Theme.c-surface-alpha;
+                    width: 42px; height: 42px;
+                    border-radius: 16px;
+                    background: glass;
                     border-width: 1px;
-                    border-color: Theme.c-stroke-glass;
-                    Back {
-                        x: (parent.width - 22px) / 2;
-                        y: (parent.height - 22px) / 2;
-                        size: 22px;
-                        tint: Theme.c-text;
+                    border-color: line;
+                    drop-shadow-blur: 18px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 6px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: "←";
+                        font-size: 18px;
+                        color: ink;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
                     }
                 }
             }
-        }
-
-        Text {
-            text: root.doc-title;
-            font-size: Theme.fs-title;
-            font-weight: 800;
-            color: Theme.c-text;
-        }
-
-        Rectangle {
-            vertical-stretch: 1;
-            border-radius: Theme.r-card;
-            background: Theme.c-surface-alpha;
-            border-width: 1px;
-            border-color: Theme.c-stroke-glass;
-            clip: true;
-            Flickable {
-                VerticalLayout {
-                    padding-top: Theme.sp-4;
-                    padding-bottom: Theme.sp-4;
-                    padding-left: 16px;
-                    padding-right: 16px;
-                    spacing: Theme.sp-3;
-                    for s in root.sections: VerticalLayout {
-                        spacing: 5px;
-                        Text {
-                            text: s.heading;
-                            font-size: Theme.fs-body;
-                            font-weight: 700;
-                            color: Theme.c-text;
-                            wrap: word-wrap;
-                        }
-                        Text {
-                            text: s.body;
-                            font-size: Theme.fs-small;
-                            color: Theme.c-text-2;
-                            wrap: word-wrap;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Agreement checkbox
-        if root.gate: HorizontalLayout {
-            spacing: Theme.sp-3;
-            alignment: start;
-            TouchArea {
-                width: 30px;
-                mouse-cursor: pointer;
-                clicked => { root.accepted = !root.accepted; root.agreed(root.accepted); }
-                Rectangle {
-                    width: 26px;
-                    height: 26px;
-                    y: 2px;
-                    border-radius: 8px;
-                    background: root.accepted ? Theme.accent : transparent;
-                    border-width: 1.6px;
-                    border-color: root.accepted ? Theme.accent : Theme.c-text-3;
-                    Check {
-                        x: (parent.width - 18px) / 2;
-                        y: (parent.height - 18px) / 2;
-                        size: 18px;
-                        tint: white;
-                    }
-                }
-            }
+            Rectangle { horizontal-stretch: 1; }
             Text {
-                text: "I have read and agree to these terms.";
-                font-size: Theme.fs-small;
-                color: Theme.c-text-2;
-                wrap: word-wrap;
+                text: "Nemo";
+                font-size: 19px;
+                font-weight: 750;
+                color: ink;
+                letter-spacing: -1.0px;
                 vertical-alignment: center;
             }
+            Rectangle { horizontal-stretch: 1; }
+            TouchArea {
+                width: 42px; height: 42px;
+                mouse-cursor: pointer;
+                clicked => { root.dark = !root.dark; Theme.is-dark = root.dark; }
+                Rectangle {
+                    width: 42px; height: 42px;
+                    border-radius: 16px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 18px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 6px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: root.dark ? "☀" : "☾";
+                        font-size: 17px;
+                        color: ink;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
         }
 
-        PrimaryButton {
-            text: "Continue";
-            enabled: !root.gate || root.accepted;
-            clicked => { root.continue-p(); }
+        // Eyebrow + heading
+        Text {
+            text: "A few things before you begin";
+            font-size: 10px;
+            font-weight: 750;
+            color: muted;
+            letter-spacing: 1.2px;
+        }
+        Text {
+            text: "Welcome to Nemo.";
+            font-size: 32px;
+            font-weight: 760;
+            color: ink;
+            letter-spacing: -1.7px;
+        }
+        Text {
+            text: "Take a moment to review how Nemo works and how we expect everyone to treat each other.";
+            font-size: 14px;
+            color: muted;
+            wrap: word-wrap;
+        }
+
+        // Notice
+        Rectangle {
+            border-radius: 18px;
+            background: glass-low;
+            border-width: 1px;
+            border-color: line;
+            HorizontalLayout {
+                padding-left: 14px; padding-right: 14px;
+                padding-top: 13px; padding-bottom: 13px;
+                spacing: 10px;
+                alignment: start;
+                Rectangle {
+                width: 27px; height: 27px;
+                border-radius: 9px;
+                background: glass-strong;
+                border-width: 1px;
+                border-color: line;
+                Text {
+                    width: parent.width; height: parent.height;
+                    text: "🛡";
+                    font-size: 13px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 2px;
+                Text {
+                    text: "Your space, your responsibility.";
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: ink;
+                }
+                Text {
+                    text: "These draft policies explain the basic rules for using Nemo. Please read each section before continuing.";
+                    font-size: 11px;
+                    color: muted;
+                    wrap: word-wrap;
+                }
+            }
+            }
+        }
+
+        // Doc shell
+        Rectangle {
+            vertical-stretch: 1;
+            min-height: 200px;
+            border-radius: 25px;
+            background: glass;
+            border-width: 1px;
+            border-color: rgba(255,255,255,0.78);
+            drop-shadow-blur: 24px;
+            drop-shadow-color: dark ? rgba(0,0,0,0.38) : rgba(0,0,0,0.09);
+            drop-shadow-offset-y: 18px;
+            clip: true;
+
+            // top specular
+            Rectangle {
+                x: 0px; y: 0px;
+                width: parent.width; height: 1px;
+                background: @linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.95) 50%, transparent 100%);
+            }
+
+            VerticalLayout {
+                spacing: 0px;
+                // doc head
+                HorizontalLayout {
+                    padding-left: 17px; padding-right: 17px;
+                    padding-top: 17px; padding-bottom: 12px;
+                    alignment: space-between;
+                    Text {
+                        text: "Terms & policies";
+                        font-size: 13px;
+                        font-weight: 750;
+                        color: ink;
+                        letter-spacing: -0.2px;
+                        vertical-alignment: center;
+                    }
+                    Text {
+                        text: "Preview draft · v0.1";
+                        font-size: 10px;
+                        color: muted;
+                        vertical-alignment: center;
+                    }
+                }
+                // progress bar
+                Rectangle {
+                    height: 3px;
+                    background: track;
+                    Rectangle {
+                        width: parent.width * read-progress / 100;
+                        height: 3px;
+                        background: ink;
+                        animate width { duration: 200ms; }
+                    }
+                }
+                // scrollable doc
+                Flickable {
+                    vertical-stretch: 1;
+                    VerticalLayout {
+                        padding-left: 18px; padding-right: 18px;
+                        padding-top: 4px; padding-bottom: 20px;
+                        spacing: 0px;
+                        for s in root.sections: VerticalLayout {
+                            padding-top: 17px;
+                            padding-bottom: 15px;
+                            spacing: 7px;
+                            Text {
+                                text: s.heading;
+                                font-size: 15px;
+                                font-weight: 760;
+                                color: ink;
+                                letter-spacing: -0.25px;
+                            }
+                            Text {
+                                text: s.body;
+                                font-size: 11.5px;
+                                color: muted;
+                                wrap: word-wrap;
+                            }
+                        }
+                    }
+                    changed content-y => {
+                        let max = Math.max(1px, self.content-height - self.height);
+                        let pct = Math.min(100, Math.round((-self.content-y) / max * 100));
+                        root.read-progress = pct;
+                        if (self.content-y <= -(self.content-height - self.height) - 2px) {
+                            root.reached-end = true;
+                        }
+                    }
+                    changed content-height => {
+                        if (self.content-height <= self.height) {
+                            root.reached-end = true;
+                            root.read-progress = 100;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Bottom
+        VerticalLayout {
+            spacing: 10px;
+            padding-top: 14px;
+
+            HorizontalLayout {
+                alignment: space-between;
+                Text {
+                    text: root.reached-end ? "All sections reviewed" : "Scroll to review all sections";
+                    font-size: 10px;
+                    color: muted;
+                }
+                Text {
+                    text: root.read-progress + "% read";
+                    font-size: 10px;
+                    color: muted;
+                }
+            }
+
+            // Agreement
+            TouchArea {
+                height: 60px;
+                mouse-cursor: pointer;
+                clicked => {
+                    if (root.reached-end) {
+                        root.accepted = !root.accepted;
+                        root.agreed(root.accepted);
+                    }
+                }
+                Rectangle {
+                    width: parent.width;
+                    height: 60px;
+                    border-radius: 17px;
+                    background: glass-low;
+                    border-width: 1px;
+                    border-color: line;
+                    opacity: root.reached-end ? 1.0 : 0.5;
+                    HorizontalLayout {
+                        padding-left: 14px; padding-right: 14px;
+                        spacing: 11px;
+                        alignment: start;
+                        Rectangle {
+                            width: 21px; height: 21px;
+                            border-radius: 7px;
+                            border-width: 1.5px;
+                            border-color: root.accepted ? ink : soft;
+                            background: root.accepted ? ink : transparent;
+                            Text {
+                                width: parent.width; height: parent.height;
+                                text: root.accepted ? "✓" : "";
+                                font-size: 12px;
+                                color: button-text;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                        Text {
+                            horizontal-stretch: 1;
+                            text: "I have read and agree to Nemo's Terms of Service and acknowledge the Privacy Policy and Community Guidelines.";
+                            font-size: 11.5px;
+                            color: muted;
+                            wrap: word-wrap;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+
+            // Continue button
+            TouchArea {
+                height: 54px;
+                mouse-cursor: pointer;
+                clicked => {
+                    if (root.accepted && root.reached-end) {
+                        root.continue-p();
+                    }
+                }
+                Rectangle {
+                    width: parent.width;
+                    height: 54px;
+                    border-radius: 18px;
+                    background: root.accepted && root.reached-end ? button : rgba(22,22,22,0.35);
+                    border-width: 0px;
+                    drop-shadow-blur: root.accepted && root.reached-end ? 22px : 0px;
+                    drop-shadow-color: rgba(0,0,0,0.12);
+                    drop-shadow-offset-y: 10px;
+                    opacity: root.accepted && root.reached-end ? 1.0 : 0.35;
+                    Text {
+                        width: parent.width;
+                        height: parent.height;
+                        text: "Accept & continue";
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: button-text;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            Text {
+                text: "You can review these policies again later in Settings.";
+                font-size: 9px;
+                color: muted;
+                horizontal-alignment: center;
+                wrap: word-wrap;
+            }
         }
     }
 }
