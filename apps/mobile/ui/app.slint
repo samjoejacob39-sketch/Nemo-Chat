@@ -190,6 +190,9 @@ export component AppWindow inherits Window {
         back => { root.screen = "chats"; }
         accept-request(id) => { }
         decline-request(id) => { }
+        open-chats => { root.screen = "chats"; }
+        open-find => { root.screen = "find"; }
+        open-profile => { root.screen = "profile"; }
     }
     if screen == "find": FindScreen {
         suggested: root.find-results;
