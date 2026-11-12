@@ -390,8 +390,7 @@ export component WelcomeScreen inherits Rectangle {
 
 // ---------------------------------------------------------------------------
 // Sign-up
-// ---------------------------------------------------------------------------
-
+// Sign-up screen — monochrome Liquid Glass (mobile-first).
 export component SignUpScreen inherits Rectangle {
     callback back;                        // -> welcome
     callback submit(string, string, string); // username, display-name, password
@@ -400,128 +399,408 @@ export component SignUpScreen inherits Rectangle {
     in-out property <string> username: "";
     in-out property <string> display-name: "";
     in-out property <string> password: "";
+    in-out property <string> confirm-password: "";
     in property <string> error: "";
     in property <bool> busy: false;
+    in-out property <bool> dark: Theme.is-dark;
+    in-out property <bool> show-password: false;
+    in-out property <bool> show-confirm: false;
 
-    // Pure heuristic over verified string members:
-    // 0 empty / 1 weak / 2 okay / 3 good / 4 strong
-    // Note: character-count is a pre-bound builtin call (used bare, no parens);
-    // to-lowercase/to-uppercase are member functions (used with parens).
+    property <color> ink: dark ? #f3f3f1 : #171717;
+    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
+    property <color> muted: dark ? #a1a19d : #77777d;
+    property <color> line: dark ? rgba(255,255,255,0.11) : rgba(25,25,25,0.09);
+    property <color> glass: dark ? rgba(42,42,42,0.58) : rgba(255,255,255,0.59);
+    property <color> glass-strong: dark ? rgba(52,52,52,0.76) : rgba(255,255,255,0.78);
+    property <color> field: dark ? rgba(18,18,18,0.62) : rgba(255,255,255,0.56);
+    property <color> field-focus: dark ? rgba(30,30,30,0.85) : rgba(255,255,255,0.91);
+
+    // Password strength (0..4)
     pure function score() -> int {
         let len = password.character-count;
         if (len == 0) { return 0; }
-        let upper = password.to-lowercase() != password;  // has capitals
-        let lower = password.to-uppercase() != password;  // has lowercase
+        let upper = password.to-lowercase() != password;
+        let lower = password.to-uppercase() != password;
         return Math.min(
             (len >= 8 ? 1 : 0) + (len >= 12 ? 1 : 0) + (len >= 16 ? 1 : 0)
-                + (upper ? 1 : 0) + (lower ? 1 : 0),
+                + (upper ? 1 : 0) + (lower ? 1 : 0)
+                + (password != confirm-password && confirm-password != "" ? 0 : 0),
             4);
     }
     private property <int> score-now: score();
-
-    pure function strength-color(level: int) -> color {
-        if (level <= 1) { return Theme.danger; }
-        if (level == 2) { return #F5A524; }
-        if (level == 3) { return #E3C341; }
-        return Theme.online;
-    }
     pure function strength-label(level: int) -> string {
+        if (level == 0) { return "Not entered"; }
         if (level <= 1) { return "Weak"; }
-        if (level == 2) { return "Okay"; }
+        if (level == 2) { return "Fair"; }
         if (level == 3) { return "Good"; }
         return "Strong";
     }
 
     VerticalLayout {
-        padding-left: Theme.sp-6;
-        padding-right: Theme.sp-6;
-        padding-top: 8px;
-        padding-bottom: Theme.sp-6;
-        spacing: Theme.sp-4;
+        padding-left: 22px;
+        padding-right: 22px;
+        padding-top: 12px;
+        
+        spacing: 0px;
 
+        // Top bar
         HorizontalLayout {
-            height: Theme.bar-h;
+            height: 62px;
             alignment: start;
             TouchArea {
-                width: 40px;
+                width: 42px; height: 42px;
                 mouse-cursor: pointer;
                 clicked => { root.back(); }
                 Rectangle {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 20px;
-                    background: Theme.c-surface-alpha;
+                    width: 42px; height: 42px;
+                    border-radius: 21px;
+                    background: glass;
                     border-width: 1px;
-                    border-color: Theme.c-stroke-glass;
-                    Back {
-                        x: (parent.width - 22px) / 2;
-                        y: (parent.height - 22px) / 2;
-                        size: 22px;
-                        tint: Theme.c-text;
+                    border-color: line;
+                    drop-shadow-blur: 16px;
+                    drop-shadow-color: rgba(20,20,25,0.045);
+                    drop-shadow-offset-y: 5px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: "←";
+                        font-size: 18px;
+                        color: ink-soft;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+            Rectangle { horizontal-stretch: 1; }
+            Text {
+                text: "ACCOUNT SETUP   /   01";
+                font-size: 11px;
+                font-weight: 650;
+                color: muted;
+                letter-spacing: 1.3px;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            Rectangle { width: 42px; height: 42px; }
+        }
+
+        // Content
+        Rectangle {
+            vertical-stretch: 1;
+            VerticalLayout {
+                alignment: center;
+                spacing: 0px;
+
+                // Avatar
+                Rectangle {
+                    height: 74px;
+                    width: 74px;
+                    x: (parent.width - 74px) / 2;
+                    border-radius: 37px;
+                    background: glass-strong;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 28px;
+                    drop-shadow-color: rgba(22,22,26,0.09);
+                    drop-shadow-offset-y: 12px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: "👤";
+                        font-size: 32px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                // Intro
+                VerticalLayout {
+                    spacing: 4px;
+                    alignment: center;
+                    Text {
+                        text: "WELCOME TO NEMO";
+                        font-size: 10px;
+                        font-weight: 700;
+                        color: muted;
+                        letter-spacing: 1.7px;
+                        horizontal-alignment: center;
+                    }
+                    Text {
+                        text: "Create Account";
+                        font-size: 29px;
+                        font-weight: 720;
+                        color: ink;
+                        letter-spacing: -1.3px;
+                        horizontal-alignment: center;
+                    }
+                    Text {
+                        text: "A little space for your favourite conversations.";
+                        font-size: 13px;
+                        color: muted;
+                        horizontal-alignment: center;
+                        wrap: word-wrap;
+                    }
+                }
+
+                // Form card
+                Rectangle {
+                    border-radius: 31px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 24px;
+                    drop-shadow-color: rgba(20,20,25,0.075);
+                    drop-shadow-offset-y: 18px;
+                    clip: true;
+
+                    // top specular
+                    Rectangle {
+                        x: 18px; y: 1px;
+                        width: parent.width - 36px; height: 1px;
+                        background: @linear-gradient(90deg, transparent 0%, rgba(255,255,255,1) 50%, transparent 100%);
+                    }
+
+                    VerticalLayout {
+                        padding-left: 8px;
+                        padding-right: 8px;
+                        padding-top: 8px;
+                        padding-bottom: 8px;
+                        spacing: 0px;
+
+                        // Field: Name shown to friends
+                        Rectangle {
+                            height: 58px;
+                            border-radius: 19px;
+                            background: field;
+                            border-width: 1px;
+                            border-color: rgba(255,255,255,0.62);
+                            
+                            HorizontalLayout {
+                                padding-left: 15px; padding-right: 15px;
+                                spacing: 13px;
+                                alignment: start;
+                                Rectangle {
+                                    width: 24px; height: 24px;
+                                    // icon placeholder
+                                }
+                                VerticalLayout {
+                                    horizontal-stretch: 1;
+                                    spacing: 2px;
+                                    cross-axis-self-alignment: center;
+                                    Text { text: "NAME SHOWN TO FRIENDS"; font-size: 10px; font-weight: 600; color: muted; letter-spacing: 0.15px; }
+                                    TextInput {
+                                        text <=> root.display-name;
+                                        font-size: 14px;
+                                        color: ink;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Field: Username
+                        Rectangle {
+                            height: 58px;
+                            border-radius: 19px;
+                            background: field;
+                            border-width: 1px;
+                            border-color: rgba(255,255,255,0.62);
+                            
+                            HorizontalLayout {
+                                padding-left: 15px; padding-right: 15px;
+                                spacing: 13px;
+                                alignment: start;
+                                Rectangle { width: 24px; height: 24px; }
+                                VerticalLayout {
+                                    horizontal-stretch: 1;
+                                    spacing: 2px;
+                                    cross-axis-self-alignment: center;
+                                    Text { text: "USERNAME"; font-size: 10px; font-weight: 600; color: muted; letter-spacing: 0.15px; }
+                                    TextInput {
+                                        text <=> root.username;
+                                        font-size: 14px;
+                                        color: ink;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Field: Password
+                        Rectangle {
+                            height: 58px;
+                            border-radius: 19px;
+                            background: field;
+                            border-width: 1px;
+                            border-color: rgba(255,255,255,0.62);
+                            
+                            HorizontalLayout {
+                                padding-left: 15px; padding-right: 15px;
+                                spacing: 13px;
+                                alignment: start;
+                                Rectangle { width: 24px; height: 24px; }
+                                VerticalLayout {
+                                    horizontal-stretch: 1;
+                                    spacing: 2px;
+                                    cross-axis-self-alignment: center;
+                                    Text { text: "PASSWORD"; font-size: 10px; font-weight: 600; color: muted; letter-spacing: 0.15px; }
+                                    TextInput {
+                                        text <=> root.password;
+                                        font-size: 14px;
+                                        color: ink;
+                                        input-type: root.show-password ? InputType.text : InputType.password;
+                                    }
+                                }
+                                TouchArea {
+                                    width: 34px; height: 34px;
+                                    mouse-cursor: pointer;
+                                    clicked => { root.show-password = !root.show-password; }
+                                    Text {
+                                        width: parent.width; height: parent.height;
+                                        text: root.show-password ? "Hide" : "Show";
+                                        font-size: 10px;
+                                        color: muted;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Field: Confirm Password
+                        Rectangle {
+                            height: 58px;
+                            border-radius: 19px;
+                            background: field;
+                            border-width: 1px;
+                            border-color: rgba(255,255,255,0.62);
+                            
+                            HorizontalLayout {
+                                padding-left: 15px; padding-right: 15px;
+                                spacing: 13px;
+                                alignment: start;
+                                Rectangle { width: 24px; height: 24px; }
+                                VerticalLayout {
+                                    horizontal-stretch: 1;
+                                    spacing: 2px;
+                                    cross-axis-self-alignment: center;
+                                    Text { text: "CONFIRM PASSWORD"; font-size: 10px; font-weight: 600; color: muted; letter-spacing: 0.15px; }
+                                    TextInput {
+                                        text <=> root.confirm-password;
+                                        font-size: 14px;
+                                        color: ink;
+                                        input-type: InputType.password;
+                                    }
+                                }
+                                TouchArea {
+                                    width: 34px; height: 34px;
+                                    mouse-cursor: pointer;
+                                    clicked => { root.show-confirm = !root.show-confirm; }
+                                    Text {
+                                        width: parent.width; height: parent.height;
+                                        text: root.show-confirm ? "Hide" : "Show";
+                                        font-size: 10px;
+                                        color: muted;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Strength meter
+                        HorizontalLayout {
+                            padding-left: 12px; padding-right: 12px;
+                            padding-top: 11px; padding-bottom: 9px;
+                            spacing: 12px;
+                            alignment: center;
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 7px;
+                                Text { text: "PASSWORD STRENGTH"; font-size: 10px; font-weight: 600; color: muted; }
+                                HorizontalLayout {
+                                    spacing: 4px;
+                                    for i in 4: Rectangle {
+                                        horizontal-stretch: 1;
+                                        height: 4px;
+                                        border-radius: 2px;
+                                        background: i < root.score-now ? #55555b : #d8d8dc;
+                                    }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 2px;
+                                alignment: end;
+                                Text {
+                                    text: root.score-now == 0 ? "Not entered" : (root.score-now <= 1 ? "Weak" : (root.score-now == 2 ? "Fair" : (root.score-now == 3 ? "Good" : "Strong")));
+                                    font-size: 10px;
+                                    font-weight: 650;
+                                    color: #55555b;
+                                    horizontal-alignment: right;
+                                }
+                                Text {
+                                    text: root.confirm-password == "" ? "Use at least 8 characters" : (root.password == root.confirm-password ? "Passwords match" : "Passwords do not match");
+                                    font-size: 10px;
+                                    color: #96969b;
+                                    horizontal-alignment: right;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Create Account button
+                TouchArea {
+                    height: 56px;
+                    mouse-cursor: pointer;
+                    clicked => {
+                        root.submit(root.username, root.display-name, root.password);
+                    }
+                    Rectangle {
+                        width: parent.width;
+                        height: 56px;
+                        border-radius: 19px;
+                        background: @linear-gradient(180deg, #303034 0%, #111113 100%);
+                        border-width: 1px;
+                        border-color: rgba(255,255,255,0.22);
+                        drop-shadow-blur: 20px;
+                        drop-shadow-color: rgba(0,0,0,0.16);
+                        drop-shadow-offset-y: 9px;
+                        opacity: 1.0;
+                        // top highlight
+                        Rectangle {
+                            x: 1px; y: 1px;
+                            width: parent.width - 2px; height: 45%;
+                            border-radius: 18px;
+                            background: @linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 100%);
+                        }
+                        Text {
+                            width: parent.width;
+                            height: parent.height;
+                            text: root.busy ? "Creating…" : "Create Account";
+                            font-size: 14px;
+                            font-weight: 650;
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
                     }
                 }
             }
         }
 
+        // Footer
         Text {
-            text: "Create your account";
-            font-size: Theme.fs-large;
-            font-weight: 800;
-            color: Theme.c-text;
+            text: "Already have an account?  Log in";
+            font-size: 12px;
+            color: muted;
+            horizontal-alignment: center;
+            
         }
+
         Text {
-            text: "Pick a handle friends can find you by.";
-            font-size: Theme.fs-body;
-            color: Theme.c-text-2;
-        }
-
-        NookField {
-            label: "Username";
-            placeholder: "e.g. maple_syrup";
-            text <=> root.username;
-            error: root.error;
-        }
-        NookField {
-            label: "Display name";
-            placeholder: "How you'll appear to others";
-            text <=> root.display-name;
-        }
-        NookField {
-            label: "Password";
-            placeholder: "At least 10 characters";
-            password: true;
-            text <=> root.password;
-        }
-
-        // Strength meter
-        HorizontalLayout {
-            spacing: 6px;
-            height: 22px;
-            alignment: start;
-            for i in 4: Rectangle {
-                width: 34px;
-                height: 6px;
-                y: (parent.height - self.height) / 2;
-                border-radius: 3px;
-                background: root.score-now >= (i + 1)
-                    ? root.strength-color(root.score-now)
-                    : Theme.c-hairline;
-            }
-            Text {
-                text: root.strength-label(root.score-now);
-                font-size: Theme.fs-caption;
-                font-weight: 600;
-                color: Theme.c-text-3;
-                vertical-alignment: center;
-            }
-        }
-
-        Rectangle { vertical-stretch: 1; }
-
-        PrimaryButton {
-            text: root.busy ? "Creating…" : "Create account";
-            enabled: !root.busy && root.score-now >= 2;
-            clicked => { root.submit(root.username, root.display-name, root.password); }
+            text: "Your account will have its own recovery codes. Keep them somewhere safe.";
+            font-size: 10px;
+            color: #a0a0a5;
+            horizontal-alignment: center;
+            wrap: word-wrap;
+            
         }
     }
 }
