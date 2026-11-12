@@ -41,8 +41,10 @@ reqwest = { version = "0.13", default-features = false, features = [
     "gzip",
     "charset",
     "http2",
+    "blocking",
 ] }
 thiserror = { workspace = true }
+sha2 = { workspace = true }
 tracing = { workspace = true }
 base64 = { workspace = true }
 
@@ -63,6 +65,7 @@ slint-build = "1.18"
 package = "com.nook.app"
 build_targets = ["aarch64-linux-android"]
 label = "Nemo"
+
 [package.metadata.android.sdk]
 min_sdk_version = 33
 target_sdk_version = 34

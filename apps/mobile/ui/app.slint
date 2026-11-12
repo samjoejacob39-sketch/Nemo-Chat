@@ -14,6 +14,7 @@ import {
     NotificationsScreen, FindScreen, ProfileScreen, SettingsScreen,
     UiPerson, UiActivity,
 } from "screens/social.slint";
+import { UpdatesScreen } from "screens/updates.slint";
 import {
     CreateGroupScreen, GroupInfoScreen, UiFriendPick, UiMember,
 } from "screens/groups.slint";
@@ -100,6 +101,11 @@ export component AppWindow inherits Window {
     // Demo harness only: show the screen-picker bar (set by the dev binary).
     in property <bool> demo-mode: false;
 
+    // Update channel callbacks (wired from Rust).
+    callback check-updates;
+    callback download-update;
+    callback install-update;
+
     // Demo data (fed from Rust by the preview binary).
     in property <[UiChat]> chats;
     in property <[UiBubble]> messages;
@@ -120,6 +126,17 @@ export component AppWindow inherits Window {
     in property <[UiFriendPick]> friend-picks;
     in property <[UiMember]> group-members;
     in property <string> group-name: "";
+
+    // Update channel state (Nemo UI preview).
+    in-out property <string> update-status: "idle";
+    in-out property <string> update-current-version: "0.1.0";
+    in-out property <string> update-current-build: "#0";
+    in-out property <string> update-latest-version: "";
+    in-out property <string> update-latest-build: "";
+    in-out property <string> update-notes: "";
+    in-out property <int> update-progress: 0;
+    in-out property <bool> update-downloading: false;
+    in-out property <string> update-error: "";
 
     ScreenBackground { }
 
@@ -205,6 +222,7 @@ export component AppWindow inherits Window {
         change-password => { root.screen = "recovery"; }
         show-recovery-codes => { root.screen = "recovery"; }
         open-policy(p) => { root.screen = "terms"; }
+        open-updates => { root.screen = "updates"; }
         delete-account => { }
     }
     if screen == "newgroup": CreateGroupScreen {
@@ -214,6 +232,22 @@ export component AppWindow inherits Window {
         toggle-member(id) => { }
         create => { root.screen = "chats"; }
     }
+    if screen == "updates": UpdatesScreen {
+        current-version: root.update-current-version;
+        current-build: root.update-current-build;
+        status: root.update-status;
+        latest-version: root.update-latest-version;
+        latest-build: root.update-latest-build;
+        notes: root.update-notes;
+        progress: root.update-progress;
+        downloading: root.update-downloading;
+        error: root.update-error;
+        back => { root.screen = "settings"; }
+        check => { root.check-updates(); }
+        download => { root.download-update(); }
+        install => { root.install-update(); }
+    }
+
     if screen == "groupinfo": GroupInfoScreen {
         group-name: root.group-name;
         group-initials: "TC";

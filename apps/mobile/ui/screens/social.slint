@@ -817,6 +817,7 @@ export component SettingsScreen inherits Rectangle {
     callback change-password;
     callback show-recovery-codes;
     callback open-policy(string);
+    callback open-updates;
     callback delete-account;
     background: transparent;
 
@@ -849,6 +850,12 @@ export component SettingsScreen inherits Rectangle {
                             title: "Recovery codes";
                             subtitle: "View and regenerate";
                             clicked => { root.show-recovery-codes(); }
+                        }
+                        Hairline { }
+                        LinkRow {
+                            title: "App updates";
+                            subtitle: "Nemo UI preview channel";
+                            clicked => { root.open-updates(); }
                         }
                     }
                 }

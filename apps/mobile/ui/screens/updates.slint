@@ -1,0 +1,300 @@
+// App updates screen — Nemo UI preview channel.
+//
+// Talks to the public GitHub Releases feed for samjoejacob39-sketch/Nemo-Chat
+// and lets the user check, download and install a newer UI preview build.
+
+import { Theme } from "../theme.slint";
+import { ChevronLeft, Plus } from "../icons.slint";
+import {
+    GlassCard, Hairline, PrimaryButton, GhostButton, TopBar, PillTag, SectionLabel,
+} from "../widgets.slint";
+
+export component UpdatesScreen inherits Rectangle {
+    in property <string> current-version: "0.1.0";
+    in property <string> current-build: "#0";
+    in property <string> status: "idle";          // idle | checking | available | up-to-date | downloading | ready | error
+    in property <string> latest-version: "";
+    in property <string> latest-build: "";
+    in property <string> notes: "";
+    in property <int> progress: 0;
+    in property <bool> downloading: false;
+    in property <string> error: "";
+
+    callback back;
+    callback check;
+    callback download;
+    callback install;
+    background: transparent;
+
+    VerticalLayout {
+        TopBar {
+            title: "App Updates";
+            back => { root.back(); }
+        }
+
+        Flickable {
+            vertical-stretch: 1;
+            VerticalLayout {
+                padding-left: Theme.sp-5;
+                padding-right: Theme.sp-5;
+                padding-top: Theme.sp-3;
+                padding-bottom: Theme.sp-6;
+                spacing: Theme.sp-4;
+
+                // App identity card
+                GlassCard {
+                    strong: true;
+                    height: 150px;
+                    VerticalLayout {
+                        padding: Theme.sp-5;
+                        spacing: Theme.sp-2;
+                        cross-axis-alignment: center;
+                        Rectangle {
+                            width: 64px;
+                            height: 64px;
+                            border-radius: 18px;
+                            background: @linear-gradient(135deg, #4D8DFF 0%, #2F6BFF 100%);
+                            drop-shadow-blur: 16px;
+                            drop-shadow-color: rgba(47, 107, 255, 0.35);
+                            drop-shadow-offset-y: 6px;
+                            Text {
+                                width: parent.width;
+                                height: parent.height;
+                                text: "N";
+                                font-size: 34px;
+                                font-weight: 800;
+                                color: white;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                        Text {
+                            text: "Nemo";
+                            font-size: Theme.fs-title;
+                            font-weight: 800;
+                            color: Theme.c-text;
+                            horizontal-alignment: center;
+                        }
+                        PillTag {
+                            text: "UI PREVIEW BUILD";
+                        }
+                    }
+                }
+
+                // Current build info
+                SectionLabel { text: "CURRENT BUILD"; }
+                GlassCard {
+                    height: 96px;
+                    VerticalLayout {
+                        padding: Theme.sp-4;
+                        spacing: 4px;
+                        HorizontalLayout {
+                            Text {
+                                text: "Version";
+                                font-size: Theme.fs-small;
+                                color: Theme.c-text-2;
+                                horizontal-stretch: 1;
+                                vertical-alignment: center;
+                            }
+                            Text {
+                                text: root.current-version;
+                                font-size: Theme.fs-small;
+                                font-weight: 700;
+                                color: Theme.c-text;
+                                vertical-alignment: center;
+                            }
+                        }
+                        Hairline { }
+                        HorizontalLayout {
+                            Text {
+                                text: "Build";
+                                font-size: Theme.fs-small;
+                                color: Theme.c-text-2;
+                                horizontal-stretch: 1;
+                                vertical-alignment: center;
+                            }
+                            Text {
+                                text: root.current-build;
+                                font-size: Theme.fs-small;
+                                font-weight: 700;
+                                color: Theme.c-text;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+
+                // Status block
+                if root.status == "checking": GlassCard {
+                    height: 72px;
+                    VerticalLayout {
+                        padding: Theme.sp-4;
+                        spacing: Theme.sp-2;
+                        cross-axis-alignment: center;
+                        Text {
+                            text: "Checking for updates…";
+                            font-size: Theme.fs-body;
+                            font-weight: 600;
+                            color: Theme.c-text;
+                            horizontal-alignment: center;
+                        }
+                    }
+                }
+
+                if root.status == "up-to-date": GlassCard {
+                    height: 72px;
+                    VerticalLayout {
+                        padding: Theme.sp-4;
+                        cross-axis-alignment: center;
+                        Text {
+                            text: "You're up to date.";
+                            font-size: Theme.fs-body;
+                            font-weight: 600;
+                            color: Theme.c-text;
+                            horizontal-alignment: center;
+                        }
+                        Text {
+                            text: "You're using the latest Nemo UI preview.";
+                            font-size: Theme.fs-caption;
+                            color: Theme.c-text-2;
+                            horizontal-alignment: center;
+                        }
+                    }
+                }
+
+                if root.status == "available": VerticalLayout {
+                    spacing: Theme.sp-3;
+                    GlassCard {
+                        height: 150px;
+                        VerticalLayout {
+                            padding: Theme.sp-4;
+                            spacing: 4px;
+                            Text {
+                                text: "A new Nemo update is available.";
+                                font-size: Theme.fs-body;
+                                font-weight: 700;
+                                color: Theme.c-text;
+                            }
+                            HorizontalLayout {
+                                Text {
+                                    text: "Version";
+                                    font-size: Theme.fs-small;
+                                    color: Theme.c-text-2;
+                                    horizontal-stretch: 1;
+                                    vertical-alignment: center;
+                                }
+                                Text {
+                                    text: root.latest-version;
+                                    font-size: Theme.fs-small;
+                                    font-weight: 700;
+                                    color: Theme.accent;
+                                    vertical-alignment: center;
+                                }
+                            }
+                            HorizontalLayout {
+                                Text {
+                                    text: "Build";
+                                    font-size: Theme.fs-small;
+                                    color: Theme.c-text-2;
+                                    horizontal-stretch: 1;
+                                    vertical-alignment: center;
+                                }
+                                Text {
+                                    text: root.latest-build;
+                                    font-size: Theme.fs-small;
+                                    font-weight: 700;
+                                    color: Theme.accent;
+                                    vertical-alignment: center;
+                                }
+                            }
+                            if root.notes != "": Text {
+                                text: root.notes;
+                                font-size: Theme.fs-caption;
+                                color: Theme.c-text-2;
+                                wrap: word-wrap;
+                            }
+                        }
+                    }
+                    PrimaryButton {
+                        text: "Download Update";
+                        clicked => { root.download(); }
+                    }
+                }
+
+                if root.status == "downloading": GlassCard {
+                    height: 88px;
+                    VerticalLayout {
+                        padding: Theme.sp-4;
+                        spacing: Theme.sp-2;
+                        Text {
+                            text: "Downloading update… " + root.progress + "%";
+                            font-size: Theme.fs-body;
+                            font-weight: 600;
+                            color: Theme.c-text;
+                            horizontal-alignment: center;
+                        }
+                        Rectangle {
+                            height: 8px;
+                            border-radius: 4px;
+                            background: Theme.c-surface-alpha;
+                            Rectangle {
+                                width: parent.width * root.progress / 100;
+                                height: parent.height;
+                                border-radius: 4px;
+                                background: @linear-gradient(90deg, #4D8DFF 0%, #2F6BFF 100%);
+                                animate width { duration: 120ms; }
+                            }
+                        }
+                    }
+                }
+
+                if root.status == "ready": GlassCard {
+                    height: 72px;
+                    VerticalLayout {
+                        padding: Theme.sp-4;
+                        cross-axis-alignment: center;
+                        Text {
+                            text: "Download complete.";
+                            font-size: Theme.fs-body;
+                            font-weight: 600;
+                            color: Theme.c-text;
+                            horizontal-alignment: center;
+                        }
+                        Text {
+                            text: "Tap install to update Nemo.";
+                            font-size: Theme.fs-caption;
+                            color: Theme.c-text-2;
+                            horizontal-alignment: center;
+                        }
+                    }
+                }
+
+                if root.status == "error": GlassCard {
+                    height: 72px;
+                    VerticalLayout {
+                        padding: Theme.sp-4;
+                        cross-axis-alignment: center;
+                        Text {
+                            text: root.error != "" ? root.error : "Something went wrong.";
+                            font-size: Theme.fs-small;
+                            color: Theme.danger;
+                            horizontal-alignment: center;
+                            wrap: word-wrap;
+                        }
+                    }
+                }
+
+                PrimaryButton {
+                    text: root.status == "checking" ? "Checking…" : "Check for Updates";
+                    enabled: root.status != "checking" && !root.downloading;
+                    clicked => { root.check(); }
+                }
+
+                if root.status == "ready": GhostButton {
+                    text: "Install Update";
+                    clicked => { root.install(); }
+                }
+            }
+        }
+    }
+}
