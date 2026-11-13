@@ -228,6 +228,10 @@ export component AppWindow inherits Window {
         show-recovery-codes => { root.screen = "recovery"; }
         open-policy(p) => { root.screen = "terms"; }
         open-updates => { root.screen = "updates"; }
+        open-chats => { root.screen = "chats"; }
+        open-find => { root.screen = "find"; }
+        open-profile => { root.screen = "profile"; }
+        log-out => { root.screen = "welcome"; }
         delete-account => { }
     }
     if screen == "newgroup": CreateGroupScreen {

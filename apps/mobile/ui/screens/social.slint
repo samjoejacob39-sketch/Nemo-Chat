@@ -541,7 +541,7 @@ export component NotificationsScreen inherits Rectangle {
                     drop-shadow-offset-y: 6px;
                     HorizontalLayout {
                         padding-left: 15px; padding-right: 15px;
-                        padding-top: 14px; padding-bottom: 14px;
+                        padding-top: 14px; 
                         spacing: 12px;
                         alignment: center;
                         Rectangle {
@@ -668,7 +668,7 @@ export component NotificationsScreen inherits Rectangle {
                         }
                         VerticalLayout {
                             padding-left: 13px; padding-right: 13px;
-                            padding-top: 14px; padding-bottom: 14px;
+                            padding-top: 14px; 
                             spacing: 8px;
                             HorizontalLayout {
                                 spacing: 12px;
@@ -769,7 +769,7 @@ export component NotificationsScreen inherits Rectangle {
                         }
                         HorizontalLayout {
                             padding-left: 13px; padding-right: 13px;
-                            padding-top: 14px; padding-bottom: 14px;
+                            padding-top: 14px; 
                             spacing: 12px;
                             alignment: start;
                             Rectangle {
@@ -1605,7 +1605,7 @@ export component FindScreen inherits Rectangle {
             height: 90px;
             VerticalLayout {
                 padding-left: 17px; padding-right: 17px;
-                padding-bottom: 14px;
+                
                 spacing: 0px;
                 Rectangle {
                     height: 70px;
@@ -2096,7 +2096,7 @@ export component ProfileScreen inherits Rectangle {
                         // Display name row
                         HorizontalLayout {
                             padding-left: 16px; padding-right: 16px;
-                            padding-top: 14px; padding-bottom: 14px;
+                            padding-top: 14px; 
                             spacing: 12px;
                             alignment: start;
                             Rectangle {
@@ -2118,7 +2118,7 @@ export component ProfileScreen inherits Rectangle {
                         // Username row
                         HorizontalLayout {
                             padding-left: 16px; padding-right: 16px;
-                            padding-top: 14px; padding-bottom: 14px;
+                            padding-top: 14px; 
                             spacing: 12px;
                             alignment: start;
                             Rectangle {
@@ -2154,7 +2154,7 @@ export component ProfileScreen inherits Rectangle {
                         // Bio row
                         HorizontalLayout {
                             padding-left: 16px; padding-right: 16px;
-                            padding-top: 14px; padding-bottom: 14px;
+                            padding-top: 14px; 
                             spacing: 12px;
                             alignment: start;
                             Rectangle {
@@ -2355,7 +2355,7 @@ export component ProfileScreen inherits Rectangle {
             height: 90px;
             VerticalLayout {
                 padding-left: 18px; padding-right: 18px;
-                padding-bottom: 14px;
+                
                 spacing: 0px;
                 Rectangle {
                     height: 63px;
@@ -2545,8 +2545,7 @@ export component ProfileScreen inherits Rectangle {
 
 // ---------------------------------------------------------------------------
 // Settings
-// ---------------------------------------------------------------------------
-
+// Settings screen — monochrome Liquid Glass (mobile-first).
 export component SettingsScreen inherits Rectangle {
     in property <bool> dark: false;
     in property <bool> read-receipts: true;
@@ -2561,140 +2560,898 @@ export component SettingsScreen inherits Rectangle {
     callback show-recovery-codes;
     callback open-policy(string);
     callback open-updates;
+    callback open-chats;
+    callback open-find;
+    callback open-profile;
+    callback log-out;
     callback delete-account;
     background: transparent;
 
+    in-out property <bool> local-dark: root.dark;
+    in-out property <bool> push-on: root.push;
+    in-out property <bool> sounds-on: root.sounds;
+    in-out property <bool> receipts-on: root.read-receipts;
+    in-out property <bool> enter-to-send: false;
+    in-out property <bool> previews-on: true;
+    in-out property <bool> haptics-on: true;
+    in-out property <int> sheet: 0; // 0 none, 1 appearance, 2 logout
+
+    property <color> ink: local-dark ? #f4f4f2 : #171717;
+    property <color> ink-soft: local-dark ? #dadad7 : #3d3d3b;
+    property <color> muted: local-dark ? #aaa9a5 : #777774;
+    property <color> muted-2: local-dark ? #777772 : #9b9b98;
+    property <color> line: local-dark ? rgba(255,255,255,0.085) : rgba(20,20,20,0.09);
+    property <color> line-strong: local-dark ? rgba(255,255,255,0.15) : rgba(20,20,20,0.15);
+    property <color> glass: local-dark ? rgba(38,38,37,0.78) : rgba(255,255,255,0.76);
+    property <color> glass-strong: local-dark ? rgba(31,31,30,0.88) : rgba(255,255,255,0.82);
+    property <color> glass-soft: local-dark ? rgba(31,31,30,0.88) : rgba(245,245,244,0.82);
+    property <color> surface-soft: local-dark ? rgba(31,31,30,0.88) : rgba(245,245,244,0.82);
+    property <color> primary: local-dark ? #f2f2f0 : #171717;
+    property <color> primary-text: local-dark ? #171717 : #ffffff;
+    property <color> nav-bg: local-dark ? rgba(27,27,26,0.86) : rgba(250,250,249,0.78);
+    property <color> scrim: local-dark ? rgba(0,0,0,0.58) : rgba(0,0,0,0.34);
+    property <color> toggle: local-dark ? #eaeae8 : #202020;
+    property <color> toggle-knob: local-dark ? #181818 : #ffffff;
+
     VerticalLayout {
-        TopBar {
-            title: "Settings";
-            back => { root.back(); }
+        padding-left: 0px;
+        padding-right: 0px;
+        padding-top: 0px;
+        padding-bottom: 0px;
+        spacing: 0px;
+
+        // Top bar
+        HorizontalLayout {
+            padding-left: 20px; padding-right: 20px;
+            padding-top: 15px; padding-bottom: 0px;
+            height: 58px;
+            alignment: start;
+            TouchArea {
+                width: 42px; height: 42px;
+                mouse-cursor: pointer;
+                clicked => { root.back(); }
+                Rectangle {
+                    width: 42px; height: 42px;
+                    border-radius: 16px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 12px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 4px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: "←";
+                        font-size: 18px;
+                        color: ink;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+            Rectangle { horizontal-stretch: 1; }
+            TouchArea {
+                width: 120px; height: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.sheet = 1; }
+                Rectangle {
+                    width: 120px; height: 40px;
+                    border-radius: 15px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 12px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 4px;
+                    HorizontalLayout {
+                        alignment: center;
+                        spacing: 8px;
+                        Text { text: root.local-dark ? "☀" : "◐"; font-size: 13px; color: ink; vertical-alignment: center; }
+                        Text { text: root.local-dark ? "Light mode" : "Dark mode"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
+                    }
+                }
+            }
         }
 
         Flickable {
             vertical-stretch: 1;
             VerticalLayout {
-                padding-left: Theme.sp-4;
-                padding-right: Theme.sp-4;
-                padding-top: 4px;
-                padding-bottom: Theme.sp-5;
-                spacing: Theme.sp-3;
+                padding-left: 20px;
+                padding-right: 20px;
+                padding-top: 15px;
+                padding-bottom: 112px;
+                spacing: 0px;
 
-                SectionLabel { text: "ACCOUNT"; }
-                GlassCard {
-                    height: 117px;
-                    VerticalLayout {
-                        LinkRow {
-                            title: "Change password";
-                            subtitle: "You'll receive fresh recovery codes";
-                            clicked => { root.change-password(); }
+                Text {
+                    text: "NEMO · PERSONALISE";
+                    font-size: 10px;
+                    font-weight: 750;
+                    color: muted;
+                    letter-spacing: 1.7px;
+                }
+                Text {
+                    text: "Settings";
+                    font-size: 35px;
+                    font-weight: 760;
+                    color: ink;
+                    letter-spacing: -1.5px;
+                }
+                Text {
+                    text: "Make your space feel like yours.";
+                    font-size: 13px;
+                    color: muted;
+                }
+
+                // Profile card
+                Rectangle {
+                    border-radius: 22px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 18px;
+                    drop-shadow-color: dark ? rgba(0,0,0,0.26) : rgba(0,0,0,0.07);
+                    drop-shadow-offset-y: 8px;
+                    
+                    HorizontalLayout {
+                        padding-left: 16px; padding-right: 16px;
+                        padding-top: 14px; 
+                        spacing: 12px;
+                        alignment: center;
+                        Rectangle {
+                            width: 46px; height: 46px;
+                            border-radius: 17px;
+                            background: @linear-gradient(145deg, #e9e9e9 0%, #c9c9c9 100%);
+                            border-width: 1px;
+                            border-color: rgba(255,255,255,0.92);
+                            Text {
+                                width: parent.width; height: parent.height;
+                                text: "AM";
+                                font-size: 13px;
+                                font-weight: 800;
+                                color: #272727;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
                         }
-                        Hairline { }
-                        LinkRow {
-                            title: "Recovery codes";
-                            subtitle: "View and regenerate";
-                            clicked => { root.show-recovery-codes(); }
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            spacing: 2px;
+                            Text { text: "Alex Morgan"; font-size: 14px; font-weight: 700; color: ink; }
+                            Text { text: "@alexmorgan"; font-size: 11px; color: muted; }
                         }
-                        Hairline { }
-                        LinkRow {
-                            title: "App updates";
-                            subtitle: "Nemo UI preview channel";
-                            clicked => { root.open-updates(); }
+                        TouchArea {
+                            width: 90px; height: 36px;
+                            mouse-cursor: pointer;
+                            clicked => { root.open-profile(); }
+                            Rectangle {
+                                width: 90px; height: 36px;
+                                border-radius: 12px;
+                                background: glass-strong;
+                                border-width: 1px;
+                                border-color: line-strong;
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: "Edit profile";
+                                    font-size: 11px;
+                                    font-weight: 700;
+                                    color: ink;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
                         }
                     }
                 }
 
-                SectionLabel { text: "PRIVACY"; }
-                GlassCard {
-                    height: 117px;
+                // Preferences section
+                Text {
+                    text: "Preferences";
+                    font-size: 15px;
+                    font-weight: 730;
+                    color: ink;
+                    letter-spacing: -0.25px;
+                    padding-top: 22px;
+                    padding-bottom: 11px;
+                }
+                Rectangle {
+                    border-radius: 22px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 16px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 6px;
+                    clip: true;
                     VerticalLayout {
-                        ToggleRow {
-                            title: "Read receipts";
-                            subtitle: "Let friends see when you read messages";
-                            checked: root.read-receipts;
-                            toggled(v) => { root.toggled-read-receipts(v); }
+                        // Appearance row
+                        TouchArea {
+                            height: 58px;
+                            mouse-cursor: pointer;
+                            clicked => { root.sheet = 1; }
+                            Rectangle {
+                                width: parent.width; height: 58px;
+                                HorizontalLayout {
+                                    padding-left: 16px; padding-right: 16px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "◐"; font-size: 15px; color: ink; horizontal-alignment: center; vertical-alignment: center; } }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 2px;
+                                        Text { text: "Appearance"; font-size: 12px; font-weight: 650; color: ink; }
+                                        Text { text: "Choose light, dark or follow device"; font-size: 10px; color: muted; }
+                                    }
+                                    Text { text: root.local-dark ? "Dark" : "Light"; font-size: 11px; font-weight: 700; color: muted; vertical-alignment: center; }
+                                    Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                                }
+                            }
                         }
-                        Hairline { }
-                        LinkRow {
-                            title: "Who can send friend requests";
-                            subtitle: "Friends of friends";
+                        Rectangle { height: 1px; background: line; }
+                        // Push notifications
+                        HorizontalLayout {
+                            height: 58px;
+                            padding-left: 16px; padding-right: 16px;
+                            spacing: 12px;
+                            alignment: center;
+                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🔔"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 2px;
+                                Text { text: "Push notifications"; font-size: 12px; font-weight: 650; color: ink; }
+                                Text { text: "Friend requests and new messages"; font-size: 10px; color: muted; }
+                            }
+                            TouchArea {
+                                width: 44px; height: 26px;
+                                mouse-cursor: pointer;
+                                clicked => { root.push-on = !root.push-on; root.toggled-push(root.push-on); }
+                                Rectangle {
+                                    width: 44px; height: 26px;
+                                    border-radius: 13px;
+                                    background: root.push-on ? toggle : surface-soft;
+                                    border-width: 1px;
+                                    border-color: root.push-on ? toggle : line;
+                                    Rectangle {
+                                        width: 20px; height: 20px;
+                                        x: root.push-on ? 22px : 3px;
+                                        y: 3px;
+                                        border-radius: 10px;
+                                        background: root.push-on ? toggle-knob : muted;
+                                    }
+                                }
+                            }
+                        }
+                        Rectangle { height: 1px; background: line; }
+                        // Message sounds
+                        HorizontalLayout {
+                            height: 58px;
+                            padding-left: 16px; padding-right: 16px;
+                            spacing: 12px;
+                            alignment: center;
+                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🔊"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 2px;
+                                Text { text: "Message sounds"; font-size: 12px; font-weight: 650; color: ink; }
+                                Text { text: "Play a sound for new messages"; font-size: 10px; color: muted; }
+                            }
+                            TouchArea {
+                                width: 44px; height: 26px;
+                                mouse-cursor: pointer;
+                                clicked => { root.sounds-on = !root.sounds-on; root.toggled-sounds(root.sounds-on); }
+                                Rectangle {
+                                    width: 44px; height: 26px;
+                                    border-radius: 13px;
+                                    background: root.sounds-on ? toggle : surface-soft;
+                                    border-width: 1px;
+                                    border-color: root.sounds-on ? toggle : line;
+                                    Rectangle {
+                                        width: 20px; height: 20px;
+                                        x: root.sounds-on ? 22px : 3px;
+                                        y: 3px;
+                                        border-radius: 10px;
+                                        background: root.sounds-on ? toggle-knob : muted;
+                                    }
+                                }
+                            }
+                        }
+                        Rectangle { height: 1px; background: line; }
+                        // Haptics
+                        HorizontalLayout {
+                            height: 58px;
+                            padding-left: 16px; padding-right: 16px;
+                            spacing: 12px;
+                            alignment: center;
+                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: " vibrating"; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; } }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 2px;
+                                Text { text: "Haptic feedback"; font-size: 12px; font-weight: 650; color: ink; }
+                                Text { text: "Subtle feedback when you interact"; font-size: 10px; color: muted; }
+                            }
+                            TouchArea {
+                                width: 44px; height: 26px;
+                                mouse-cursor: pointer;
+                                clicked => { root.haptics-on = !root.haptics-on; }
+                                Rectangle {
+                                    width: 44px; height: 26px;
+                                    border-radius: 13px;
+                                    background: root.haptics-on ? toggle : surface-soft;
+                                    border-width: 1px;
+                                    border-color: root.haptics-on ? toggle : line;
+                                    Rectangle {
+                                        width: 20px; height: 20px;
+                                        x: root.haptics-on ? 22px : 3px;
+                                        y: 3px;
+                                        border-radius: 10px;
+                                        background: root.haptics-on ? toggle-knob : muted;
+                                    }
+                                }
+                            }
+                        }
+                        Rectangle { height: 1px; background: line; }
+                        // Message previews
+                        HorizontalLayout {
+                            height: 58px;
+                            padding-left: 16px; padding-right: 16px;
+                            spacing: 12px;
+                            alignment: center;
+                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "✉"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 2px;
+                                Text { text: "Message previews"; font-size: 12px; font-weight: 650; color: ink; }
+                                Text { text: "Show message text in notifications"; font-size: 10px; color: muted; }
+                            }
+                            TouchArea {
+                                width: 44px; height: 26px;
+                                mouse-cursor: pointer;
+                                clicked => { root.previews-on = !root.previews-on; }
+                                Rectangle {
+                                    width: 44px; height: 26px;
+                                    border-radius: 13px;
+                                    background: root.previews-on ? toggle : surface-soft;
+                                    border-width: 1px;
+                                    border-color: root.previews-on ? toggle : line;
+                                    Rectangle {
+                                        width: 20px; height: 20px;
+                                        x: root.previews-on ? 22px : 3px;
+                                        y: 3px;
+                                        border-radius: 10px;
+                                        background: root.previews-on ? toggle-knob : muted;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Privacy & Security
+                Text {
+                    text: "Privacy & security";
+                    font-size: 15px;
+                    font-weight: 730;
+                    color: ink;
+                    letter-spacing: -0.25px;
+                    padding-top: 22px;
+                    padding-bottom: 11px;
+                }
+                Rectangle {
+                    border-radius: 22px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 16px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 6px;
+                    clip: true;
+                    VerticalLayout {
+                        // Friend requests
+                        TouchArea {
+                            height: 58px;
+                            mouse-cursor: pointer;
                             clicked => { }
+                            Rectangle {
+                                width: parent.width; height: 58px;
+                                HorizontalLayout {
+                                    padding-left: 16px; padding-right: 16px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "👥"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 2px;
+                                        Text { text: "Friend requests"; font-size: 12px; font-weight: 650; color: ink; }
+                                        Text { text: "Control who can add you"; font-size: 10px; color: muted; }
+                                    }
+                                    Text { text: "Everyone"; font-size: 11px; font-weight: 700; color: muted; vertical-alignment: center; }
+                                    Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                                }
+                            }
+                        }
+                        Rectangle { height: 1px; background: line; }
+                        // Read receipts
+                        HorizontalLayout {
+                            height: 58px;
+                            padding-left: 16px; padding-right: 16px;
+                            spacing: 12px;
+                            alignment: center;
+                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "👁"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 2px;
+                                Text { text: "Read receipts"; font-size: 12px; font-weight: 650; color: ink; }
+                                Text { text: "Let friends know when you've read a message"; font-size: 10px; color: muted; }
+                            }
+                            TouchArea {
+                                width: 44px; height: 26px;
+                                mouse-cursor: pointer;
+                                clicked => { root.receipts-on = !root.receipts-on; root.toggled-read-receipts(root.receipts-on); }
+                                Rectangle {
+                                    width: 44px; height: 26px;
+                                    border-radius: 13px;
+                                    background: root.receipts-on ? toggle : surface-soft;
+                                    border-width: 1px;
+                                    border-color: root.receipts-on ? toggle : line;
+                                    Rectangle {
+                                        width: 20px; height: 20px;
+                                        x: root.receipts-on ? 22px : 3px;
+                                        y: 3px;
+                                        border-radius: 10px;
+                                        background: root.receipts-on ? toggle-knob : muted;
+                                    }
+                                }
+                            }
+                        }
+                        Rectangle { height: 1px; background: line; }
+                        // Blocked accounts
+                        TouchArea {
+                            height: 58px;
+                            mouse-cursor: pointer;
+                            clicked => { }
+                            Rectangle {
+                                width: parent.width; height: 58px;
+                                HorizontalLayout {
+                                    padding-left: 16px; padding-right: 16px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🚫"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 2px;
+                                        Text { text: "Blocked accounts"; font-size: 12px; font-weight: 650; color: ink; }
+                                        Text { text: "Manage people you have blocked"; font-size: 10px; color: muted; }
+                                    }
+                                    Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                                }
+                            }
+                        }
+                        Rectangle { height: 1px; background: line; }
+                        // Recovery codes
+                        TouchArea {
+                            height: 58px;
+                            mouse-cursor: pointer;
+                            clicked => { root.show-recovery-codes(); }
+                            Rectangle {
+                                width: parent.width; height: 58px;
+                                HorizontalLayout {
+                                    padding-left: 16px; padding-right: 16px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🔐"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 2px;
+                                        Text { text: "Recovery codes"; font-size: 12px; font-weight: 650; color: ink; }
+                                        Text { text: "Review your account recovery options"; font-size: 10px; color: muted; }
+                                    }
+                                    Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                                }
+                            }
                         }
                     }
                 }
 
-                SectionLabel { text: "NOTIFICATIONS"; }
-                GlassCard {
-                    height: 117px;
+                // Chats section
+                Text {
+                    text: "Chats";
+                    font-size: 15px;
+                    font-weight: 730;
+                    color: ink;
+                    letter-spacing: -0.25px;
+                    padding-top: 22px;
+                    padding-bottom: 11px;
+                }
+                Rectangle {
+                    border-radius: 22px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 16px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 6px;
+                    clip: true;
                     VerticalLayout {
-                        ToggleRow {
-                            title: "Push notifications";
-                            subtitle: "New messages and requests";
-                            checked: root.push;
-                            toggled(v) => { root.toggled-push(v); }
+                        // Enter to send
+                        HorizontalLayout {
+                            height: 58px;
+                            padding-left: 16px; padding-right: 16px;
+                            spacing: 12px;
+                            alignment: center;
+                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "↩"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 2px;
+                                Text { text: "Enter to send"; font-size: 12px; font-weight: 650; color: ink; }
+                                Text { text: "Send a message with the enter key"; font-size: 10px; color: muted; }
+                            }
+                            TouchArea {
+                                width: 44px; height: 26px;
+                                mouse-cursor: pointer;
+                                clicked => { root.enter-to-send = !root.enter-to-send; }
+                                Rectangle {
+                                    width: 44px; height: 26px;
+                                    border-radius: 13px;
+                                    background: root.enter-to-send ? toggle : surface-soft;
+                                    border-width: 1px;
+                                    border-color: root.enter-to-send ? toggle : line;
+                                    Rectangle {
+                                        width: 20px; height: 20px;
+                                        x: root.enter-to-send ? 22px : 3px;
+                                        y: 3px;
+                                        border-radius: 10px;
+                                        background: root.enter-to-send ? toggle-knob : muted;
+                                    }
+                                }
+                            }
                         }
-                        Hairline { }
-                        ToggleRow {
-                            title: "Message sounds";
-                            checked: root.sounds;
-                            toggled(v) => { root.toggled-sounds(v); }
+                        Rectangle { height: 1px; background: line; }
+                        // Media downloads
+                        TouchArea {
+                            height: 58px;
+                            mouse-cursor: pointer;
+                            clicked => { }
+                            Rectangle {
+                                width: parent.width; height: 58px;
+                                HorizontalLayout {
+                                    padding-left: 16px; padding-right: 16px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "⬇"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 2px;
+                                        Text { text: "Media downloads"; font-size: 12px; font-weight: 650; color: ink; }
+                                        Text { text: "Choose when photos and files download"; font-size: 10px; color: muted; }
+                                    }
+                                    Text { text: "Wi-Fi only"; font-size: 11px; font-weight: 700; color: muted; vertical-alignment: center; }
+                                    Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                                }
+                            }
                         }
                     }
                 }
 
-                SectionLabel { text: "APPEARANCE"; }
-                GlassCard {
-                    height: 58px;
-                    VerticalLayout {
-                        ToggleRow {
-                            title: "Dark mode";
-                            subtitle: "Deep navy glass theme";
-                            checked: root.dark;
-                            toggled(v) => { root.toggled-dark(v); }
-                        }
-                    }
+                // Support & about
+                Text {
+                    text: "Support & about";
+                    font-size: 15px;
+                    font-weight: 730;
+                    color: ink;
+                    letter-spacing: -0.25px;
+                    padding-top: 22px;
+                    padding-bottom: 11px;
                 }
-
-                SectionLabel { text: "LEGAL"; }
-                GlassCard {
-                    height: 176px;
+                Rectangle {
+                    border-radius: 22px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 16px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 6px;
+                    clip: true;
                     VerticalLayout {
-                        LinkRow {
-                            title: "Terms of service";
+                        // Help centre
+                        TouchArea {
+                            height: 58px;
+                            mouse-cursor: pointer;
+                            clicked => { }
+                            Rectangle {
+                                width: parent.width; height: 58px;
+                                HorizontalLayout {
+                                    padding-left: 16px; padding-right: 16px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "?"; font-size: 15px; font-weight: 700; color: ink; horizontal-alignment: center; vertical-alignment: center; } }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 2px;
+                                        Text { text: "Help center"; font-size: 12px; font-weight: 650; color: ink; }
+                                        Text { text: "Get help with using Nemo"; font-size: 10px; color: muted; }
+                                    }
+                                    Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                                }
+                            }
+                        }
+                        Rectangle { height: 1px; background: line; }
+                        // Community guidelines
+                        TouchArea {
+                            height: 58px;
+                            mouse-cursor: pointer;
+                            clicked => { }
+                            Rectangle {
+                                width: parent.width; height: 58px;
+                                HorizontalLayout {
+                                    padding-left: 16px; padding-right: 16px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "📋"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 2px;
+                                        Text { text: "Community guidelines"; font-size: 12px; font-weight: 650; color: ink; }
+                                        Text { text: "How we keep Nemo welcoming"; font-size: 10px; color: muted; }
+                                    }
+                                    Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                                }
+                            }
+                        }
+                        Rectangle { height: 1px; background: line; }
+                        // Terms & privacy
+                        TouchArea {
+                            height: 58px;
+                            mouse-cursor: pointer;
                             clicked => { root.open-policy("terms"); }
+                            Rectangle {
+                                width: parent.width; height: 58px;
+                                HorizontalLayout {
+                                    padding-left: 16px; padding-right: 16px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "📄"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 2px;
+                                        Text { text: "Terms & privacy"; font-size: 12px; font-weight: 650; color: ink; }
+                                        Text { text: "Read Nemo's policies"; font-size: 10px; color: muted; }
+                                    }
+                                    Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                                }
+                            }
                         }
-                        Hairline { }
-                        LinkRow {
-                            title: "Privacy policy";
-                            clicked => { root.open-policy("privacy"); }
-                        }
-                        Hairline { }
-                        LinkRow {
-                            title: "Community guidelines";
-                            clicked => { root.open-policy("guidelines"); }
+                        Rectangle { height: 1px; background: line; }
+                        // App updates
+                        TouchArea {
+                            height: 58px;
+                            mouse-cursor: pointer;
+                            clicked => { root.open-updates(); }
+                            Rectangle {
+                                width: parent.width; height: 58px;
+                                HorizontalLayout {
+                                    padding-left: 16px; padding-right: 16px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🔄"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 2px;
+                                        Text { text: "App updates"; font-size: 12px; font-weight: 650; color: ink; }
+                                        Text { text: "Check the latest Nemo version"; font-size: 10px; color: muted; }
+                                    }
+                                    Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                                }
+                            }
                         }
                     }
                 }
 
-                SectionLabel { text: "DANGER ZONE"; }
-                GlassCard {
-                    height: 58px;
-                    VerticalLayout {
-                        LinkRow {
-                            title: "Delete account";
-                            subtitle: "This cannot be undone";
-                            danger: true;
-                            clicked => { root.delete-account(); }
+                // Log out
+                Rectangle {
+                    border-radius: 22px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 16px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 6px;
+                    clip: true;
+                    TouchArea {
+                        height: 58px;
+                        mouse-cursor: pointer;
+                        clicked => { root.sheet = 2; }
+                        Rectangle {
+                            width: parent.width; height: 58px;
+                            HorizontalLayout {
+                                padding-left: 16px; padding-right: 16px;
+                                spacing: 12px;
+                                alignment: center;
+                                Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🚪"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                VerticalLayout {
+                                    horizontal-stretch: 1;
+                                    spacing: 2px;
+                                    Text { text: "Log out"; font-size: 12px; font-weight: 650; color: ink; }
+                                    Text { text: "Sign out of this device"; font-size: 10px; color: muted; }
+                                }
+                                Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                            }
                         }
                     }
                 }
 
                 Text {
-                    height: 40px;
-                    text: "Nemo 0.1.0 · made with Rust and Slint";
-                    font-size: Theme.fs-caption;
-                    color: Theme.c-text-3;
+                    text: "NEMO · VERSION 0.1.0 · UI PREVIEW";
+                    font-size: 9px;
+                    color: muted;
+                    letter-spacing: 0.35px;
                     horizontal-alignment: center;
-                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // Bottom nav (Chats/Find/Profile — Profile active)
+        Rectangle {
+            height: 90px;
+            VerticalLayout {
+                padding-left: 18px; padding-right: 18px;
+                
+                spacing: 0px;
+                Rectangle {
+                    height: 63px;
+                    border-radius: 23px;
+                    background: nav-bg;
+                    border-width: 1px;
+                    border-color: rgba(255,255,255,0.92);
+                    drop-shadow-blur: 30px;
+                    drop-shadow-color: rgba(0,0,0,0.10);
+                    drop-shadow-offset-y: 12px;
+                    HorizontalLayout {
+                        alignment: center;
+                        TouchArea {
+                            horizontal-stretch: 1; height: 63px;
+                            mouse-cursor: pointer;
+                            clicked => { root.open-chats(); }
+                            Text { width: parent.width; height: parent.height; text: "Chats"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                        TouchArea {
+                            horizontal-stretch: 1; height: 63px;
+                            mouse-cursor: pointer;
+                            clicked => { root.open-find(); }
+                            Text { width: parent.width; height: parent.height; text: "Find"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                        TouchArea {
+                            horizontal-stretch: 1; height: 63px;
+                            mouse-cursor: pointer;
+                            clicked => { }
+                            Rectangle {
+                                width: parent.width; height: 63px;
+                                background: glass-strong;
+                                border-radius: 18px;
+                                Text { width: parent.width; height: parent.height; text: "Profile"; font-size: 9px; font-weight: 650; color: ink; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Appearance sheet
+    if root.sheet == 1: Rectangle {
+        x: 0px; y: 0px;
+        width: parent.width; height: parent.height;
+        background: scrim;
+        TouchArea { clicked => { root.sheet = 0; } }
+        Rectangle {
+            x: 12px; y: parent.height - 300px;
+            width: parent.width - 24px; height: 280px;
+            border-radius: 28px;
+            background: glass-strong;
+            border-width: 1px;
+            border-color: rgba(255,255,255,0.92);
+            drop-shadow-blur: 30px;
+            drop-shadow-color: rgba(0,0,0,0.12);
+            drop-shadow-offset-y: 10px;
+            clip: true;
+            VerticalLayout {
+                padding: 14px;
+                spacing: 0px;
+                Rectangle { height: 4px; width: 34px; x: (parent.width - 34px) / 2; border-radius: 2px; background: muted; opacity: 0.45; }
+                Text { text: "Appearance"; font-size: 15px; font-weight: 700; color: ink;  }
+                Text { text: "Choose how Nemo looks on this device."; font-size: 11px; color: muted;  }
+                TouchArea {
+                    height: 44px;
+                    mouse-cursor: pointer;
+                    clicked => { root.local-dark = false; root.toggled-dark(false); root.sheet = 0; }
+                    Rectangle {
+                        width: parent.width; height: 44px;
+                        border-radius: 12px;
+                        background: !root.local-dark ? surface-soft : transparent;
+                        Text { width: parent.width; height: parent.height; text: "Light"; font-size: 12px; font-weight: 650; color: ink; horizontal-alignment: center; vertical-alignment: center; }
+                    }
+                }
+                TouchArea {
+                    height: 44px;
+                    mouse-cursor: pointer;
+                    clicked => { root.local-dark = true; root.toggled-dark(true); root.sheet = 0; }
+                    Rectangle {
+                        width: parent.width; height: 44px;
+                        border-radius: 12px;
+                        background: root.local-dark ? surface-soft : transparent;
+                        Text { width: parent.width; height: parent.height; text: "Dark"; font-size: 12px; font-weight: 650; color: ink; horizontal-alignment: center; vertical-alignment: center; }
+                    }
+                }
+                TouchArea {
+                    height: 44px;
+                    mouse-cursor: pointer;
+                    clicked => { root.sheet = 0; }
+                    Rectangle {
+                        width: parent.width; height: 44px;
+                        border-radius: 12px;
+                        background: transparent;
+                        Text { width: parent.width; height: parent.height; text: "System"; font-size: 12px; font-weight: 650; color: ink; horizontal-alignment: center; vertical-alignment: center; }
+                    }
+                }
+                TouchArea {
+                    height: 44px;
+                    mouse-cursor: pointer;
+                    clicked => { root.sheet = 0; }
+                    Rectangle {
+                        width: parent.width; height: 44px;
+                        border-radius: 14px;
+                        background: surface-soft;
+                        
+                        Text { width: parent.width; height: parent.height; text: "Cancel"; font-size: 12px; font-weight: 700; color: ink; horizontal-alignment: center; vertical-alignment: center; }
+                    }
+                }
+            }
+        }
+    }
+
+    // Logout confirmation sheet
+    if root.sheet == 2: Rectangle {
+        x: 0px; y: 0px;
+        width: parent.width; height: parent.height;
+        background: scrim;
+        TouchArea { clicked => { root.sheet = 0; } }
+        Rectangle {
+            x: 12px; y: parent.height - 200px;
+            width: parent.width - 24px; height: 180px;
+            border-radius: 28px;
+            background: glass-strong;
+            border-width: 1px;
+            border-color: rgba(255,255,255,0.92);
+            drop-shadow-blur: 30px;
+            drop-shadow-color: rgba(0,0,0,0.12);
+            drop-shadow-offset-y: 10px;
+            clip: true;
+            VerticalLayout {
+                padding: 14px;
+                spacing: 0px;
+                Rectangle { height: 4px; width: 34px; x: (parent.width - 34px) / 2; border-radius: 2px; background: muted; opacity: 0.45; }
+                Text { text: "Log out?"; font-size: 15px; font-weight: 700; color: ink;  }
+                Text { text: "You will need to sign in again to use Nemo."; font-size: 11px; color: muted;  }
+                TouchArea {
+                    height: 44px;
+                    mouse-cursor: pointer;
+                    clicked => { root.sheet = 0; root.log-out(); }
+                    Rectangle {
+                        width: parent.width; height: 44px;
+                        border-radius: 14px;
+                        background: primary;
+                        Text { width: parent.width; height: parent.height; text: "Log out"; font-size: 12px; font-weight: 700; color: primary-text; horizontal-alignment: center; vertical-alignment: center; }
+                    }
+                }
+                TouchArea {
+                    height: 44px;
+                    mouse-cursor: pointer;
+                    clicked => { root.sheet = 0; }
+                    Rectangle {
+                        width: parent.width; height: 44px;
+                        border-radius: 14px;
+                        background: surface-soft;
+                        
+                        Text { width: parent.width; height: parent.height; text: "Cancel"; font-size: 12px; font-weight: 700; color: ink; horizontal-alignment: center; vertical-alignment: center; }
+                    }
                 }
             }
         }
