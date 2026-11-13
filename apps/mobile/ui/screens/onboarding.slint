@@ -6,11 +6,11 @@
 
 import { Theme } from "../theme.slint";
 import {
-    NookLogo, Back, Check,
+    NookLogo, Back, Check, Sun, Moon, User, Lock, Shield,
 } from "../icons.slint";
 import {
     ScreenBackground, GlassCard, PrimaryButton, GhostButton, TextButton,
-    NookField,
+    NookField, NemoBackButton,
 } from "../widgets.slint";
 
 // ---------------------------------------------------------------------------
@@ -25,12 +25,12 @@ export component WelcomeScreen inherits Rectangle {
 
     in-out property <bool> dark: Theme.is-dark;
 
-    property <color> ink: dark ? #f3f3f1 : #171717;
-    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
-    property <color> muted: dark ? #a1a19d : #777774;
-    property <color> line: dark ? rgba(255,255,255,0.11) : rgba(25,25,25,0.09);
-    property <color> glass: dark ? rgba(42,42,42,0.58) : rgba(255,255,255,0.59);
-    property <color> glass-strong: dark ? rgba(52,52,52,0.76) : rgba(255,255,255,0.79);
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> line: Theme.n-line;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
 
     VerticalLayout {
         padding-left: 23px;
@@ -118,14 +118,17 @@ export component WelcomeScreen inherits Rectangle {
                     drop-shadow-blur: 12px;
                     drop-shadow-color: rgba(0,0,0,0.035);
                     drop-shadow-offset-y: 3px;
-                    Text {
-                        width: parent.width;
-                        height: parent.height;
-                        text: root.dark ? "☀" : "☾";
-                        font-size: 17px;
-                        color: ink-soft;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    if root.dark: Sun {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 18px;
+                        tint: ink-soft;
+                    }
+                    if !root.dark: Moon {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 18px;
+                        tint: ink-soft;
                     }
                 }
             }
@@ -207,7 +210,7 @@ export component WelcomeScreen inherits Rectangle {
                         Text {
                             width: parent.width; height: parent.height;
                             text: "A";
-                            font-size: 10px;
+                            font-size: 12px;
                             font-weight: 750;
                             color: dark ? #fff : #555;
                             horizontal-alignment: center;
@@ -216,7 +219,7 @@ export component WelcomeScreen inherits Rectangle {
                     }
                     Text {
                         text: "Alex";
-                        font-size: 11px;
+                        font-size: 12px;
                         font-weight: 720;
                         color: ink;
                         vertical-alignment: center;
@@ -224,7 +227,7 @@ export component WelcomeScreen inherits Rectangle {
                     Rectangle { horizontal-stretch: 1; }
                     Text {
                         text: "now";
-                        font-size: 9px;
+                        font-size: 12px;
                         color: muted;
                         vertical-alignment: center;
                     }
@@ -242,7 +245,7 @@ export component WelcomeScreen inherits Rectangle {
                 Text {
                     x: 17px; y: 122px;
                     text: "A little closer, wherever you are.";
-                    font-size: 10px;
+                    font-size: 12px;
                     color: muted;
                 }
             }
@@ -275,7 +278,7 @@ export component WelcomeScreen inherits Rectangle {
                     }
                     Text {
                         text: "Delivered just now";
-                        font-size: 9px;
+                        font-size: 12px;
                         color: muted;
                     }
                 }
@@ -288,7 +291,7 @@ export component WelcomeScreen inherits Rectangle {
             alignment: center;
             Text {
                 text: "A space for your people";
-                font-size: 10px;
+                font-size: 12px;
                 font-weight: 760;
                 color: muted;
                 letter-spacing: 1.9px;
@@ -380,7 +383,7 @@ export component WelcomeScreen inherits Rectangle {
 
         Text {
             text: "By continuing, you agree to Nemo's Terms and Privacy Policy.";
-            font-size: 10px;
+            font-size: 12px;
             color: muted;
             horizontal-alignment: center;
             wrap: word-wrap;
@@ -406,14 +409,14 @@ export component SignUpScreen inherits Rectangle {
     in-out property <bool> show-password: false;
     in-out property <bool> show-confirm: false;
 
-    property <color> ink: dark ? #f3f3f1 : #171717;
-    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
-    property <color> muted: dark ? #a1a19d : #77777d;
-    property <color> line: dark ? rgba(255,255,255,0.11) : rgba(25,25,25,0.09);
-    property <color> glass: dark ? rgba(42,42,42,0.58) : rgba(255,255,255,0.59);
-    property <color> glass-strong: dark ? rgba(52,52,52,0.76) : rgba(255,255,255,0.78);
-    property <color> field: dark ? rgba(18,18,18,0.62) : rgba(255,255,255,0.56);
-    property <color> field-focus: dark ? rgba(30,30,30,0.85) : rgba(255,255,255,0.91);
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> line: Theme.n-line;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
+    property <color> field: Theme.n-glass-soft;
+    property <color> field-focus: Theme.n-glass-strong;
 
     // Password strength (0..4)
     pure function score() -> int {
@@ -447,33 +450,13 @@ export component SignUpScreen inherits Rectangle {
         HorizontalLayout {
             height: 62px;
             alignment: start;
-            TouchArea {
-                width: 42px; height: 42px;
-                mouse-cursor: pointer;
+            NemoBackButton {
                 clicked => { root.back(); }
-                Rectangle {
-                    width: 42px; height: 42px;
-                    border-radius: 21px;
-                    background: glass;
-                    border-width: 1px;
-                    border-color: line;
-                    drop-shadow-blur: 16px;
-                    drop-shadow-color: rgba(20,20,25,0.045);
-                    drop-shadow-offset-y: 5px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "←";
-                        font-size: 18px;
-                        color: ink-soft;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                }
             }
             Rectangle { horizontal-stretch: 1; }
             Text {
                 text: "ACCOUNT SETUP   /   01";
-                font-size: 11px;
+                font-size: 12px;
                 font-weight: 650;
                 color: muted;
                 letter-spacing: 1.3px;
@@ -502,12 +485,11 @@ export component SignUpScreen inherits Rectangle {
                     drop-shadow-blur: 28px;
                     drop-shadow-color: rgba(22,22,26,0.09);
                     drop-shadow-offset-y: 12px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "👤";
-                        font-size: 32px;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    User {
+                        x: 22px;
+                        y: 22px;
+                        size: 30px;
+                        tint: ink-soft;
                     }
                 }
 
@@ -517,7 +499,7 @@ export component SignUpScreen inherits Rectangle {
                     alignment: center;
                     Text {
                         text: "WELCOME TO NEMO";
-                        font-size: 10px;
+                        font-size: 12px;
                         font-weight: 700;
                         color: muted;
                         letter-spacing: 1.7px;
@@ -525,7 +507,7 @@ export component SignUpScreen inherits Rectangle {
                     }
                     Text {
                         text: "Create Account";
-                        font-size: 29px;
+                        font-size: 31px;
                         font-weight: 720;
                         color: ink;
                         letter-spacing: -1.3px;
@@ -585,7 +567,7 @@ export component SignUpScreen inherits Rectangle {
                                     horizontal-stretch: 1;
                                     spacing: 2px;
                                     cross-axis-self-alignment: center;
-                                    Text { text: "NAME SHOWN TO FRIENDS"; font-size: 10px; font-weight: 600; color: muted; letter-spacing: 0.15px; }
+                                    Text { text: "NAME SHOWN TO FRIENDS"; font-size: 12px; font-weight: 600; color: muted; letter-spacing: 0.15px; }
                                     TextInput {
                                         text <=> root.display-name;
                                         font-size: 14px;
@@ -612,7 +594,7 @@ export component SignUpScreen inherits Rectangle {
                                     horizontal-stretch: 1;
                                     spacing: 2px;
                                     cross-axis-self-alignment: center;
-                                    Text { text: "USERNAME"; font-size: 10px; font-weight: 600; color: muted; letter-spacing: 0.15px; }
+                                    Text { text: "USERNAME"; font-size: 12px; font-weight: 600; color: muted; letter-spacing: 0.15px; }
                                     TextInput {
                                         text <=> root.username;
                                         font-size: 14px;
@@ -639,7 +621,7 @@ export component SignUpScreen inherits Rectangle {
                                     horizontal-stretch: 1;
                                     spacing: 2px;
                                     cross-axis-self-alignment: center;
-                                    Text { text: "PASSWORD"; font-size: 10px; font-weight: 600; color: muted; letter-spacing: 0.15px; }
+                                    Text { text: "PASSWORD"; font-size: 12px; font-weight: 600; color: muted; letter-spacing: 0.15px; }
                                     TextInput {
                                         text <=> root.password;
                                         font-size: 14px;
@@ -654,7 +636,7 @@ export component SignUpScreen inherits Rectangle {
                                     Text {
                                         width: parent.width; height: parent.height;
                                         text: root.show-password ? "Hide" : "Show";
-                                        font-size: 10px;
+                                        font-size: 12px;
                                         color: muted;
                                         horizontal-alignment: center;
                                         vertical-alignment: center;
@@ -680,7 +662,7 @@ export component SignUpScreen inherits Rectangle {
                                     horizontal-stretch: 1;
                                     spacing: 2px;
                                     cross-axis-self-alignment: center;
-                                    Text { text: "CONFIRM PASSWORD"; font-size: 10px; font-weight: 600; color: muted; letter-spacing: 0.15px; }
+                                    Text { text: "CONFIRM PASSWORD"; font-size: 12px; font-weight: 600; color: muted; letter-spacing: 0.15px; }
                                     TextInput {
                                         text <=> root.confirm-password;
                                         font-size: 14px;
@@ -695,7 +677,7 @@ export component SignUpScreen inherits Rectangle {
                                     Text {
                                         width: parent.width; height: parent.height;
                                         text: root.show-confirm ? "Hide" : "Show";
-                                        font-size: 10px;
+                                        font-size: 12px;
                                         color: muted;
                                         horizontal-alignment: center;
                                         vertical-alignment: center;
@@ -713,7 +695,7 @@ export component SignUpScreen inherits Rectangle {
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 7px;
-                                Text { text: "PASSWORD STRENGTH"; font-size: 10px; font-weight: 600; color: muted; }
+                                Text { text: "PASSWORD STRENGTH"; font-size: 12px; font-weight: 600; color: muted; }
                                 HorizontalLayout {
                                     spacing: 4px;
                                     for i in 4: Rectangle {
@@ -729,14 +711,14 @@ export component SignUpScreen inherits Rectangle {
                                 alignment: end;
                                 Text {
                                     text: root.score-now == 0 ? "Not entered" : (root.score-now <= 1 ? "Weak" : (root.score-now == 2 ? "Fair" : (root.score-now == 3 ? "Good" : "Strong")));
-                                    font-size: 10px;
+                                    font-size: 12px;
                                     font-weight: 650;
                                     color: #55555b;
                                     horizontal-alignment: right;
                                 }
                                 Text {
                                     text: root.confirm-password == "" ? "Use at least 8 characters" : (root.password == root.confirm-password ? "Passwords match" : "Passwords do not match");
-                                    font-size: 10px;
+                                    font-size: 12px;
                                     color: #96969b;
                                     horizontal-alignment: right;
                                 }
@@ -796,7 +778,7 @@ export component SignUpScreen inherits Rectangle {
 
         Text {
             text: "Your account will have its own recovery codes. Keep them somewhere safe.";
-            font-size: 10px;
+            font-size: 12px;
             color: #a0a0a5;
             horizontal-alignment: center;
             wrap: word-wrap;
@@ -811,18 +793,19 @@ export component SignUpScreen inherits Rectangle {
 export component RecoveryScreen inherits Rectangle {
     in property <[string]> codes;
     callback saved;   // -> terms
+    callback back;    // -> sign up
     background: transparent;
 
     in-out property <bool> dark: Theme.is-dark;
     in-out property <bool> confirmed: false;
 
-    property <color> ink: dark ? #f3f3f1 : #171717;
-    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
-    property <color> muted: dark ? #a1a19d : #777774;
-    property <color> line: dark ? rgba(255,255,255,0.11) : rgba(25,25,25,0.09);
-    property <color> glass: dark ? rgba(42,42,42,0.58) : rgba(255,255,255,0.57);
-    property <color> glass-strong: dark ? rgba(52,52,52,0.76) : rgba(255,255,255,0.76);
-    property <color> field: dark ? rgba(18,18,18,0.62) : rgba(247,247,248,0.74);
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> line: Theme.n-line;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
+    property <color> field: Theme.n-glass-soft;
 
     VerticalLayout {
         padding-left: 18px;
@@ -856,36 +839,16 @@ export component RecoveryScreen inherits Rectangle {
 
         // Top bar
         HorizontalLayout {
-            height: 34px;
+            height: 42px;
             alignment: start;
             spacing: 0px;
-            TouchArea {
-                width: 38px; height: 38px;
-                mouse-cursor: pointer;
-                clicked => { }
-                Rectangle {
-                    width: 38px; height: 38px;
-                    border-radius: 19px;
-                    background: glass;
-                    border-width: 1px;
-                    border-color: line;
-                    drop-shadow-blur: 16px;
-                    drop-shadow-color: rgba(0,0,0,0.045);
-                    drop-shadow-offset-y: 5px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "←";
-                        font-size: 18px;
-                        color: ink-soft;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                }
+            NemoBackButton {
+                clicked => { root.back(); }
             }
             Rectangle { horizontal-stretch: 1; }
             Text {
                 text: "ACCOUNT SECURITY · 03 / 14";
-                font-size: 10px;
+                font-size: 12px;
                 font-weight: 750;
                 color: muted;
                 letter-spacing: 1.6px;
@@ -920,12 +883,11 @@ export component RecoveryScreen inherits Rectangle {
                     drop-shadow-blur: 32px;
                     drop-shadow-color: rgba(0,0,0,0.09);
                     drop-shadow-offset-y: 12px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "🔐";
-                        font-size: 29px;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    Lock {
+                        x: 20px;
+                        y: 20px;
+                        size: 28px;
+                        tint: ink-soft;
                     }
                 }
 
@@ -935,7 +897,7 @@ export component RecoveryScreen inherits Rectangle {
                     alignment: center;
                     Text {
                         text: "Save your recovery codes";
-                        font-size: 27px;
+                        font-size: 28px;
                         font-weight: 780;
                         color: ink;
                         letter-spacing: -1.4px;
@@ -963,8 +925,7 @@ export component RecoveryScreen inherits Rectangle {
                         alignment: start;
                         Rectangle {
                             width: 17px; height: 17px;
-                            // shield icon placeholder
-                            Text { text: "🛡"; font-size: 14px; }
+                            Shield { size: 17px; tint: muted; }
                         }
                     VerticalLayout {
                         horizontal-stretch: 1;
@@ -977,7 +938,7 @@ export component RecoveryScreen inherits Rectangle {
                         }
                         Text {
                             text: "Each code can be used once. Anyone with one of your codes may be able to access your account.";
-                            font-size: 11px;
+                            font-size: 12px;
                             color: muted;
                             wrap: word-wrap;
                         }
@@ -1025,7 +986,7 @@ export component RecoveryScreen inherits Rectangle {
                                 Text {
                                     width: parent.width; height: parent.height;
                                     text: "Preview only";
-                                    font-size: 9px;
+                                    font-size: 12px;
                                     font-weight: 800;
                                     color: muted;
                                     letter-spacing: 1.2px;
@@ -1043,7 +1004,7 @@ export component RecoveryScreen inherits Rectangle {
                                 border-radius: 12px;
                                 background: field;
                                 border-width: 1px;
-                                border-color: rgba(255,255,255,0.92);
+                                border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
                                 HorizontalLayout {
                                     padding-left: 11px; padding-right: 9px;
                                     spacing: 8px;
@@ -1051,7 +1012,7 @@ export component RecoveryScreen inherits Rectangle {
                                     Text {
                                         horizontal-stretch: 1;
                                         text: code;
-                                        font-size: 11px;
+                                        font-size: 12px;
                                         font-weight: 650;
                                         color: ink;
                                         letter-spacing: 0.35px;
@@ -1090,7 +1051,7 @@ export component RecoveryScreen inherits Rectangle {
                                     HorizontalLayout {
                                         alignment: center;
                                         spacing: 7px;
-                                        Text { text: "Copy all"; font-size: 11px; font-weight: 720; color: ink-soft; vertical-alignment: center; }
+                                        Text { text: "Copy all"; font-size: 12px; font-weight: 720; color: ink-soft; vertical-alignment: center; }
                                     }
                                 }
                             }
@@ -1112,7 +1073,7 @@ export component RecoveryScreen inherits Rectangle {
                                     HorizontalLayout {
                                         alignment: center;
                                         spacing: 7px;
-                                        Text { text: "Save as file"; font-size: 11px; font-weight: 720; color: ink-soft; vertical-alignment: center; }
+                                        Text { text: "Save as file"; font-size: 12px; font-weight: 720; color: ink-soft; vertical-alignment: center; }
                                     }
                                 }
                             }
@@ -1120,7 +1081,7 @@ export component RecoveryScreen inherits Rectangle {
 
                         Text {
                             text: "Store them somewhere private. Don't share them or keep them in a public place.";
-                            font-size: 10px;
+                            font-size: 12px;
                             color: muted;
                             horizontal-alignment: center;
                             wrap: word-wrap;
@@ -1153,7 +1114,7 @@ export component RecoveryScreen inherits Rectangle {
                                 Text {
                                     width: parent.width; height: parent.height;
                                     text: root.confirmed ? "✓" : "";
-                                    font-size: 11px;
+                                    font-size: 12px;
                                     color: dark ? #171717 : #ffffff;
                                     horizontal-alignment: center;
                                     vertical-alignment: center;
@@ -1162,7 +1123,7 @@ export component RecoveryScreen inherits Rectangle {
                             Text {
                                 horizontal-stretch: 1;
                                 text: "I've saved my recovery codes somewhere safe.";
-                                font-size: 11px;
+                                font-size: 12px;
                                 font-weight: 600;
                                 color: #55555b;
                                 vertical-alignment: center;
@@ -1210,7 +1171,7 @@ export component RecoveryScreen inherits Rectangle {
         // Footer
         Text {
             text: "NEMO · YOUR ACCOUNT, YOUR CONTROL";
-            font-size: 9px;
+            font-size: 12px;
             color: muted;
             letter-spacing: 0.35px;
             horizontal-alignment: center;
@@ -1235,18 +1196,18 @@ export component LoginScreen inherits Rectangle {
     in-out property <bool> show-password: false;
     in-out property <bool> remember: false;
 
-    property <color> ink: dark ? #f4f4f4 : #171717;
-    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
-    property <color> muted: dark ? #aaa : #777;
-    property <color> muted-2: dark ? #777 : #999;
-    property <color> line: dark ? rgba(255,255,255,0.10) : rgba(25,25,25,0.10);
-    property <color> line-strong: dark ? rgba(255,255,255,0.16) : rgba(25,25,25,0.16);
-    property <color> glass: dark ? rgba(43,43,43,0.62) : rgba(255,255,255,0.62);
-    property <color> glass-strong: dark ? rgba(52,52,52,0.82) : rgba(255,255,255,0.82);
-    property <color> glass-soft: dark ? rgba(55,55,55,0.40) : rgba(255,255,255,0.42);
-    property <color> field: dark ? rgba(25,25,25,0.48) : rgba(255,255,255,0.55);
-    property <color> button: dark ? #f1f1f1 : #171717;
-    property <color> button-text: dark ? #171717 : #ffffff;
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> muted-2: Theme.n-muted-2;
+    property <color> line: Theme.n-line;
+    property <color> line-strong: Theme.n-line-strong;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
+    property <color> glass-soft: Theme.n-glass-soft;
+    property <color> field: Theme.n-glass-soft;
+    property <color> button: Theme.n-primary;
+    property <color> button-text: Theme.n-primary-text;
 
     VerticalLayout {
         padding-left: 24px;
@@ -1324,13 +1285,17 @@ export component LoginScreen inherits Rectangle {
                     drop-shadow-blur: 15px;
                     drop-shadow-color: rgba(0,0,0,0.035);
                     drop-shadow-offset-y: 5px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: root.dark ? "☀" : "☾";
-                        font-size: 17px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    if root.dark: Sun {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 19px;
+                        tint: ink;
+                    }
+                    if !root.dark: Moon {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 19px;
+                        tint: ink;
                     }
                 }
             }
@@ -1357,7 +1322,7 @@ export component LoginScreen inherits Rectangle {
                         }
                         Text {
                             text: "YOUR SPACE, YOUR PEOPLE";
-                            font-size: 11px;
+                            font-size: 12px;
                             font-weight: 700;
                             color: muted;
                             letter-spacing: 1.1px;
@@ -1402,7 +1367,7 @@ export component LoginScreen inherits Rectangle {
                             spacing: 6px;
                             Text {
                                 text: "Username";
-                                font-size: 11px;
+                                font-size: 12px;
                                 font-weight: 650;
                                 color: ink-soft;
                             }
@@ -1416,11 +1381,9 @@ export component LoginScreen inherits Rectangle {
                                     padding-left: 14px; padding-right: 14px;
                                     spacing: 10px;
                                     alignment: center;
-                                    Text {
-                                        text: "👤";
-                                        font-size: 14px;
-                                        color: muted;
-                                        vertical-alignment: center;
+                                    User {
+                                        size: 16px;
+                                        tint: muted;
                                     }
                                     TextInput {
                                         horizontal-stretch: 1;
@@ -1438,7 +1401,7 @@ export component LoginScreen inherits Rectangle {
                             spacing: 6px;
                             Text {
                                 text: "Password";
-                                font-size: 11px;
+                                font-size: 12px;
                                 font-weight: 650;
                                 color: ink-soft;
                             }
@@ -1452,11 +1415,9 @@ export component LoginScreen inherits Rectangle {
                                     padding-left: 14px; padding-right: 10px;
                                     spacing: 10px;
                                     alignment: center;
-                                    Text {
-                                        text: "🔒";
-                                        font-size: 14px;
-                                        color: muted;
-                                        vertical-alignment: center;
+                                    Lock {
+                                        size: 16px;
+                                        tint: muted;
                                     }
                                     TextInput {
                                         horizontal-stretch: 1;
@@ -1476,7 +1437,7 @@ export component LoginScreen inherits Rectangle {
                                             Text {
                                                 width: parent.width; height: parent.height;
                                                 text: root.show-password ? "Hide" : "Show";
-                                                font-size: 10px;
+                                                font-size: 12px;
                                                 color: muted;
                                                 horizontal-alignment: center;
                                                 vertical-alignment: center;
@@ -1507,7 +1468,7 @@ export component LoginScreen inherits Rectangle {
                                         Text {
                                             width: parent.width; height: parent.height;
                                             text: root.remember ? "✓" : "";
-                                            font-size: 10px;
+                                            font-size: 12px;
                                             color: dark ? #171717 : #ffffff;
                                             horizontal-alignment: center;
                                             vertical-alignment: center;
@@ -1515,7 +1476,7 @@ export component LoginScreen inherits Rectangle {
                                     }
                                     Text {
                                         text: "Remember me";
-                                        font-size: 11px;
+                                        font-size: 12px;
                                         color: muted;
                                         vertical-alignment: center;
                                     }
@@ -1529,7 +1490,7 @@ export component LoginScreen inherits Rectangle {
                                 Text {
                                     width: parent.width; height: parent.height;
                                     text: "Forgot password?";
-                                    font-size: 11px;
+                                    font-size: 12px;
                                     font-weight: 650;
                                     color: ink-soft;
                                     horizontal-alignment: right;
@@ -1581,7 +1542,7 @@ export component LoginScreen inherits Rectangle {
                             Rectangle { horizontal-stretch: 1; height: 1px; background: line; }
                             Text {
                                 text: "OR";
-                                font-size: 10px;
+                                font-size: 12px;
                                 color: muted;
                                 vertical-alignment: center;
                             }
@@ -1594,7 +1555,7 @@ export component LoginScreen inherits Rectangle {
                             spacing: 6px;
                             Text {
                                 text: "Have a recovery code?";
-                                font-size: 11px;
+                                font-size: 12px;
                                 color: muted;
                                 vertical-alignment: center;
                             }
@@ -1605,7 +1566,7 @@ export component LoginScreen inherits Rectangle {
                                 Text {
                                     width: parent.width; height: parent.height;
                                     text: "Recover account";
-                                    font-size: 11px;
+                                    font-size: 12px;
                                     font-weight: 650;
                                     color: ink-soft;
                                     horizontal-alignment: center;
@@ -1642,7 +1603,7 @@ export component LoginScreen inherits Rectangle {
                     }
                     Text {
                         text: "Private account access · Sign in securely";
-                        font-size: 10px;
+                        font-size: 12px;
                         color: muted;
                         vertical-alignment: center;
                     }
@@ -1676,17 +1637,17 @@ export component TermsScreen inherits Rectangle {
     in-out property <int> read-progress: 0;
     in-out property <bool> reached-end: false;
 
-    property <color> ink: dark ? #f3f3f3 : #171717;
-    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
-    property <color> muted: dark ? #aaa : #777;
-    property <color> soft: dark ? #777 : #a3a3a3;
-    property <color> line: dark ? rgba(255,255,255,0.11) : rgba(20,20,20,0.09);
-    property <color> glass: dark ? rgba(43,43,43,0.70) : rgba(255,255,255,0.68);
-    property <color> glass-strong: dark ? rgba(50,50,50,0.88) : rgba(255,255,255,0.84);
-    property <color> glass-low: dark ? rgba(255,255,255,0.055) : rgba(255,255,255,0.40);
-    property <color> track: dark ? #414141 : #d5d5d5;
-    property <color> button: dark ? #f1f1f1 : #161616;
-    property <color> button-text: dark ? #151515 : #ffffff;
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> soft: Theme.n-muted-2;
+    property <color> line: Theme.n-line;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
+    property <color> glass-low: Theme.n-glass-soft;
+    property <color> track: Theme.n-track;
+    property <color> button: Theme.n-primary;
+    property <color> button-text: Theme.n-primary-text;
 
     VerticalLayout {
         padding-left: 20px;
@@ -1727,28 +1688,8 @@ export component TermsScreen inherits Rectangle {
             height: 42px;
             alignment: start;
             spacing: 0px;
-            TouchArea {
-                width: 42px; height: 42px;
-                mouse-cursor: pointer;
+            NemoBackButton {
                 clicked => { root.back(); }
-                Rectangle {
-                    width: 42px; height: 42px;
-                    border-radius: 16px;
-                    background: glass;
-                    border-width: 1px;
-                    border-color: line;
-                    drop-shadow-blur: 18px;
-                    drop-shadow-color: rgba(0,0,0,0.045);
-                    drop-shadow-offset-y: 6px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "←";
-                        font-size: 18px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                }
             }
             Rectangle { horizontal-stretch: 1; }
             Text {
@@ -1773,13 +1714,17 @@ export component TermsScreen inherits Rectangle {
                     drop-shadow-blur: 18px;
                     drop-shadow-color: rgba(0,0,0,0.045);
                     drop-shadow-offset-y: 6px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: root.dark ? "☀" : "☾";
-                        font-size: 17px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    if root.dark: Sun {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 19px;
+                        tint: ink;
+                    }
+                    if !root.dark: Moon {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 19px;
+                        tint: ink;
                     }
                 }
             }
@@ -1788,14 +1733,14 @@ export component TermsScreen inherits Rectangle {
         // Eyebrow + heading
         Text {
             text: "A few things before you begin";
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 750;
             color: muted;
             letter-spacing: 1.2px;
         }
         Text {
             text: "Welcome to Nemo.";
-            font-size: 32px;
+            font-size: 31px;
             font-weight: 760;
             color: ink;
             letter-spacing: -1.7px;
@@ -1824,12 +1769,11 @@ export component TermsScreen inherits Rectangle {
                 background: glass-strong;
                 border-width: 1px;
                 border-color: line;
-                Text {
-                    width: parent.width; height: parent.height;
-                    text: "🛡";
-                    font-size: 13px;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
+                Shield {
+                    x: 6px;
+                    y: 6px;
+                    size: 15px;
+                    tint: ink-soft;
                 }
             }
             VerticalLayout {
@@ -1837,13 +1781,13 @@ export component TermsScreen inherits Rectangle {
                 spacing: 2px;
                 Text {
                     text: "Your space, your responsibility.";
-                    font-size: 11px;
+                    font-size: 12px;
                     font-weight: 700;
                     color: ink;
                 }
                 Text {
                     text: "These draft policies explain the basic rules for using Nemo. Please read each section before continuing.";
-                    font-size: 11px;
+                    font-size: 12px;
                     color: muted;
                     wrap: word-wrap;
                 }
@@ -1888,7 +1832,7 @@ export component TermsScreen inherits Rectangle {
                     }
                     Text {
                         text: "Preview draft · v0.1";
-                        font-size: 10px;
+                        font-size: 12px;
                         color: muted;
                         vertical-alignment: center;
                     }
@@ -1957,12 +1901,12 @@ export component TermsScreen inherits Rectangle {
                 alignment: space-between;
                 Text {
                     text: root.reached-end ? "All sections reviewed" : "Scroll to review all sections";
-                    font-size: 10px;
+                    font-size: 12px;
                     color: muted;
                 }
                 Text {
                     text: root.read-progress + "% read";
-                    font-size: 10px;
+                    font-size: 12px;
                     color: muted;
                 }
             }
@@ -2050,7 +1994,7 @@ export component TermsScreen inherits Rectangle {
 
             Text {
                 text: "You can review these policies again later in Settings.";
-                font-size: 9px;
+                font-size: 12px;
                 color: muted;
                 horizontal-alignment: center;
                 wrap: word-wrap;

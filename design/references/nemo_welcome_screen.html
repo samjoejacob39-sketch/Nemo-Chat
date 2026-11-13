@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f4f2">
+<title>Nemo — Welcome</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f4f2;
+    --bg-deep: #e9e9e6;
+    --ink: #171717;
+    --ink-soft: #3d3d3b;
+    --muted: #777774;
+    --line: rgba(25,25,25,.09);
+    --glass: rgba(255,255,255,.59);
+    --glass-strong: rgba(255,255,255,.79);
+    --glass-dark: rgba(31,31,31,.085);
+    --button: #171717;
+    --button-ink: #fff;
+    --shadow: 0 22px 60px rgba(0,0,0,.09), 0 3px 12px rgba(0,0,0,.035);
+    --ease: cubic-bezier(.2,.72,.22,1);
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #101010;
+    --bg-deep: #191919;
+    --ink: #f3f3f1;
+    --ink-soft: #dadad7;
+    --muted: #a1a19d;
+    --line: rgba(255,255,255,.11);
+    --glass: rgba(42,42,42,.58);
+    --glass-strong: rgba(52,52,52,.76);
+    --glass-dark: rgba(255,255,255,.07);
+    --button: #f1f1ef;
+    --button-ink: #161616;
+    --shadow: 0 24px 70px rgba(0,0,0,.42), 0 3px 14px rgba(0,0,0,.22);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; min-height:100%; width:100%; }
+  body {
+    min-height:100svh;
+    background:var(--bg);
+    color:var(--ink);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow:hidden;
+    transition:background .45s var(--ease), color .45s var(--ease);
+  }
+  button, a { font:inherit; -webkit-tap-highlight-color:transparent; }
+  button { border:0; }
+  .app {
+    min-height:100svh;
+    width:100%;
+    position:relative;
+    isolation:isolate;
+    overflow:hidden;
+    display:flex;
+    justify-content:center;
+    padding: max(18px, env(safe-area-inset-top)) 23px max(20px, env(safe-area-inset-bottom));
+  }
+  .ambient {
+    position:absolute; z-index:-3; pointer-events:none; border-radius:50%;
+    filter:blur(3px); opacity:.72;
+  }
+  .ambient.a {
+    width:430px;height:430px;top:-235px;left:50%;transform:translateX(-50%);
+    background:radial-gradient(circle at 50% 55%, rgba(255,255,255,.96),rgba(211,211,207,.45) 32%,transparent 70%);
+    animation:ambientFloat 19s ease-in-out infinite alternate;
+  }
+  .ambient.b {
+    width:360px;height:360px;bottom:-235px;right:-190px;
+    background:radial-gradient(circle,rgba(255,255,255,.83),rgba(185,185,180,.26) 38%,transparent 72%);
+    animation:ambientFloat 24s ease-in-out infinite alternate-reverse;
+  }
+  [data-theme="dark"] .ambient.a { background:radial-gradient(circle at 50% 55%,rgba(255,255,255,.16),rgba(180,180,180,.1) 32%,transparent 70%); }
+  [data-theme="dark"] .ambient.b { background:radial-gradient(circle,rgba(255,255,255,.1),rgba(180,180,180,.06) 38%,transparent 72%); }
+  .grain { position:absolute;inset:0;z-index:-2;opacity:.105;pointer-events:none;mix-blend-mode:soft-light;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.17'/%3E%3C/svg%3E"); }
+  .screen {
+    width:min(100%,430px); min-height:calc(100svh - max(18px,env(safe-area-inset-top)) - max(20px,env(safe-area-inset-bottom)));
+    display:flex;flex-direction:column;position:relative;
+  }
+  .topbar { height:46px; flex:0 0 46px; display:flex;align-items:center;justify-content:space-between; animation:fadeDown .8s var(--ease) both; }
+  .brand { display:flex;align-items:center;gap:10px; }
+  .brand-mark { width:28px;height:28px;border-radius:50%;position:relative;display:grid;place-items:center;
+    background:linear-gradient(145deg,rgba(255,255,255,.95),rgba(190,190,186,.42));
+    border:1px solid rgba(255,255,255,.93);box-shadow:inset -3px -4px 8px rgba(0,0,0,.12),inset 2px 2px 5px rgba(255,255,255,.95),0 3px 9px rgba(0,0,0,.08); }
+  [data-theme="dark"] .brand-mark { background:linear-gradient(145deg,#777,#262626);border-color:rgba(255,255,255,.25); }
+  .brand-mark span { font-size:14px;font-weight:780;letter-spacing:-.09em;color:#343432;transform:translateX(-.5px); }
+  [data-theme="dark"] .brand-mark span { color:#f2f2ef; }
+  .brand-name { font-size:17px;font-weight:750;letter-spacing:-.065em; }
+  .theme-toggle { width:39px;height:39px;display:grid;place-items:center;border-radius:50%;color:var(--ink-soft);background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 3px 12px rgba(0,0,0,.035);transition:transform .28s var(--ease),background .3s; }
+  .theme-toggle:active { transform:scale(.91); }
+  .theme-toggle svg { width:17px;height:17px; }
+  .main { flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;padding:clamp(12px,3.2vh,30px) 0 8px; }
+  .hero-art { height:clamp(245px,37vh,330px);position:relative;display:grid;place-items:center;margin:0 0 clamp(17px,3vh,27px);animation:artEnter 1s .08s var(--ease) both; }
+  .orbital { position:absolute;width:min(76vw,300px);height:min(76vw,300px);max-height:300px;max-width:300px;border-radius:50%;border:1px solid rgba(120,120,115,.13);transform:rotate(-21deg) scaleY(.72); }
+  .orbital::before,.orbital::after { content:"";position:absolute;border-radius:50%;border:1px solid rgba(120,120,115,.12);inset:17px; }
+  .orbital::after { inset:36px;border-color:rgba(255,255,255,.8); }
+  [data-theme="dark"] .orbital { border-color:rgba(255,255,255,.1); }
+  [data-theme="dark"] .orbital::before { border-color:rgba(255,255,255,.08); }
+  [data-theme="dark"] .orbital::after { border-color:rgba(255,255,255,.12); }
+  .art-glow { position:absolute;width:210px;height:210px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.96),rgba(201,201,197,.32) 48%,transparent 72%);filter:blur(8px);animation:glowPulse 7s ease-in-out infinite alternate; }
+  [data-theme="dark"] .art-glow { background:radial-gradient(circle,rgba(255,255,255,.15),rgba(190,190,190,.08) 48%,transparent 72%); }
+  .message-card { position:absolute;border-radius:22px;border:1px solid rgba(255,255,255,.92);background:linear-gradient(145deg,rgba(255,255,255,.84),rgba(245,245,243,.48) 54%,rgba(218,218,214,.40));backdrop-filter:blur(24px) saturate(108%);-webkit-backdrop-filter:blur(24px) saturate(108%);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.94);overflow:hidden; }
+  [data-theme="dark"] .message-card { background:linear-gradient(145deg,rgba(66,66,66,.82),rgba(34,34,34,.68) 56%,rgba(55,55,55,.52));border-color:rgba(255,255,255,.2);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.19); }
+  .message-card::before { content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(118deg,rgba(255,255,255,.46),transparent 31%,transparent 70%,rgba(255,255,255,.12));opacity:.8; }
+  .message-main { width:248px;min-height:152px;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-3deg);padding:17px 17px 15px;animation:floatMain 8s ease-in-out infinite; }
+  .message-top { display:flex;align-items:center;gap:9px;position:relative; }
+  .avatar { width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#fafaf8,#bdbdb9);border:1px solid rgba(255,255,255,.95);color:#555;font-size:10px;font-weight:750;box-shadow:inset 0 1px 2px #fff,0 2px 5px rgba(0,0,0,.07); }
+  [data-theme="dark"] .avatar { background:linear-gradient(145deg,#777,#333);border-color:#888;color:#fff; }
+  .sender { font-size:11px;font-weight:720;letter-spacing:-.02em; }
+  .time { margin-left:auto;color:var(--muted);font-size:9px; }
+  .message-text { position:relative;margin:15px 0 0;font-size:16px;line-height:1.35;letter-spacing:-.045em;font-weight:620;max-width:190px; }
+  .message-sub { position:relative;margin:6px 0 0;color:var(--muted);font-size:10px; }
+  .mini-bubble { width:156px;right:calc(50% - 144px);bottom:18px;padding:12px 14px;transform:rotate(5deg);animation:floatSecond 7.4s ease-in-out infinite; }
+  .mini-bubble p { margin:0;position:relative;font-size:12px;font-weight:600;letter-spacing:-.025em; }
+  .mini-bubble span { position:relative;display:block;margin-top:5px;font-size:9px;color:var(--muted); }
+  .glass-dot { position:absolute;width:36px;height:36px;left:calc(50% - 144px);top:47px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(190,190,185,.48));border:1px solid rgba(255,255,255,.95);box-shadow:inset -3px -4px 7px rgba(0,0,0,.11),inset 2px 2px 5px #fff,0 10px 20px rgba(0,0,0,.08);animation:floatDot 6s ease-in-out infinite; }
+  [data-theme="dark"] .glass-dot { background:linear-gradient(145deg,#777,#292929);border-color:rgba(255,255,255,.25); }
+  .spark { position:absolute;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 12px rgba(0,0,0,.18);opacity:.85; }
+  .spark.s1 { top:55px;right:calc(50% - 130px);animation:spark 4.8s ease-in-out infinite; }
+  .spark.s2 { bottom:51px;left:calc(50% - 117px);width:3px;height:3px;animation:spark 5.5s 1s ease-in-out infinite; }
+  .copy { text-align:center;animation:rise .85s .18s var(--ease) both; }
+  .eyebrow { color:var(--muted);font-size:10px;font-weight:760;letter-spacing:.19em;text-transform:uppercase;margin:0 0 13px; }
+  h1 { margin:0 auto;max-width:350px;font-size:clamp(35px,9.4vw,45px);line-height:1.035;letter-spacing:-.072em;font-weight:720; }
+  .description { margin:15px auto 0;max-width:290px;color:var(--muted);font-size:14px;line-height:1.65;letter-spacing:-.012em; }
+  .actions { display:flex;flex-direction:column;gap:10px;margin-top:clamp(23px,4vh,34px);animation:rise .85s .28s var(--ease) both; }
+  .primary,.secondary { width:100%;min-height:56px;border-radius:19px;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;font-size:14px;font-weight:690;letter-spacing:-.018em;transition:transform .22s var(--ease),background .3s,color .3s,box-shadow .3s;position:relative;overflow:hidden; }
+  .primary { color:var(--button-ink);background:var(--button);box-shadow:0 9px 22px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.2); }
+  .primary svg { width:17px;height:17px;transition:transform .25s var(--ease); }
+  .primary:active { transform:scale(.975);box-shadow:0 4px 12px rgba(0,0,0,.12); }
+  .primary:active svg { transform:translateX(3px); }
+  .secondary { color:var(--ink-soft);background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:inset 0 1px 0 rgba(255,255,255,.8); }
+  [data-theme="dark"] .secondary { box-shadow:inset 0 1px 0 rgba(255,255,255,.12); }
+  .secondary:active { transform:scale(.978);background:var(--glass-strong); }
+  .footnote { margin:17px 0 0;text-align:center;color:var(--muted);font-size:10px;line-height:1.5;letter-spacing:.005em;animation:fadeIn .9s .38s both; }
+  .footnote strong { color:var(--ink-soft);font-weight:650; }
+  .toast { position:absolute;left:50%;bottom:max(92px,calc(env(safe-area-inset-bottom) + 92px));transform:translate(-50%,14px);opacity:0;pointer-events:none;white-space:nowrap;padding:11px 16px;border-radius:14px;background:var(--ink);color:var(--bg);font-size:12px;box-shadow:var(--shadow);transition:opacity .25s,transform .25s;z-index:10; }
+  .toast.show { opacity:1;transform:translate(-50%,0); }
+  .ripple { position:absolute;pointer-events:none;z-index:5;width:22px;height:22px;left:var(--x);top:var(--y);border-radius:50%;border:1px solid rgba(255,255,255,.9);background:radial-gradient(circle,rgba(255,255,255,.42),rgba(255,255,255,.12) 55%,transparent 72%);transform:translate(-50%,-50%) scale(.2);animation:ripple .72s ease-out forwards; }
+  button:focus-visible { outline:2px solid var(--muted);outline-offset:3px; }
+  @keyframes ambientFloat { from { transform:translate3d(-4%,0,0) scale(.96); } to { transform:translate3d(4%,16px,0) scale(1.06); } }
+  @keyframes fadeDown { from {opacity:0;transform:translateY(-9px)} to {opacity:1;transform:translateY(0)} }
+  @keyframes fadeIn { from {opacity:0} to {opacity:1} }
+  @keyframes rise { from {opacity:0;transform:translateY(17px)} to {opacity:1;transform:translateY(0)} }
+  @keyframes artEnter { from {opacity:0;transform:translateY(22px) scale(.97)} to {opacity:1;transform:translateY(0) scale(1)} }
+  @keyframes floatMain { 0%,100% { translate:0 0; } 50% { translate:0 -7px; } }
+  @keyframes floatSecond { 0%,100% { translate:0 0; } 50% { translate:3px 7px; } }
+  @keyframes floatDot { 0%,100% { translate:0 0; } 50% { translate:-4px -8px; } }
+  @keyframes glowPulse { from { transform:scale(.92);opacity:.65; } to { transform:scale(1.08);opacity:1; } }
+  @keyframes spark { 0%,100% {transform:scale(.65);opacity:.25} 50% {transform:scale(1.3);opacity:.9} }
+  @keyframes ripple { to {transform:translate(-50%,-50%) scale(8);opacity:0} }
+  @media (max-height:700px) {
+    .main { padding-top:4px; }
+    .hero-art { height:clamp(190px,31vh,235px);margin-bottom:12px; }
+    .message-main { transform:translate(-50%,-50%) rotate(-3deg) scale(.9); }
+    .mini-bubble { transform:rotate(5deg) scale(.9); }
+    h1 { font-size:clamp(31px,8vw,38px); }
+    .description { margin-top:10px;font-size:13px; }
+    .actions { margin-top:18px; }
+    .primary,.secondary { min-height:51px; }
+    .footnote { margin-top:11px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,*::before,*::after { animation-duration:.01ms !important;animation-iteration-count:1 !important;scroll-behavior:auto !important;transition-duration:.01ms !important; }
+  }
+</style>
+<!-- NEMO-TOKENS:START -->
+<style id="nemo-tokens">
+/* Generated by design/sync-references.ps1. Do not edit inside this block. */
+/* ==========================================================================
+   Nemo Design System v1.0.0 — canonical CSS tokens
+   --------------------------------------------------------------------------
+   This is the single source of truth for the HTML references.
+   The native Slint implementation mirrors these values in
+   apps/mobile/ui/theme.slint. Do not edit a reference token block by hand:
+   run design/sync-references.ps1 after changing this file.
+
+   Palette is strictly monochrome. Light is the default theme. The whole
+   document is switched with <html data-theme="light|dark">.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces ------------------------------------------------------------ */
+  --nemo-bg: #f4f4f3;
+  --nemo-bg-2: #ebebe9;
+  --nemo-surface: rgba(255, 255, 255, 0.70);
+  --nemo-surface-strong: #ffffff;
+  --nemo-surface-soft: rgba(255, 255, 255, 0.48);
+  --nemo-glass-top: rgba(255, 255, 255, 0.80);
+  --nemo-glass-bottom: rgba(255, 255, 255, 0.46);
+  --nemo-glass-edge: rgba(255, 255, 255, 0.98);
+
+  /* Borders & separation ------------------------------------------------ */
+  --nemo-line: rgba(20, 20, 20, 0.09);
+  --nemo-line-strong: rgba(20, 20, 20, 0.15);
+
+  /* Type ---------------------------------------------------------------- */
+  --nemo-text: #171717;
+  --nemo-text-2: #6f6f6c;
+  --nemo-text-3: #9b9b97;
+
+  /* Controls ------------------------------------------------------------ */
+  --nemo-primary: #171717;
+  --nemo-on-primary: #ffffff;
+  --nemo-track: rgba(0, 0, 0, 0.10);
+  --nemo-nav: rgba(250, 250, 249, 0.80);
+  --nemo-scrim: rgba(0, 0, 0, 0.30);
+  --nemo-danger: #4f4f4c;
+  --nemo-danger-soft: rgba(20, 20, 20, 0.07);
+
+  /* Depth --------------------------------------------------------------- */
+  --nemo-shadow: 0 18px 44px rgba(0, 0, 0, 0.075), 0 3px 10px rgba(0, 0, 0, 0.035);
+  --nemo-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.055);
+  --nemo-shadow-nav: 0 14px 38px rgba(0, 0, 0, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --nemo-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --nemo-blur: 24px;
+
+  /* Type ramp ----------------------------------------------------------- */
+  --nemo-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Inter, sans-serif;
+  --nemo-display: 32px;
+  --nemo-title: 28px;
+  --nemo-heading: 24px;
+  --nemo-section: 20px;
+  --nemo-card: 16px;
+  --nemo-body: 14px;
+  --nemo-secondary: 12px;
+  --nemo-label: 12px;
+  --nemo-caption: 10px;
+  --nemo-micro: 9px;
+
+  /* 4px spacing scale --------------------------------------------------- */
+  --nemo-space-1: 4px;
+  --nemo-space-2: 8px;
+  --nemo-space-3: 12px;
+  --nemo-space-4: 16px;
+  --nemo-space-5: 20px;
+  --nemo-space-6: 24px;
+  --nemo-space-7: 32px;
+  --nemo-space-8: 40px;
+  --nemo-space-9: 48px;
+
+  /* Radii --------------------------------------------------------------- */
+  --nemo-radius-card: 24px;
+  --nemo-radius-row: 18px;
+  --nemo-radius-control: 16px;
+  --nemo-radius-sheet: 28px;
+  --nemo-radius-pill: 999px;
+
+  /* Layout -------------------------------------------------------------- */
+  --nemo-screen-pad: 22px;
+  --nemo-control-h: 54px;
+  --nemo-touch: 44px;
+  --nemo-header-h: 62px;
+  --nemo-nav-h: 84px;
+
+  /* Motion -------------------------------------------------------------- */
+  --nemo-tap: 140ms;
+  --nemo-focus: 180ms;
+  --nemo-tab: 220ms;
+  --nemo-sheet: 300ms;
+  --nemo-screen: 320ms;
+  --nemo-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --nemo-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+}
+
+html[data-theme="dark"],
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --nemo-bg: #0e0e0e;
+  --nemo-bg-2: #171717;
+  --nemo-surface: rgba(40, 40, 40, 0.66);
+  --nemo-surface-strong: #242424;
+  --nemo-surface-soft: rgba(44, 44, 44, 0.46);
+  --nemo-glass-top: rgba(255, 255, 255, 0.09);
+  --nemo-glass-bottom: rgba(255, 255, 255, 0.035);
+  --nemo-glass-edge: rgba(255, 255, 255, 0.20);
+
+  --nemo-line: rgba(255, 255, 255, 0.09);
+  --nemo-line-strong: rgba(255, 255, 255, 0.15);
+
+  --nemo-text: #f2f2f0;
+  --nemo-text-2: #a8a8a4;
+  --nemo-text-3: #777774;
+
+  --nemo-primary: #f1f1ef;
+  --nemo-on-primary: #171717;
+  --nemo-track: rgba(255, 255, 255, 0.12);
+  --nemo-nav: rgba(26, 26, 26, 0.84);
+  --nemo-scrim: rgba(0, 0, 0, 0.58);
+  --nemo-danger: #c8c8c4;
+  --nemo-danger-soft: rgba(255, 255, 255, 0.07);
+
+  --nemo-shadow: 0 20px 48px rgba(0, 0, 0, 0.36), 0 3px 12px rgba(0, 0, 0, 0.20);
+  --nemo-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.26);
+  --nemo-shadow-nav: 0 16px 44px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --nemo-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+/* --------------------------------------------------------------------------
+   Compatibility aliases used by earlier references.
+   Declared after both theme blocks, and matched against every theme host, so
+   these canonical mappings win over each reference's local palette in light
+   AND dark. They only ever point at canonical Nemo tokens.
+   -------------------------------------------------------------------------- */
+:root,
+html[data-theme="dark"],
+[data-theme="dark"],
+body[data-theme="dark"] {
+  --bg: var(--nemo-bg);
+  --bg2: var(--nemo-bg-2);
+  --surface: var(--nemo-surface);
+  --surface-strong: var(--nemo-surface-strong);
+  --surface-soft: var(--nemo-surface-soft);
+  --line: var(--nemo-line);
+  --line-strong: var(--nemo-line-strong);
+  --text: var(--nemo-text);
+  --muted: var(--nemo-text-2);
+  --subtle: var(--nemo-text-3);
+  --solid: var(--nemo-primary);
+  --solid-text: var(--nemo-on-primary);
+  --nav: var(--nemo-nav);
+  --track: var(--nemo-track);
+  --danger: var(--nemo-danger);
+  --glass-blur: var(--nemo-blur);
+  --shadow: var(--nemo-shadow);
+  --shadow-soft: var(--nemo-shadow-soft);
+
+  --ink: var(--nemo-text);
+  --ink-2: var(--nemo-text-2);
+  --ink-soft: var(--nemo-text-2);
+  --text-2: var(--nemo-text-2);
+  --muted2: var(--nemo-text-3);
+  --muted-2: var(--nemo-text-3);
+  --subtle-2: var(--nemo-text-3);
+  --line-soft: var(--nemo-line);
+  --glass: var(--nemo-surface);
+  --glass2: var(--nemo-surface-strong);
+  --glass-hi: var(--nemo-glass-edge);
+  --glass-edge: var(--nemo-glass-edge);
+  --glass-strong: var(--nemo-surface-strong);
+  --glass-low: var(--nemo-surface-soft);
+  --panel: var(--nemo-surface);
+  --panel-strong: var(--nemo-surface-strong);
+  --field: var(--nemo-surface-soft);
+  --field-focus: var(--nemo-surface-strong);
+  --input: var(--nemo-surface-soft);
+  --bubble: var(--nemo-surface-soft);
+  --soft: var(--nemo-surface-soft);
+  --chip: var(--nemo-surface-soft);
+  --chip-active: var(--nemo-primary);
+  --chip-active-text: var(--nemo-on-primary);
+  --pill: var(--nemo-surface-soft);
+  --tab: var(--nemo-track);
+  --button: var(--nemo-primary);
+  --button-text: var(--nemo-on-primary);
+  --button-ink: var(--nemo-on-primary);
+  --black: var(--nemo-primary);
+  --white: var(--nemo-on-primary);
+  --inverse: var(--nemo-primary);
+  --inverse-text: var(--nemo-on-primary);
+  --primary: var(--nemo-primary);
+  --primary-text: var(--nemo-on-primary);
+  --pill-active: var(--nemo-primary);
+  --pill-active-text: var(--nemo-on-primary);
+  --toggle: var(--nemo-primary);
+  --toggle-knob: var(--nemo-on-primary);
+  --nav-bg: var(--nemo-nav);
+  --overlay: var(--nemo-scrim);
+  --scrim: var(--nemo-scrim);
+  --shadow-small: var(--nemo-shadow-soft);
+  --focus: var(--nemo-line-strong);
+  --ring: var(--nemo-line-strong);
+  --success: var(--nemo-text-2);
+  --unread: var(--nemo-track);
+  --selected: var(--nemo-primary);
+  --good: var(--nemo-text-2);
+  --avatar-a: var(--nemo-surface-strong);
+  --avatar-b: var(--nemo-surface-soft);
+  --avatar-1: var(--nemo-surface-strong);
+  --avatar-2: var(--nemo-surface);
+  --avatar-3: var(--nemo-surface-soft);
+  --avatar-4: var(--nemo-track);
+  --orb: var(--nemo-surface-strong);
+  --orb1: var(--nemo-surface-strong);
+  --orb2: var(--nemo-surface);
+}
+
+/* --------------------------------------------------------------------------
+   Base helpers shared by every reference.
+   -------------------------------------------------------------------------- */
+.nemo-screen {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100dvh;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  background: var(--nemo-bg);
+  color: var(--nemo-text);
+  font-family: var(--nemo-font);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.nemo-glass {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--nemo-line);
+  border-radius: var(--nemo-radius-card);
+  background: var(--nemo-surface);
+  box-shadow: var(--nemo-inner-highlight), var(--nemo-shadow-soft);
+  -webkit-backdrop-filter: blur(var(--nemo-blur)) saturate(115%);
+  backdrop-filter: blur(var(--nemo-blur)) saturate(115%);
+}
+
+.nemo-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.42), transparent 42%, rgba(255, 255, 255, 0.06));
+  opacity: 0.75;
+}
+
+.nemo-primary-button {
+  height: var(--nemo-control-h);
+  border: 0;
+  border-radius: var(--nemo-radius-control);
+  background: var(--nemo-primary);
+  color: var(--nemo-on-primary);
+  font-size: var(--nemo-card);
+  font-weight: 700;
+  box-shadow: var(--nemo-shadow-soft);
+  transition: transform var(--nemo-tap) var(--nemo-ease-out);
+}
+
+.nemo-primary-button:active { transform: scale(0.985); }
+.nemo-primary-button:disabled { opacity: 0.42; pointer-events: none; }
+
+.nemo-nav {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  width: min(390px, calc(100% - 36px));
+  height: 66px;
+  padding: 6px 8px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border: 1px solid var(--nemo-line-strong);
+  border-radius: 24px;
+  background: var(--nemo-nav);
+  box-shadow: var(--nemo-shadow-nav);
+  -webkit-backdrop-filter: blur(28px) saturate(135%);
+  backdrop-filter: blur(28px) saturate(135%);
+}
+
+.nemo-nav-item {
+  flex: 1;
+  height: 52px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--nemo-text-2);
+  font-size: var(--nemo-micro);
+  font-weight: 650;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.nemo-nav-item.active {
+  background: var(--nemo-primary);
+  color: var(--nemo-on-primary);
+}
+
+/* Self-contained light/dark switch used by references that predate the
+   data-theme switcher. It only flips <html data-theme>. */
+.nemo-theme-toggle {
+  position: fixed;
+  z-index: 40;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--nemo-line-strong);
+  border-radius: 15px;
+  background: var(--nemo-surface);
+  color: var(--nemo-text);
+  box-shadow: var(--nemo-inner-highlight), var(--nemo-shadow-soft);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  touch-action: manipulation;
+  transition: transform var(--nemo-tap) var(--nemo-ease-out);
+}
+
+.nemo-theme-toggle:active { transform: scale(0.94); }
+.nemo-theme-toggle svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nemo-theme-toggle .nemo-icon-sun { display: none; }
+[data-theme="dark"] .nemo-theme-toggle .nemo-icon-sun { display: block; }
+[data-theme="dark"] .nemo-theme-toggle .nemo-icon-moon { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+<!-- NEMO-TOKENS:END -->
+</head>
+<body>
+<div class="app" id="app">
+  <div class="ambient a"></div><div class="ambient b"></div><div class="grain"></div>
+  <div class="screen">
+    <header class="topbar">
+      <div class="brand" aria-label="Nemo">
+        <div class="brand-mark" aria-hidden="true"><span>n</span></div>
+        <span class="brand-name">nemo</span>
+      </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Switch appearance" title="Switch appearance">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.2 15.2A8.7 8.7 0 0 1 8.8 3.8 8.8 8.8 0 1 0 20.2 15.2Z"/></svg>
+      </button>
+    </header>
+
+    <main class="main">
+      <section class="hero-art" aria-label="Decorative preview of a conversation">
+        <div class="orbital"></div><div class="art-glow"></div>
+        <div class="glass-dot" aria-hidden="true"></div>
+        <div class="spark s1" aria-hidden="true"></div><div class="spark s2" aria-hidden="true"></div>
+        <div class="message-card message-main">
+          <div class="message-top">
+            <div class="avatar">A</div>
+            <span class="sender">Alex</span>
+            <span class="time">now</span>
+          </div>
+          <p class="message-text">Some people just make the day better.</p>
+          <p class="message-sub">A little closer, wherever you are.</p>
+        </div>
+        <div class="message-card mini-bubble">
+          <p>I'm always here.</p>
+          <span>Delivered just now</span>
+        </div>
+      </section>
+
+      <section class="copy">
+        <p class="eyebrow">A space for your people</p>
+        <h1>Conversations<br>that feel closer.</h1>
+        <p class="description">Keep up with your friends, share the little things, and stay connected in one quiet space.</p>
+      </section>
+
+      <section class="actions" aria-label="Get started">
+        <button class="primary" id="getStarted">Get started
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+        <button class="secondary" id="signIn">I already have an account</button>
+      </section>
+      <p class="footnote">By continuing, you agree to Nemo's <strong>Terms</strong> and <strong>Privacy Policy</strong>.</p>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+<script>
+(() => {
+  const app = document.getElementById('app');
+  const themeToggle = document.getElementById('themeToggle');
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  themeToggle.addEventListener('click', () => {
+    const dark = document.body.dataset.theme !== 'dark';
+    document.body.dataset.theme = dark ? 'dark' : 'light';
+    themeToggle.setAttribute('aria-label', dark ? 'Switch to light appearance' : 'Switch to dark appearance');
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', dark ? '#101010' : '#f4f4f2');
+  });
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+  document.getElementById('getStarted').addEventListener('click', () => showToast('Connect this action to the Nemo sign-up screen.'));
+  document.getElementById('signIn').addEventListener('click', () => showToast('Connect this action to the Nemo sign-in screen.'));
+  // Touch-only glass response. No mousemove or hover tracking is used.
+  app.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'mouse') return;
+    const target = event.target.closest('.message-card, .primary, .secondary, .theme-toggle');
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.setProperty('--x', `${event.clientX - rect.left}px`);
+    ripple.style.setProperty('--y', `${event.clientY - rect.top}px`);
+    target.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 760);
+  }, {passive:true});
+})();
+</script>
+</body>
+</html>

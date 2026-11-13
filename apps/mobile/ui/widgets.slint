@@ -1,5 +1,13 @@
-// Nemo Blue Glass — reusable widget library.
-// GlassCard, buttons, fields, avatar, toggle, nav, badges, top bars.
+// Nemo Design System v1.0.0 -- reusable native Liquid Glass components.
+//
+// Canonical components are prefixed `Nemo*`. The legacy names used by the
+// screens (GlassCard, NavBar, ...) are thin inheritances of the canonical
+// component so every screen already resolves the same material, radii,
+// typography and motion.
+//
+// Glass is emulated in Slint with translucent layered gradients, one-pixel
+// specular edges, an inset bottom reflection and soft shadows. Slint 1.18 has
+// no backdrop blur, so no CSS blur is attempted here.
 
 import { Theme } from "theme.slint";
 import {
@@ -11,34 +19,48 @@ import {
 // ---------------------------------------------------------------------------
 
 export component ScreenBackground inherits Rectangle {
-    background: @linear-gradient(180deg, Theme.c-bg-1 0%, Theme.c-bg-2 100%);
+    background: @linear-gradient(165deg, Theme.c-bg-1 0%, Theme.c-bg-2 58%, Theme.c-bg-1 100%);
 
-    Rectangle { // top-left blue blob
-        width: 360px;
-        height: 360px;
-        x: -130px;
-        y: -150px;
-        border-radius: self.width / 2;
-        background: Theme.c-blob-1;
-        opacity: Theme.is-dark ? 0.45 : 0.75;
+    // Ambient refracted light. No colour, only luminance.
+    Rectangle {
+        width: 440px;
+        height: 440px;
+        x: -170px;
+        y: -190px;
+        border-radius: 220px;
+        background: @radial-gradient(circle,
+            Theme.is-dark ? rgba(255, 255, 255, 0.075) : rgba(255, 255, 255, 0.92) 0%,
+            Theme.is-dark ? rgba(255, 255, 255, 0.015) : rgba(255, 255, 255, 0.34) 46%,
+            transparent 100%);
     }
-    Rectangle { // right violet blob
-        width: 300px;
-        height: 300px;
-        x: parent.width - 150px;
-        y: 140px;
-        border-radius: self.width / 2;
-        background: Theme.c-blob-2;
-        opacity: Theme.is-dark ? 0.4 : 0.7;
+    Rectangle {
+        width: 380px;
+        height: 380px;
+        x: parent.width - 210px;
+        y: 150px;
+        border-radius: 190px;
+        background: @radial-gradient(circle,
+            Theme.is-dark ? rgba(255, 255, 255, 0.04) : rgba(255, 255, 255, 0.52) 0%,
+            transparent 100%);
     }
-    Rectangle { // lower blue haze
-        width: 420px;
-        height: 420px;
+    Rectangle {
+        width: 460px;
+        height: 460px;
         x: parent.width / 2 - 300px;
-        y: parent.height - 260px;
-        border-radius: self.width / 2;
-        background: Theme.c-blob-1;
-        opacity: Theme.is-dark ? 0.3 : 0.5;
+        y: parent.height - 280px;
+        border-radius: 230px;
+        background: @radial-gradient(circle,
+            Theme.is-dark ? rgba(255, 255, 255, 0.028) : rgba(255, 255, 255, 0.46) 0%,
+            transparent 100%);
+    }
+    // Fine top edge reflection.
+    Rectangle {
+        y: 0px;
+        height: 1px;
+        background: @linear-gradient(90deg,
+            transparent 0%,
+            Theme.is-dark ? rgba(255, 255, 255, 0.10) : rgba(255, 255, 255, 0.96) 50%,
+            transparent 100%);
     }
 }
 
@@ -46,149 +68,199 @@ export component ScreenBackground inherits Rectangle {
 // Glass surfaces
 // ---------------------------------------------------------------------------
 
-export component GlassCard inherits Rectangle {
-    in property <length> radius: Theme.r-card;
+export component NemoGlassCard inherits Rectangle {
+    in property <length> radius: Theme.n-r-card;
     in property <bool> strong: false;
+    in property <bool> flat: false;
 
     border-radius: radius;
     background: strong
-        ? Theme.c-surface-strong
-        : @linear-gradient(180deg, Theme.c-glass-top 0%, Theme.c-glass-bottom 62%, Theme.c-glass-bottom 100%);
+        ? @linear-gradient(180deg, Theme.n-glass-strong 0%, Theme.n-glass-strong 100%)
+        : @linear-gradient(160deg, Theme.n-glass-top 0%, Theme.n-glass-bottom 100%);
     border-width: 1px;
-    border-color: Theme.c-stroke-glass;
-    drop-shadow-blur: strong ? 28px : 14px;
-    drop-shadow-color: Theme.c-shadow-soft;
-    drop-shadow-offset-y: strong ? 10px : 4px;
-    drop-shadow-offset-x: 0px;
-    @children
-    // Specular top edge: the bright 1px line that sells the glass.
+    border-color: Theme.is-dark ? Theme.n-line-strong : Theme.n-glass-edge;
+    drop-shadow-blur: flat ? 0px : (strong ? 26px : 16px);
+    drop-shadow-color: Theme.is-dark ? rgba(0, 0, 0, 0.34) : rgba(0, 0, 0, 0.055);
+    drop-shadow-offset-y: flat ? 0px : 6px;
+    clip: true;
+
+    // Specular top edge.
     Rectangle {
         x: 1px;
         y: 1px;
         width: parent.width - 2px;
         height: 1px;
-        border-radius: 1px;
-        background: @linear-gradient(90deg, transparent 0%, Theme.c-glass-edge 30%, Theme.c-glass-edge 70%, transparent 100%);
-        opacity: strong ? 1 : 0.85;
+        background: @linear-gradient(90deg,
+            transparent 0%,
+            Theme.n-glass-edge 28%,
+            Theme.n-glass-edge 72%,
+            transparent 100%);
+        opacity: strong ? 0.98 : 0.82;
     }
-    // Faint bottom edge for depth.
+    // Inner bottom reflection.
     Rectangle {
         x: 1px;
         y: parent.height - 2px;
         width: parent.width - 2px;
         height: 1px;
-        border-radius: 1px;
-        background: @linear-gradient(90deg, transparent 0%, Theme.c-stroke-glass 50%, transparent 100%);
-        opacity: 0.5;
+        background: Theme.n-inner-shadow;
+        opacity: 0.9;
     }
+    @children
 }
+
+export component GlassCard inherits NemoGlassCard { }
 
 export component Hairline inherits Rectangle {
     height: 1px;
-    background: Theme.c-hairline;
+    background: Theme.n-line;
 }
 
 // ---------------------------------------------------------------------------
 // Buttons
 // ---------------------------------------------------------------------------
 
-export component PrimaryButton inherits Rectangle {
-    in property <string> text;
+export component NemoPrimaryButton inherits Rectangle {
+    in property <string> text: "";
     in property <bool> enabled: true;
+    in property <bool> loading: false;
     callback clicked;
 
-    height: 52px;
-    min-width: 160px;
-    border-radius: self.height / 2;
+    height: Theme.n-control-h;
+    border-radius: Theme.n-r-control;
     background: enabled
-        ? @linear-gradient(180deg, #4D8DFF 0%, #2F6BFF 58%, #1E52E8 100%)
-        : Theme.c-text-3;
+        ? @linear-gradient(180deg, Theme.n-primary 0%, Theme.is-dark ? #e6e6e4 : #000000 100%)
+        : Theme.n-line;
+    border-width: 1px;
+    border-color: Theme.is-dark ? rgba(255, 255, 255, 0.12) : rgba(255, 255, 255, 0.16);
     drop-shadow-blur: enabled ? 18px : 0px;
-    drop-shadow-color: rgba(47, 107, 255, 0.32);
+    drop-shadow-color: Theme.is-dark ? rgba(0, 0, 0, 0.30) : rgba(0, 0, 0, 0.16);
     drop-shadow-offset-y: enabled ? 6px : 0px;
-    drop-shadow-offset-x: 0px;
+    clip: true;
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+
+        Rectangle {
+            width: parent.width;
+            height: parent.height;
+            background: Theme.is-dark ? #000000 : #ffffff;
+            opacity: touch.pressed ? 0.10 : 0.0;
+            animate opacity { duration: Theme.n-tap; }
+        }
+        Rectangle {
+            width: 76px;
+            height: 76px;
+            border-radius: 38px;
+            x: touch.pressed-x - self.width / 2;
+            y: touch.pressed-y - self.height / 2;
+            background: Theme.n-primary-text;
+            opacity: touch.pressed ? 0.16 : 0.0;
+            animate opacity { duration: 280ms; easing: Theme.ease-out; }
+        }
+    }
+    Text {
+        text: root.loading ? "Please wait" : root.text;
+        font-size: Theme.n-card;
+        font-weight: 700;
+        color: root.enabled ? Theme.n-primary-text : Theme.n-muted;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+        letter-spacing: -0.1px;
+    }
+}
+
+export component PrimaryButton inherits NemoPrimaryButton { }
+
+export component NemoGlassButton inherits Rectangle {
+    in property <string> text: "";
+    in property <bool> enabled: true;
+    in property <bool> danger: false;
+    callback clicked;
+
+    height: Theme.n-control-h;
+    border-radius: Theme.n-r-control;
+    background: Theme.n-glass-soft;
+    border-width: 1px;
+    border-color: Theme.n-line;
+    drop-shadow-blur: 12px;
+    drop-shadow-color: Theme.n-inner-shadow;
+    drop-shadow-offset-y: 3px;
+    clip: true;
 
     touch := TouchArea {
         enabled: root.enabled;
         mouse-cursor: pointer;
         clicked => { root.clicked(); }
         Rectangle {
-            border-radius: root.border-radius;
-            background: white;
-            opacity: touch.pressed ? 0.16 : 0;
-            animate opacity { duration: 90ms; }
+            width: parent.width;
+            height: parent.height;
+            background: Theme.n-primary;
+            opacity: touch.pressed ? 0.07 : 0.0;
+            animate opacity { duration: Theme.n-tap; }
+        }
+        Rectangle {
+            width: 70px;
+            height: 70px;
+            border-radius: 35px;
+            x: touch.pressed-x - self.width / 2;
+            y: touch.pressed-y - self.height / 2;
+            background: Theme.n-primary;
+            opacity: touch.pressed ? 0.08 : 0.0;
+            animate opacity { duration: 260ms; easing: Theme.ease-out; }
         }
     }
     Text {
         text: root.text;
-        font-size: Theme.fs-body-lg;
-        font-weight: 700;
-        color: Theme.on-accent;
-        vertical-alignment: center;
+        font-size: Theme.n-body;
+        font-weight: 650;
+        color: root.enabled ? Theme.n-ink : Theme.n-muted-2;
         horizontal-alignment: center;
+        vertical-alignment: center;
     }
 }
 
-export component GhostButton inherits Rectangle {
-    in property <string> text;
+export component GhostButton inherits NemoGlassButton { }
+
+export component NemoTextButton inherits Rectangle {
+    in property <string> text: "";
     in property <bool> enabled: true;
     in property <bool> danger: false;
     callback clicked;
 
-    height: 52px;
-    min-width: 140px;
-    border-radius: self.height / 2;
+    height: 44px;
+    border-radius: Theme.n-r-control;
     background: transparent;
-    border-width: 1.5px;
-    border-color: danger ? Theme.danger : Theme.accent;
+    clip: true;
 
     touch := TouchArea {
         enabled: root.enabled;
         mouse-cursor: pointer;
         clicked => { root.clicked(); }
         Rectangle {
+            width: parent.width;
+            height: parent.height;
             border-radius: root.border-radius;
-            background: danger ? Theme.danger : Theme.accent;
-            opacity: touch.pressed ? 0.14 : 0;
-            animate opacity { duration: 90ms; }
+            background: Theme.n-primary;
+            opacity: touch.pressed ? 0.06 : 0.0;
+            animate opacity { duration: Theme.n-tap; }
         }
     }
     Text {
         text: root.text;
-        font-size: Theme.fs-body-lg;
-        font-weight: 700;
-        color: danger ? Theme.danger : Theme.accent;
-        vertical-alignment: center;
+        font-size: Theme.n-body;
+        font-weight: 650;
+        color: !root.enabled ? Theme.n-muted-2 : root.danger ? Theme.n-muted : Theme.n-ink;
         horizontal-alignment: center;
+        vertical-alignment: center;
     }
 }
 
-export component TextButton inherits Rectangle {
-    in property <string> text;
-    in property <bool> enabled: true;
-    in property <bool> danger: false;
-    callback clicked;
+export component TextButton inherits NemoTextButton { }
 
-    height: 40px;
-    border-radius: 12px;
-    background: transparent;
-
-    touch := TouchArea {
-        enabled: root.enabled;
-        mouse-cursor: pointer;
-        clicked => { root.clicked(); }
-    }
-    Text {
-        text: root.text;
-        font-size: Theme.fs-body;
-        font-weight: 600;
-        color: !root.enabled ? Theme.c-text-3 : root.danger ? Theme.danger : Theme.accent;
-        vertical-alignment: center;
-        horizontal-alignment: center;
-    }
-}
-
-export component IconButton inherits Rectangle {
+export component NemoIconButton inherits Rectangle {
     in property <length> size: 44px;
     in property <bool> filled: false;
     in property <bool> danger: false;
@@ -197,35 +269,72 @@ export component IconButton inherits Rectangle {
 
     width: size;
     height: size;
-    border-radius: self.width / 2;
-    background: filled
-        ? (danger ? Theme.danger : Theme.accent)
-        : Theme.c-surface-alpha;
-    border-width: filled ? 0px : 1px;
-    border-color: Theme.c-stroke-glass;
-    drop-shadow-blur: 10px;
-    drop-shadow-color: Theme.c-shadow-soft;
-    drop-shadow-offset-y: 2px;
+    border-radius: Theme.n-r-control;
+    background: filled ? Theme.n-primary : Theme.n-glass-soft;
+    border-width: 1px;
+    border-color: filled ? transparent : Theme.n-line;
+    drop-shadow-blur: 12px;
+    drop-shadow-color: Theme.n-inner-shadow;
+    drop-shadow-offset-y: 3px;
+    clip: true;
 
     touch := TouchArea {
         enabled: root.enabled;
         mouse-cursor: pointer;
         clicked => { root.clicked(); }
         Rectangle {
+            width: parent.width;
+            height: parent.height;
             border-radius: root.border-radius;
-            background: white;
-            opacity: touch.pressed ? 0.2 : 0;
-            animate opacity { duration: 90ms; }
+            background: filled ? Theme.n-primary-text : Theme.n-primary;
+            opacity: touch.pressed ? 0.12 : 0.0;
+            animate opacity { duration: Theme.n-tap; }
         }
     }
     @children
 }
 
+export component IconButton inherits NemoIconButton { }
+
+export component NemoBackButton inherits Rectangle {
+    callback clicked;
+
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: Theme.n-glass;
+    border-width: 1px;
+    border-color: Theme.n-line;
+    drop-shadow-blur: 12px;
+    drop-shadow-color: Theme.n-inner-shadow;
+    drop-shadow-offset-y: 4px;
+    clip: true;
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+        Rectangle {
+            width: parent.width;
+            height: parent.height;
+            border-radius: root.border-radius;
+            background: Theme.n-primary;
+            opacity: touch.pressed ? 0.08 : 0.0;
+            animate opacity { duration: Theme.n-tap; }
+        }
+    }
+    ChevronLeft {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        size: 20px;
+        tint: Theme.n-ink;
+    }
+}
+
 // ---------------------------------------------------------------------------
-// Text fields
+// Inputs
 // ---------------------------------------------------------------------------
 
-export component NookField inherits Rectangle {
+export component NemoInput inherits Rectangle {
     in property <string> label: "";
     in property <string> placeholder: "";
     in property <bool> password: false;
@@ -234,40 +343,40 @@ export component NookField inherits Rectangle {
     in-out property <string> text: "";
     callback accepted(string);
     private property <bool> reveal: false;
+    private property <bool> focused: input.has-focus;
 
     background: transparent;
-    // Give the composite a real intrinsic height so it hugs its content
-    // when used as a layout child (a bare Rectangle reports preferred 0).
     height: inner.preferred-height;
 
     inner := VerticalLayout {
-        spacing: 6px;
+        spacing: Theme.n-xs;
         if label != "": Text {
             text: root.label;
-            font-size: Theme.fs-small;
-            font-weight: 600;
-            color: Theme.c-text-2;
+            font-size: Theme.n-label;
+            font-weight: 650;
+            color: Theme.n-muted;
         }
         Rectangle {
-            height: 54px;
-            border-radius: Theme.r-input;
-            background: Theme.c-surface-strong;
-            border-width: 1.5px;
-            border-color: input.has-focus ? Theme.accent
-                : root.error != "" ? Theme.danger
-                : Theme.c-hairline;
-            drop-shadow-blur: input.has-focus ? 12px : 0px;
-            drop-shadow-color: rgba(47, 107, 255, 0.18);
-            drop-shadow-offset-y: 0px;
+            height: Theme.n-control-h;
+            border-radius: Theme.n-r-input;
+            background: Theme.is-dark ? Theme.n-glass-soft : Theme.n-glass;
+            border-width: 1px;
+            border-color: root.focused ? Theme.n-ink
+                : root.error != "" ? Theme.n-muted
+                : Theme.n-line;
+            drop-shadow-blur: root.focused ? 16px : 0px;
+            drop-shadow-color: Theme.is-dark ? rgba(0, 0, 0, 0.30) : rgba(0, 0, 0, 0.055);
+            drop-shadow-offset-y: 4px;
+            clip: true;
 
             input := TextInput {
                 x: 16px;
-                y: 0;
+                y: 0px;
                 width: root.password ? parent.width - 62px : parent.width - 32px;
                 height: parent.height;
                 text <=> root.text;
-                font-size: Theme.fs-body-lg;
-                color: Theme.c-text;
+                font-size: Theme.n-card;
+                color: Theme.n-ink;
                 input-type: root.password && !root.reveal ? InputType.password : InputType.text;
                 enabled: root.enabled;
                 accepted() => { root.accepted(root.text); }
@@ -275,86 +384,95 @@ export component NookField inherits Rectangle {
             }
             if root.text == "" && root.enabled: Text {
                 x: 16px;
-                y: 0;
+                y: 0px;
                 height: parent.height;
                 text: root.placeholder;
-                font-size: Theme.fs-body-lg;
-                color: Theme.c-text-3;
+                font-size: Theme.n-card;
+                color: Theme.n-muted-2;
                 vertical-alignment: center;
             }
             if root.password: TouchArea {
-                x: parent.width - 46px;
-                y: (parent.height - 34px) / 2;
-                width: 34px;
-                height: 34px;
+                x: parent.width - 48px;
+                y: (parent.height - 32px) / 2;
+                width: 32px;
+                height: 32px;
                 mouse-cursor: pointer;
                 clicked => { root.reveal = !root.reveal; }
                 if root.reveal: Eye {
-                    x: 5px; y: 5px;
-                    size: 24px;
-                    tint: Theme.accent;
+                    x: 6px;
+                    y: 6px;
+                    size: 20px;
+                    tint: Theme.n-ink;
                 }
                 if !root.reveal: EyeOff {
-                    x: 5px; y: 5px;
-                    size: 24px;
-                    tint: Theme.c-text-3;
+                    x: 6px;
+                    y: 6px;
+                    size: 20px;
+                    tint: Theme.n-muted;
                 }
             }
         }
         if root.error != "": Text {
             text: root.error;
-            font-size: Theme.fs-caption;
+            font-size: Theme.n-secondary;
             font-weight: 600;
-            color: Theme.danger;
+            color: Theme.n-muted;
         }
     }
 }
 
-export component SearchField inherits Rectangle {
+export component NookField inherits NemoInput { }
+
+export component NemoSearchField inherits Rectangle {
     in-out property <string> text: "";
     in property <string> placeholder: "Search";
-    callback text-changed(string);   // fires on user edit and on clear
-    height: 46px;
-    border-radius: self.height / 2;
-    background: Theme.c-surface-alpha;
+    callback text-changed(string);
+
+    height: 50px;
+    border-radius: 18px;
+    background: Theme.is-dark ? Theme.n-glass-soft : Theme.n-glass;
     border-width: 1px;
-    border-color: Theme.c-stroke-glass;
+    border-color: Theme.n-line;
+    clip: true;
 
     changed text => { root.text-changed(root.text); }
 
     HorizontalLayout {
-        padding-left: 14px;
-        padding-right: 12px;
-        spacing: 8px;
+        padding-left: 16px;
+        padding-right: 10px;
+        spacing: Theme.n-xs;
         alignment: center;
-        Search { size: 20px; tint: Theme.c-text-3; }
+        Search { size: 18px; tint: Theme.n-muted; }
         input := TextInput {
             vertical-alignment: center;
             text <=> root.text;
-            font-size: Theme.fs-body;
-            color: Theme.c-text;
+            font-size: Theme.n-body;
+            color: Theme.n-ink;
         }
         if root.text == "": Text {
             text: root.placeholder;
-            font-size: Theme.fs-body;
-            color: Theme.c-text-3;
+            font-size: Theme.n-body;
+            color: Theme.n-muted-2;
             vertical-alignment: center;
             horizontal-stretch: 1;
         }
         if root.text != "": TouchArea {
-            width: 26px;
+            width: 28px;
+            height: 28px;
             mouse-cursor: pointer;
             clicked => { root.text = ""; }
-            Close { size: 16px; tint: Theme.c-text-3; }
+            Close { x: 4px; y: 4px; size: 20px; tint: Theme.n-muted; }
         }
     }
 }
+
+export component SearchField inherits NemoSearchField { }
 
 // ---------------------------------------------------------------------------
 // Avatar
 // ---------------------------------------------------------------------------
 
-export component Avatar inherits Rectangle {
+export component NemoAvatar inherits Rectangle {
     in property <string> initials: "?";
     in property <int> variant: 0;
     in property <bool> online: false;
@@ -363,18 +481,22 @@ export component Avatar inherits Rectangle {
     in property <image> image;
 
     pure function grad(i: int) -> brush {
-        if (i == 0) { return @linear-gradient(150deg, #5B95FF 0%, #2F6BFF 85%); }
-        if (i == 1) { return @linear-gradient(150deg, #8F7BFF 0%, #5A48E8 85%); }
-        if (i == 2) { return @linear-gradient(150deg, #38C6FF 0%, #2E7CF6 85%); }
-        if (i == 3) { return @linear-gradient(150deg, #FF8FAB 0%, #E85C9C 85%); }
-        if (i == 4) { return @linear-gradient(150deg, #59D4A6 0%, #23A56F 85%); }
-        return @linear-gradient(150deg, #FFB35C 0%, #F0822E 85%);
+        if (i == 0) { return @linear-gradient(150deg, #f0f0ee 0%, #bcbcb8 100%); }
+        if (i == 1) { return @linear-gradient(150deg, #dededb 0%, #a3a39f 100%); }
+        if (i == 2) { return @linear-gradient(150deg, #c9c9c5 0%, #8d8d89 100%); }
+        if (i == 3) { return @linear-gradient(150deg, #e8e8e5 0%, #b0b0ac 100%); }
+        if (i == 4) { return @linear-gradient(150deg, #d4d4d0 0%, #979793 100%); }
+        return @linear-gradient(150deg, #f4f4f2 0%, #c2c2be 100%);
     }
 
     width: size;
     height: size;
     border-radius: self.width / 2;
-    background: grad(variant);
+    background: Theme.is-dark
+        ? @linear-gradient(150deg, #3b3b39 0%, #1f1f1e 100%)
+        : grad(variant);
+    border-width: 1px;
+    border-color: Theme.is-dark ? Theme.n-line-strong : rgba(255, 255, 255, 0.72);
     clip: true;
 
     if has-image: Image {
@@ -384,37 +506,39 @@ export component Avatar inherits Rectangle {
     }
     if !has-image: Text {
         text: parent.initials;
-        font-size: parent.size * 0.38;
-        font-weight: 700;
-        color: white;
+        font-size: parent.size * 0.36;
+        font-weight: 720;
+        color: Theme.is-dark ? #f2f2f0 : #2e2e2c;
         vertical-alignment: center;
         horizontal-alignment: center;
     }
     if online: Rectangle {
-        width: parent.size * 0.26;
-        height: parent.size * 0.26;
+        width: parent.size * 0.24;
+        height: parent.size * 0.24;
         x: parent.size - self.width - 1px;
         y: parent.size - self.height - 1px;
         border-radius: self.width / 2;
-        background: Theme.online;
-        border-width: 2.5px;
-        border-color: Theme.is-dark ? Theme.d-bg-1 : white;
+        background: Theme.n-primary;
+        border-width: 2px;
+        border-color: Theme.c-bg-1;
     }
 }
 
+export component Avatar inherits NemoAvatar { }
+
 // ---------------------------------------------------------------------------
-// Toggle
+// Toggle & badges
 // ---------------------------------------------------------------------------
 
-export component Toggle inherits Rectangle {
+export component NemoToggle inherits Rectangle {
     in-out property <bool> checked: false;
     callback toggled(bool);
 
-    width: 52px;
-    height: 32px;
-    border-radius: self.height / 2;
-    background: checked ? Theme.accent : Theme.c-text-3;
-    animate background { duration: 160ms; }
+    width: 50px;
+    height: 30px;
+    border-radius: 15px;
+    background: checked ? Theme.n-primary : Theme.n-track;
+    animate background { duration: Theme.n-focus; }
 
     touch := TouchArea {
         mouse-cursor: pointer;
@@ -424,331 +548,510 @@ export component Toggle inherits Rectangle {
         }
     }
     Rectangle {
-        width: 26px;
-        height: 26px;
+        width: 24px;
+        height: 24px;
         y: 3px;
         x: root.checked ? root.width - self.width - 3px : 3px;
-        border-radius: self.width / 2;
-        background: white;
+        border-radius: 12px;
+        background: root.checked
+            ? Theme.n-primary-text
+            : (Theme.is-dark ? #e8e8e6 : #ffffff);
         drop-shadow-blur: 4px;
-        drop-shadow-color: rgba(0, 0, 0, 0.25);
-        animate x { duration: 160ms; easing: Theme.ease-out; }
+        drop-shadow-color: rgba(0, 0, 0, 0.22);
+        animate x { duration: Theme.n-focus; easing: Theme.ease-out; }
     }
 }
 
-// ---------------------------------------------------------------------------
-// Badges & pills
-// ---------------------------------------------------------------------------
+export component Toggle inherits NemoToggle { }
 
-export component CountBadge inherits Rectangle {
-    in property <int> count;
-    in property <color> bg: Theme.danger;
+export component NemoBadge inherits Rectangle {
+    in property <int> count: 0;
+    in property <color> bg: Theme.n-primary;
+    in property <color> fg: Theme.n-primary-text;
 
     width: count > 99 ? 27px : 20px;
     height: 20px;
-    border-radius: self.height / 2;
+    border-radius: 10px;
     background: bg;
     visible: count > 0;
-    if count > 99: Text {
+    Text {
         width: parent.width;
         height: parent.height;
-        text: "99+";
-        font-size: 11px;
-        font-weight: 700;
-        color: white;
-        vertical-alignment: center;
+        text: count > 99 ? "99+" : "" + root.count;
+        font-size: 12px;
+        font-weight: 750;
+        color: root.fg;
         horizontal-alignment: center;
-    }
-    if count <= 99: Text {
-        width: parent.width;
-        height: parent.height;
-        text: count;   // int coerces to string on assignment
-        font-size: 11px;
-        font-weight: 700;
-        color: white;
         vertical-alignment: center;
-        horizontal-alignment: center;
     }
 }
 
-export component PillTag inherits Rectangle {
-    in property <string> text;
-    in property <color> bg: Theme.c-accent-soft;
-    in property <color> fg: Theme.accent;
+export component CountBadge inherits NemoBadge { }
+
+export component NemoPillTag inherits Rectangle {
+    in property <string> text: "";
+    in property <color> bg: Theme.n-glass-soft;
+    in property <color> fg: Theme.n-muted;
+    in property <bool> strong: false;
 
     height: 26px;
-    width: text.character-count * 7.2px + 20px;
-    border-radius: self.height / 2;
-    background: bg;
+    width: text.character-count * 6.8px + 22px;
+    border-radius: 13px;
+    background: strong ? Theme.n-primary : root.bg;
+    border-width: 1px;
+    border-color: strong ? transparent : Theme.n-line;
     Text {
-        x: 10px;
-        y: (parent.height - self.height) / 2;
+        width: parent.width;
+        height: parent.height;
         text: root.text;
-        font-size: Theme.fs-caption;
+        font-size: Theme.n-caption;
         font-weight: 700;
-        color: root.fg;
+        color: root.strong ? Theme.n-primary-text : root.fg;
+        horizontal-alignment: center;
+        vertical-alignment: center;
     }
 }
 
-export component SectionLabel inherits Rectangle {
-    in property <string> text;
+export component PillTag inherits NemoPillTag { }
+
+export component NemoSectionLabel inherits Rectangle {
+    in property <string> text: "";
+
     height: 22px;
     background: transparent;
     Text {
         y: (parent.height - self.height) / 2;
         text: root.text;
-        font-size: Theme.fs-caption;
+        font-size: Theme.n-label;
         font-weight: 700;
-        letter-spacing: 1.1px;
-        color: Theme.c-text-3;
+        letter-spacing: 1.2px;
+        color: Theme.n-muted;
     }
 }
 
+export component SectionLabel inherits NemoSectionLabel { }
+
 // ---------------------------------------------------------------------------
-// Top bar
+// Header
 // ---------------------------------------------------------------------------
 
-export component TopBar inherits Rectangle {
-    in property <string> title;
+export component NemoTopBar inherits Rectangle {
+    in property <string> title: "";
+    in property <string> subtitle: "";
     in property <bool> show-back: true;
     callback back;
 
-    height: Theme.bar-h;
+    height: Theme.n-header-h;
     background: transparent;
 
     HorizontalLayout {
-        padding-left: 12px;
-        padding-right: 12px;
-        spacing: 8px;
-        alignment: start;
+        padding-left: Theme.n-screen-pad;
+        padding-right: Theme.n-screen-pad;
+        spacing: Theme.n-sm;
+        alignment: center;
 
-        if show-back: TouchArea {
-            width: 40px;
-            mouse-cursor: pointer;
+        if show-back: NemoBackButton {
             clicked => { root.back(); }
-            Rectangle {
-                width: 40px;
-                height: 40px;
-                y: 0;
-                border-radius: 20px;
-                background: Theme.c-surface-alpha;
-                border-width: 1px;
-                border-color: Theme.c-stroke-glass;
-                ChevronLeft {
-                    x: (parent.width - 22px) / 2;
-                    y: (parent.height - 22px) / 2;
-                    size: 22px;
-                    tint: Theme.c-text;
-                }
-            }
         }
-        Text {
-            text: root.title;
-            font-size: Theme.fs-title;
-            font-weight: 700;
-            color: Theme.c-text;
-            vertical-alignment: center;
-            overflow: elide;
+        VerticalLayout {
+            horizontal-stretch: 1;
+            spacing: 1px;
+            Text {
+                text: root.title;
+                font-size: Theme.n-card;
+                font-weight: 700;
+                color: Theme.n-ink;
+                letter-spacing: -0.2px;
+                vertical-alignment: center;
+                overflow: elide;
+            }
+            if root.subtitle != "": Text {
+                text: root.subtitle;
+                font-size: Theme.n-caption;
+                color: Theme.n-muted;
+                overflow: elide;
+            }
         }
         @children
     }
 }
 
+export component TopBar inherits NemoTopBar { }
+
 // ---------------------------------------------------------------------------
-// Bottom navigation
+// Floating bottom navigation -- exactly Chats / Find / Profile
 // ---------------------------------------------------------------------------
 
-export component NavBar inherits Rectangle {
-    in property <int> selected: 0;   // 0 = chats, 1 = find, 2 = profile
-    in property <int> unread: 0;     // chats tab badge
-    in property <int> requests: 0;   // find tab badge
+export component NemoBottomNav inherits Rectangle {
+    in property <int> selected: 0;
+    in property <int> unread: 0;
+    in property <int> requests: 0;
     callback select(int);
 
-    width: 240px;
-    height: Theme.nav-h;
-    border-radius: 32px;
-    background: @linear-gradient(180deg, Theme.c-glass-top 0%, Theme.c-nav-glass 45%, Theme.c-glass-bottom 100%);
-    border-width: 1px;
-    border-color: Theme.c-stroke-glass;
-    drop-shadow-blur: 26px;
-    drop-shadow-color: Theme.c-shadow;
-    drop-shadow-offset-y: 10px;
+    horizontal-stretch: 1;
+    height: Theme.n-nav-h;
+    background: transparent;
 
-    // Specular top edge.
     Rectangle {
-        x: 4px;
-        y: 1px;
-        width: parent.width - 8px;
-        height: 1px;
-        border-radius: 1px;
-        background: @linear-gradient(90deg, transparent 0%, Theme.c-glass-edge 40%, Theme.c-glass-edge 60%, transparent 100%);
-        opacity: 0.9;
-    }
+        x: 18px;
+        y: 4px;
+        width: parent.width - 36px;
+        height: 64px;
+        border-radius: 24px;
+        background: @linear-gradient(180deg, Theme.n-glass-top 0%, Theme.n-nav-bg 55%, Theme.n-glass-bottom 100%);
+        border-width: 1px;
+        border-color: Theme.is-dark ? Theme.n-line-strong : Theme.n-glass-edge;
+        drop-shadow-blur: 28px;
+        drop-shadow-color: Theme.is-dark ? rgba(0, 0, 0, 0.40) : rgba(0, 0, 0, 0.11);
+        drop-shadow-offset-y: 10px;
+        clip: true;
 
-    // --- Chats ---
-    TouchArea {
-        x: 10px;
-        width: (parent.width - 20px) / 3;
-        height: parent.height;
-        mouse-cursor: pointer;
-        clicked => { root.select(0); }
         Rectangle {
-            width: 48px;
-            height: 48px;
-            x: (parent.width - self.width) / 2;
-            y: (parent.height - self.height) / 2;
-            border-radius: 24px;
-            background: root.selected == 0
-                ? @linear-gradient(180deg, #4D8DFF 0%, #2F6BFF 100%)
-                : transparent;
-            drop-shadow-blur: root.selected == 0 ? 12px : 0px;
-            drop-shadow-color: rgba(47, 107, 255, 0.4);
-            NavChat {
-                x: (parent.width - self.width) / 2;
-                y: (parent.height - self.height) / 2;
-                size: 24px;
-                selected: root.selected == 0;
-                tint: root.selected == 0 ? white : Theme.c-text-2;
-            }
-            CountBadge {
-                count: root.unread;
-                x: 30px;
-                y: -1px;
-            }
+            x: 6px;
+            y: 1px;
+            width: parent.width - 12px;
+            height: 1px;
+            background: @linear-gradient(90deg,
+                transparent 0%,
+                Theme.n-glass-edge 34%,
+                Theme.n-glass-edge 66%,
+                transparent 100%);
+            opacity: 0.9;
         }
-    }
-    // --- Find ---
-    TouchArea {
-        x: 10px + (parent.width - 20px) / 3;
-        width: (parent.width - 20px) / 3;
-        height: parent.height;
-        mouse-cursor: pointer;
-        clicked => { root.select(1); }
-        Rectangle {
-            width: 48px;
-            height: 48px;
-            x: (parent.width - self.width) / 2;
-            y: (parent.height - self.height) / 2;
-            border-radius: 24px;
-            background: root.selected == 1
-                ? @linear-gradient(180deg, #4D8DFF 0%, #2F6BFF 100%)
-                : transparent;
-            drop-shadow-blur: root.selected == 1 ? 12px : 0px;
-            drop-shadow-color: rgba(47, 107, 255, 0.4);
-            NavFind {
-                x: (parent.width - self.width) / 2;
-                y: (parent.height - self.height) / 2;
-                size: 24px;
-                tint: root.selected == 1 ? white : Theme.c-text-2;
+
+        HorizontalLayout {
+            padding: 5px;
+            spacing: 4px;
+
+            // Chats
+            TouchArea {
+                horizontal-stretch: 1;
+                height: 54px;
+                mouse-cursor: pointer;
+                clicked => { root.select(0); }
+                Rectangle {
+                    width: parent.width;
+                    height: parent.height;
+                    border-radius: 18px;
+                    background: root.selected == 0 ? Theme.n-primary : transparent;
+                    animate background { duration: Theme.n-tab; }
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 3px;
+                        NavChat {
+                            size: 19px;
+                            selected: root.selected == 0;
+                            tint: root.selected == 0 ? Theme.n-primary-text : Theme.n-muted;
+                        }
+                        Text {
+                            text: "Chats";
+                            font-size: 12px;
+                            font-weight: 700;
+                            letter-spacing: 0.2px;
+                            color: root.selected == 0 ? Theme.n-primary-text : Theme.n-muted;
+                            horizontal-alignment: center;
+                        }
+                    }
+                    if root.unread > 0: NemoBadge {
+                        count: root.unread;
+                        x: parent.width - 28px;
+                        y: 5px;
+                        bg: root.selected == 0 ? Theme.n-primary-text : Theme.n-primary;
+                        fg: root.selected == 0 ? Theme.n-primary : Theme.n-primary-text;
+                    }
+                }
             }
-            CountBadge {
-                count: root.requests;
-                x: 30px;
-                y: -1px;
+
+            // Find
+            TouchArea {
+                horizontal-stretch: 1;
+                height: 54px;
+                mouse-cursor: pointer;
+                clicked => { root.select(1); }
+                Rectangle {
+                    width: parent.width;
+                    height: parent.height;
+                    border-radius: 18px;
+                    background: root.selected == 1 ? Theme.n-primary : transparent;
+                    animate background { duration: Theme.n-tab; }
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 3px;
+                        NavFind {
+                            size: 19px;
+                            selected: root.selected == 1;
+                            tint: root.selected == 1 ? Theme.n-primary-text : Theme.n-muted;
+                        }
+                        Text {
+                            text: "Find";
+                            font-size: 12px;
+                            font-weight: 700;
+                            letter-spacing: 0.2px;
+                            color: root.selected == 1 ? Theme.n-primary-text : Theme.n-muted;
+                            horizontal-alignment: center;
+                        }
+                    }
+                    if root.requests > 0: NemoBadge {
+                        count: root.requests;
+                        x: parent.width - 28px;
+                        y: 5px;
+                        bg: root.selected == 1 ? Theme.n-primary-text : Theme.n-primary;
+                        fg: root.selected == 1 ? Theme.n-primary : Theme.n-primary-text;
+                    }
+                }
             }
-        }
-    }
-    // --- Profile ---
-    TouchArea {
-        x: 10px + 2 * ((parent.width - 20px) / 3);
-        width: (parent.width - 20px) / 3;
-        height: parent.height;
-        mouse-cursor: pointer;
-        clicked => { root.select(2); }
-        Rectangle {
-            width: 48px;
-            height: 48px;
-            x: (parent.width - self.width) / 2;
-            y: (parent.height - self.height) / 2;
-            border-radius: 24px;
-            background: root.selected == 2
-                ? @linear-gradient(180deg, #4D8DFF 0%, #2F6BFF 100%)
-                : transparent;
-            drop-shadow-blur: root.selected == 2 ? 12px : 0px;
-            drop-shadow-color: rgba(47, 107, 255, 0.4);
-            NavProfile {
-                x: (parent.width - self.width) / 2;
-                y: (parent.height - self.height) / 2;
-                size: 24px;
-                selected: root.selected == 2;
-                tint: root.selected == 2 ? white : Theme.c-text-2;
+
+            // Profile
+            TouchArea {
+                horizontal-stretch: 1;
+                height: 54px;
+                mouse-cursor: pointer;
+                clicked => { root.select(2); }
+                Rectangle {
+                    width: parent.width;
+                    height: parent.height;
+                    border-radius: 18px;
+                    background: root.selected == 2 ? Theme.n-primary : transparent;
+                    animate background { duration: Theme.n-tab; }
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 3px;
+                        NavProfile {
+                            size: 19px;
+                            selected: root.selected == 2;
+                            tint: root.selected == 2 ? Theme.n-primary-text : Theme.n-muted;
+                        }
+                        Text {
+                            text: "Profile";
+                            font-size: 12px;
+                            font-weight: 700;
+                            letter-spacing: 0.2px;
+                            color: root.selected == 2 ? Theme.n-primary-text : Theme.n-muted;
+                            horizontal-alignment: center;
+                        }
+                    }
+                }
             }
         }
     }
 }
 
+export component NavBar inherits NemoBottomNav { }
+
 // ---------------------------------------------------------------------------
-// Misc
+// Overlays
 // ---------------------------------------------------------------------------
 
-export component EmptyState inherits Rectangle {
-    in property <string> title;
+export component NemoBottomSheet inherits Rectangle {
+    in property <bool> open: false;
+    in property <string> title: "";
     in property <string> subtitle: "";
-    height: 220px;
+    in property <length> sheet-height: 260px;
+    callback close;
+
     background: transparent;
+
+    // Scrim
+    Rectangle {
+        width: parent.width;
+        height: parent.height;
+        background: Theme.n-scrim;
+        opacity: root.open ? 1.0 : 0.0;
+        animate opacity { duration: Theme.n-sheet; }
+        TouchArea {
+            enabled: root.open;
+            clicked => { root.close(); }
+        }
+    }
+    // Sheet
+    Rectangle {
+        x: 12px;
+        y: root.open ? parent.height - root.sheet-height : parent.height + 24px;
+        width: parent.width - 24px;
+        height: root.sheet-height;
+        border-radius: Theme.n-r-sheet;
+        background: @linear-gradient(180deg, Theme.n-glass-strong 0%, Theme.n-glass-strong 100%);
+        border-width: 1px;
+        border-color: Theme.is-dark ? Theme.n-line-strong : Theme.n-glass-edge;
+        drop-shadow-blur: 34px;
+        drop-shadow-color: Theme.is-dark ? rgba(0, 0, 0, 0.46) : rgba(0, 0, 0, 0.16);
+        drop-shadow-offset-y: 12px;
+        clip: true;
+        animate y { duration: Theme.n-sheet; easing: Theme.ease-out; }
+
+        VerticalLayout {
+            padding: 16px;
+            spacing: 0px;
+            Rectangle {
+                height: 4px;
+                width: 38px;
+                border-radius: 2px;
+                background: Theme.n-muted;
+                opacity: 0.40;
+            }
+            Text {
+                text: root.title;
+                font-size: Theme.n-card;
+                font-weight: 720;
+                color: Theme.n-ink;
+                letter-spacing: -0.2px;
+            }
+            if root.subtitle != "": Text {
+                text: root.subtitle;
+                font-size: Theme.n-secondary;
+                color: Theme.n-muted;
+                wrap: word-wrap;
+            }
+            @children
+        }
+    }
+}
+
+export component NemoDialog inherits Rectangle {
+    in property <bool> open: false;
+    in property <string> title: "";
+    in property <string> subtitle: "";
+    callback close;
+
+    background: transparent;
+
+    Rectangle {
+        width: parent.width;
+        height: parent.height;
+        background: Theme.n-scrim;
+        opacity: root.open ? 1.0 : 0.0;
+        animate opacity { duration: Theme.n-sheet; }
+        TouchArea {
+            enabled: root.open;
+            clicked => { root.close(); }
+        }
+    }
+    Rectangle {
+        x: 24px;
+        y: (parent.height - self.height) / 2;
+        width: parent.width - 48px;
+        height: content.preferred-height + 40px;
+        border-radius: Theme.n-r-sheet;
+        background: Theme.n-glass-strong;
+        border-width: 1px;
+        border-color: Theme.n-line;
+        drop-shadow-blur: 30px;
+        drop-shadow-color: rgba(0, 0, 0, 0.18);
+        drop-shadow-offset-y: 10px;
+        opacity: root.open ? 1.0 : 0.0;
+        animate opacity { duration: Theme.n-sheet; }
+
+        content := VerticalLayout {
+            x: 20px;
+            y: 20px;
+            width: parent.width - 40px;
+            spacing: 10px;
+            Text {
+                text: root.title;
+                font-size: Theme.n-card;
+                font-weight: 720;
+                color: Theme.n-ink;
+                horizontal-alignment: center;
+            }
+            if root.subtitle != "": Text {
+                text: root.subtitle;
+                font-size: Theme.n-secondary;
+                color: Theme.n-muted;
+                wrap: word-wrap;
+                horizontal-alignment: center;
+            }
+            @children
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// States
+// ---------------------------------------------------------------------------
+
+export component NemoStateView inherits Rectangle {
+    in property <string> state: "empty"; // loading | empty | error | offline | success
+    in property <string> title: "";
+    in property <string> subtitle: "";
+    in property <string> action-text: "";
+    callback action;
+
+    height: 240px;
+    background: transparent;
+
     VerticalLayout {
         alignment: center;
-        spacing: 10px;
+        spacing: Theme.n-sm;
+
         Rectangle {
-            width: 72px;
-            height: 72px;
-            border-radius: 36px;
-            background: Theme.c-accent-soft;
-            NavChat {
-                x: (parent.width - 34px) / 2;
-                y: (parent.height - 34px) / 2;
-                size: 34px;
-                tint: Theme.accent;
+            width: 64px;
+            height: 64px;
+            border-radius: 22px;
+            background: Theme.n-glass-soft;
+            border-width: 1px;
+            border-color: Theme.n-line;
+            drop-shadow-blur: 14px;
+            drop-shadow-color: Theme.n-inner-shadow;
+            drop-shadow-offset-y: 4px;
+            Text {
+                width: parent.width;
+                height: parent.height;
+                text: root.state == "loading" ? "..." : root.state == "error" ? "!" : root.state == "offline" ? "x" : "◇";
+                font-size: 22px;
+                font-weight: 650;
+                color: Theme.n-muted;
+                horizontal-alignment: center;
+                vertical-alignment: center;
             }
         }
         Text {
             text: root.title;
-            font-size: Theme.fs-body-lg;
+            font-size: Theme.n-card;
             font-weight: 700;
-            color: Theme.c-text-2;
+            color: Theme.n-ink;
             horizontal-alignment: center;
         }
         if root.subtitle != "": Text {
             text: root.subtitle;
-            font-size: Theme.fs-small;
-            color: Theme.c-text-3;
+            font-size: Theme.n-secondary;
+            color: Theme.n-muted;
             horizontal-alignment: center;
             width: 260px;
             wrap: word-wrap;
         }
+        if root.action-text != "": TouchArea {
+            height: 38px;
+            mouse-cursor: pointer;
+            clicked => { root.action(); }
+            Text {
+                height: 38px;
+                text: root.action-text;
+                font-size: Theme.n-secondary;
+                font-weight: 700;
+                color: Theme.n-ink;
+                vertical-alignment: center;
+            }
+        }
     }
 }
 
-export component TypingBubble inherits Rectangle {
-    width: 66px;
+export component EmptyState inherits NemoStateView { }
+
+// ---------------------------------------------------------------------------
+// Typing indicator
+// ---------------------------------------------------------------------------
+
+export component NemoTypingBubble inherits Rectangle {
+    width: 68px;
     height: 40px;
-    border-radius: Theme.r-bubble;
-    background: Theme.c-bubble-in;
-    Rectangle {
-        width: 8px;
-        height: 8px;
-        x: 16px;
-        y: 16px;
-        border-radius: 4px;
-        background: Theme.c-text-3;
-        opacity: 0.45;
-    }
-    Rectangle {
-        width: 8px;
-        height: 8px;
-        x: 29px;
-        y: 16px;
-        border-radius: 4px;
-        background: Theme.c-text-3;
-        opacity: 0.75;
-    }
-    Rectangle {
-        width: 8px;
-        height: 8px;
-        x: 42px;
-        y: 16px;
-        border-radius: 4px;
-        background: Theme.c-text-3;
-        opacity: 1.0;
-    }
+    border-radius: 20px;
+    background: Theme.n-glass-soft;
+    border-width: 1px;
+    border-color: Theme.n-line;
+
+    Rectangle { width: 7px; height: 7px; x: 17px; y: 16px; border-radius: 4px; background: Theme.n-muted; opacity: 0.40; }
+    Rectangle { width: 7px; height: 7px; x: 30px; y: 16px; border-radius: 4px; background: Theme.n-muted; opacity: 0.70; }
+    Rectangle { width: 7px; height: 7px; x: 43px; y: 16px; border-radius: 4px; background: Theme.n-muted; opacity: 1.0; }
 }
+
+export component TypingBubble inherits NemoTypingBubble { }

@@ -17,10 +17,12 @@ import { Theme } from "../theme.slint";
 import {
     ChevronLeft, ChevronRight, Bell, BellFilled, Compose, Send, Smile,
     DotsVertical, CheckDouble, Pin, MutedIcon, Plus, NookLogo,
+    Sun, Moon, Search, Reply, InfoIcon, Paperclip, Picture,
 } from "../icons.slint";
 import {
     ScreenBackground, GlassCard, Hairline, PrimaryButton,
     SearchField, Avatar, CountBadge, EmptyState, TypingBubble, NavBar,
+    NemoBackButton,
 } from "../widgets.slint";
 
 // ---------------------------------------------------------------------------
@@ -60,7 +62,7 @@ export struct UiBubble {
 // Chat list row
 // ---------------------------------------------------------------------------
 
-component ChatRow inherits Rectangle {
+export component ChatRow inherits Rectangle {
     in property <UiChat> chat;
     callback open-chat;
     height: 76px;
@@ -160,16 +162,16 @@ export component ChatsScreen inherits Rectangle {
     in-out property <string> selected-name: "";
     in-out property <string> selected-preview: "";
 
-    property <color> ink: dark ? #f4f4f5 : #171719;
-    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
-    property <color> muted: dark ? #aaaab0 : #85858b;
-    property <color> muted-2: dark ? #85858c : #a3a3a9;
-    property <color> line: dark ? rgba(255,255,255,0.085) : rgba(25,25,30,0.075);
-    property <color> glass: dark ? rgba(39,39,42,0.72) : rgba(255,255,255,0.72);
-    property <color> glass-strong: dark ? rgba(48,48,51,0.91) : rgba(255,255,255,0.88);
-    property <color> surface-soft: dark ? rgba(31,31,34,0.78) : rgba(247,247,248,0.72);
-    property <color> nav-bg: dark ? rgba(35,35,38,0.82) : rgba(250,250,251,0.78);
-    property <color> bubble: dark ? #303034 : #e7e7e9;
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> muted-2: Theme.n-muted-2;
+    property <color> line: Theme.n-line;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
+    property <color> surface-soft: Theme.n-surface-soft;
+    property <color> nav-bg: Theme.n-nav-bg;
+    property <color> bubble: Theme.c-bubble-in;
 
     VerticalLayout {
         padding-left: 0px;
@@ -192,7 +194,7 @@ export component ChatsScreen inherits Rectangle {
                 spacing: 3px;
                 Text {
                     text: "Your conversations";
-                    font-size: 9px;
+                    font-size: 12px;
                     font-weight: 750;
                     color: muted;
                     letter-spacing: 1.6px;
@@ -215,17 +217,21 @@ export component ChatsScreen inherits Rectangle {
                     border-radius: 15px;
                     background: glass;
                     border-width: 1px;
-                    border-color: rgba(255,255,255,0.92);
+                    border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
                     drop-shadow-blur: 15px;
                     drop-shadow-color: rgba(0,0,0,0.045);
                     drop-shadow-offset-y: 5px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: root.dark ? "☀" : "☾";
-                        font-size: 17px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    if root.dark: Sun {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 19px;
+                        tint: ink;
+                    }
+                    if !root.dark: Moon {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 19px;
+                        tint: ink;
                     }
                 }
             }
@@ -239,16 +245,15 @@ export component ChatsScreen inherits Rectangle {
                     border-radius: 15px;
                     background: glass;
                     border-width: 1px;
-                    border-color: rgba(255,255,255,0.92);
+                    border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
                     drop-shadow-blur: 15px;
                     drop-shadow-color: rgba(0,0,0,0.045);
                     drop-shadow-offset-y: 5px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "🔔";
-                        font-size: 16px;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    Bell {
+                        x: 11px;
+                        y: 11px;
+                        size: 20px;
+                        tint: ink;
                     }
                 }
             }
@@ -262,17 +267,15 @@ export component ChatsScreen inherits Rectangle {
                     border-radius: 15px;
                     background: glass;
                     border-width: 1px;
-                    border-color: rgba(255,255,255,0.92);
+                    border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
                     drop-shadow-blur: 15px;
                     drop-shadow-color: rgba(0,0,0,0.045);
                     drop-shadow-offset-y: 5px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "✎";
-                        font-size: 16px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    Compose {
+                        x: 11px;
+                        y: 11px;
+                        size: 20px;
+                        tint: ink;
                     }
                 }
             }
@@ -288,7 +291,7 @@ export component ChatsScreen inherits Rectangle {
                 border-radius: 17px;
                 background: glass;
                 border-width: 1px;
-                border-color: rgba(255,255,255,0.92);
+                border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
                 drop-shadow-blur: 12px;
                 drop-shadow-color: rgba(0,0,0,0.025);
                 drop-shadow-offset-y: 5px;
@@ -296,11 +299,9 @@ export component ChatsScreen inherits Rectangle {
                     padding-left: 14px; padding-right: 14px;
                     spacing: 10px;
                     alignment: center;
-                    Text {
-                        text: "🔍";
-                        font-size: 14px;
-                        color: muted;
-                        vertical-alignment: center;
+                    Search {
+                        size: 16px;
+                        tint: muted;
                     }
                     TextInput {
                         text <=> root.search;
@@ -330,7 +331,7 @@ export component ChatsScreen inherits Rectangle {
                     Text {
                         width: parent.width; height: parent.height;
                         text: "All";
-                        font-size: 11px;
+                        font-size: 12px;
                         font-weight: 650;
                         color: root.filter == 0 ? (dark ? #171719 : #ffffff) : muted;
                         horizontal-alignment: center;
@@ -351,7 +352,7 @@ export component ChatsScreen inherits Rectangle {
                     Text {
                         width: parent.width; height: parent.height;
                         text: "Unread 3";
-                        font-size: 11px;
+                        font-size: 12px;
                         font-weight: 650;
                         color: root.filter == 1 ? (dark ? #171719 : #ffffff) : muted;
                         horizontal-alignment: center;
@@ -372,7 +373,7 @@ export component ChatsScreen inherits Rectangle {
                     Text {
                         width: parent.width; height: parent.height;
                         text: "Groups";
-                        font-size: 11px;
+                        font-size: 12px;
                         font-weight: 650;
                         color: root.filter == 2 ? (dark ? #171719 : #ffffff) : muted;
                         horizontal-alignment: center;
@@ -395,7 +396,7 @@ export component ChatsScreen inherits Rectangle {
                     height: 30px;
                     Text {
                         text: "Recent messages";
-                        font-size: 10px;
+                        font-size: 12px;
                         font-weight: 700;
                         color: muted;
                         letter-spacing: 0.5px;
@@ -404,7 +405,7 @@ export component ChatsScreen inherits Rectangle {
                     Rectangle { horizontal-stretch: 1; }
                     Text {
                         text: "Recent ▾";
-                        font-size: 10px;
+                        font-size: 12px;
                         font-weight: 650;
                         color: muted;
                         vertical-alignment: center;
@@ -465,7 +466,7 @@ export component ChatsScreen inherits Rectangle {
                                     }
                                     Text {
                                         text: chat.time;
-                                        font-size: 9px;
+                                        font-size: 12px;
                                         color: muted;
                                     }
                                 }
@@ -474,7 +475,7 @@ export component ChatsScreen inherits Rectangle {
                                     Text {
                                         horizontal-stretch: 1;
                                         text: chat.subtitle;
-                                        font-size: 11px;
+                                        font-size: 12px;
                                         color: muted;
                                         overflow: elide;
                                     }
@@ -485,7 +486,7 @@ export component ChatsScreen inherits Rectangle {
                                         Text {
                                             width: parent.width; height: parent.height;
                                             text: "" + chat.unread;
-                                            font-size: 9px;
+                                            font-size: 12px;
                                             font-weight: 750;
                                             color: dark ? #171719 : #ffffff;
                                             horizontal-alignment: center;
@@ -494,7 +495,7 @@ export component ChatsScreen inherits Rectangle {
                                     }
                                     if chat.unread == 0: Text {
                                         text: "✓✓";
-                                        font-size: 11px;
+                                        font-size: 12px;
                                         color: muted;
                                     }
                                 }
@@ -502,98 +503,22 @@ export component ChatsScreen inherits Rectangle {
                         }
                     }
                 }
-                if root.chats.length == 0: Text {
-                    text: "No conversations found.";
-                    font-size: 12px;
-                    color: muted;
-                    horizontal-alignment: center;
+                if root.chats.length == 0: EmptyState {
+                    state: "empty";
+                    title: "No conversations yet";
+                    subtitle: "Start a chat and it will appear here.";
                 }
             }
         }
 
-        // Bottom nav
-        Rectangle {
-            height: 90px;
-            VerticalLayout {
-                padding-left: 22px; padding-right: 22px;
-                padding-bottom: 13px;
-                spacing: 10px;
-                Rectangle {
-                    height: 63px;
-                    border-radius: 23px;
-                    background: nav-bg;
-                    border-width: 1px;
-                    border-color: rgba(255,255,255,0.92);
-                    drop-shadow-blur: 30px;
-                    drop-shadow-color: rgba(0,0,0,0.10);
-                    drop-shadow-offset-y: 12px;
-                    HorizontalLayout {
-                        alignment: center;
-                        spacing: 0px;
-                        TouchArea {
-                            horizontal-stretch: 1;
-                            height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { }
-                            Rectangle {
-                                width: parent.width; height: 63px;
-                                Text {
-                                    width: parent.width; height: parent.height;
-                                    text: "Chats";
-                                    font-size: 9px;
-                                    font-weight: 650;
-                                    color: ink;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
-                                }
-                            }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1;
-                            height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { root.open-find(); }
-                            Rectangle {
-                                width: parent.width; height: 63px;
-                                Text {
-                                    width: parent.width; height: parent.height;
-                                    text: "Find";
-                                    font-size: 9px;
-                                    font-weight: 650;
-                                    color: muted;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
-                                }
-                            }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1;
-                            height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { root.open-profile(); }
-                            Rectangle {
-                                width: parent.width; height: 63px;
-                                Text {
-                                    width: parent.width; height: parent.height;
-                                    text: "Profile";
-                                    font-size: 9px;
-                                    font-weight: 650;
-                                    color: muted;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
-                                }
-                            }
-                        }
-                    }
-                }
-                Rectangle {
-                    height: 5px;
-                    width: 108px;
-                    x: (parent.width - 108px) / 2;
-                    border-radius: 2.5px;
-                    background: ink;
-                    opacity: 0.9;
-                }
+        // Bottom navigation — shared floating glass tab bar.
+        NavBar {
+            selected: 0;
+            unread: 0;
+            requests: root.request-count;
+            select(i) => {
+                if (i == 1) { root.open-find(); }
+                if (i == 2) { root.open-profile(); }
             }
         }
     }
@@ -616,7 +541,7 @@ component ChatBubbleRow inherits VerticalLayout {
         Rectangle { horizontal-stretch: 1; height: 1px; background: rgba(0,0,0,0.09); }
         Text {
             text: bubble.day;
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 650;
             color: #858585;
             letter-spacing: 0.9px;
@@ -628,7 +553,7 @@ component ChatBubbleRow inherits VerticalLayout {
     if bubble.kind == 2 && !bubble.is-day-sep: Text {
         height: 24px;
         text: bubble.text;
-        font-size: 10px;
+        font-size: 12px;
         color: #858585;
         horizontal-alignment: center;
         vertical-alignment: center;
@@ -668,7 +593,7 @@ component ChatBubbleRow inherits VerticalLayout {
                 ? #202020
                 : rgba(255,255,255,0.88);
             border-width: bubble.mine ? 0px : 1px;
-            border-color: rgba(255,255,255,0.92);
+            border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
             drop-shadow-blur: bubble.mine ? 20px : 16px;
             drop-shadow-color: bubble.mine ? rgba(0,0,0,0.11) : rgba(0,0,0,0.035);
             drop-shadow-offset-y: bubble.mine ? 8px : 5px;
@@ -701,12 +626,12 @@ component ChatBubbleRow inherits VerticalLayout {
                     spacing: 6px;
                     Text {
                         text: bubble.time;
-                        font-size: 9px;
+                        font-size: 12px;
                         color: bubble.mine ? rgba(255,255,255,0.7) : #858585;
                     }
                     if bubble.mine: Text {
                         text: bubble.read ? "✓✓" : "✓";
-                        font-size: 11px;
+                        font-size: 12px;
                         color: bubble.read ? #c0c0c0 : rgba(255,255,255,0.5);
                     }
                 }
@@ -761,18 +686,18 @@ export component ChatScreen inherits Rectangle {
         }
     }
 
-    property <color> ink: dark ? #f3f3f3 : #171717;
-    property <color> ink-2: dark ? #c0c0c0 : #505050;
-    property <color> muted: dark ? #888 : #858585;
-    property <color> surface: dark ? rgba(34,34,34,0.76) : rgba(255,255,255,0.76);
-    property <color> surface-strong: dark ? rgba(39,39,39,0.94) : rgba(255,255,255,0.92);
-    property <color> surface-muted: dark ? rgba(49,49,49,0.78) : rgba(235,235,234,0.78);
-    property <color> field: dark ? rgba(46,46,46,0.9) : rgba(236,236,235,0.83);
-    property <color> outgoing: dark ? #ededed : #202020;
-    property <color> outgoing-text: dark ? #171717 : #ffffff;
-    property <color> incoming: dark ? rgba(47,47,47,0.94) : rgba(255,255,255,0.88);
-    property <color> line: dark ? rgba(255,255,255,0.09) : rgba(20,20,20,0.08);
-    property <color> scrim: dark ? rgba(0,0,0,0.56) : rgba(0,0,0,0.28);
+    property <color> ink: Theme.n-ink;
+    property <color> ink-2: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> surface: Theme.n-glass;
+    property <color> surface-strong: Theme.n-glass-strong;
+    property <color> surface-muted: Theme.n-surface-soft;
+    property <color> field: Theme.n-glass-soft;
+    property <color> outgoing: Theme.n-primary;
+    property <color> outgoing-text: Theme.n-primary-text;
+    property <color> incoming: Theme.n-glass-strong;
+    property <color> line: Theme.n-line;
+    property <color> scrim: Theme.n-scrim;
 
     VerticalLayout {
         // Top bar
@@ -782,28 +707,8 @@ export component ChatScreen inherits Rectangle {
             spacing: 11px;
             alignment: start;
 
-            TouchArea {
-                width: 42px; height: 42px;
-                mouse-cursor: pointer;
+            NemoBackButton {
                 clicked => { root.back(); }
-                Rectangle {
-                    width: 42px; height: 42px;
-                    border-radius: 15px;
-                    background: surface;
-                    border-width: 1px;
-                    border-color: rgba(255,255,255,0.92);
-                    drop-shadow-blur: 12px;
-                    drop-shadow-color: rgba(0,0,0,0.035);
-                    drop-shadow-offset-y: 4px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "←";
-                        font-size: 18px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                }
             }
             Rectangle {
                 width: 43px; height: 43px;
@@ -835,7 +740,7 @@ export component ChatScreen inherits Rectangle {
                 }
                 Text {
                     text: root.typing-name != "" ? "typing…" : root.subtitle;
-                    font-size: 11px;
+                    font-size: 12px;
                     color: root.typing-name != "" ? ink : muted;
                     overflow: elide;
                 }
@@ -849,7 +754,7 @@ export component ChatScreen inherits Rectangle {
                     border-radius: 14px;
                     background: surface;
                     border-width: 1px;
-                    border-color: rgba(255,255,255,0.92);
+                    border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
                     Text {
                         width: parent.width; height: parent.height;
                         text: "⋯";
@@ -900,7 +805,7 @@ export component ChatScreen inherits Rectangle {
                 spacing: 13px;
                 Text {
                     text: "Today · 9:32 AM";
-                    font-size: 10px;
+                    font-size: 12px;
                     font-weight: 650;
                     color: muted;
                     letter-spacing: 0.9px;
@@ -936,12 +841,11 @@ export component ChatScreen inherits Rectangle {
                         width: 37px; height: 37px;
                         border-radius: 13px;
                         background: surface-muted;
-                        Text {
-                            width: parent.width; height: parent.height;
-                            text: "📎";
-                            font-size: 16px;
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
+                        Paperclip {
+                            x: 9px;
+                            y: 9px;
+                            size: 19px;
+                            tint: ink;
                         }
                     }
                 }
@@ -952,7 +856,7 @@ export component ChatScreen inherits Rectangle {
                     border-radius: 23px;
                     background: surface-strong;
                     border-width: 1px;
-                    border-color: rgba(255,255,255,0.92);
+                    border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
                     drop-shadow-blur: 16px;
                     drop-shadow-color: rgba(0,0,0,0.035);
                     drop-shadow-offset-y: 4px;
@@ -976,12 +880,11 @@ export component ChatScreen inherits Rectangle {
                         width: 37px; height: 37px;
                         border-radius: 13px;
                         background: surface-muted;
-                        Text {
-                            width: parent.width; height: parent.height;
-                            text: "🙂";
-                            font-size: 16px;
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
+                        Smile {
+                            x: 9px;
+                            y: 9px;
+                            size: 19px;
+                            tint: ink;
                         }
                     }
                 }
@@ -998,20 +901,18 @@ export component ChatScreen inherits Rectangle {
                         drop-shadow-blur: root.has-draft ? 13px : 0px;
                         drop-shadow-color: rgba(0,0,0,0.13);
                         drop-shadow-offset-y: 5px;
-                        Text {
-                            width: parent.width; height: parent.height;
-                            text: "➤";
-                            font-size: 14px;
-                            color: root.has-draft ? outgoing-text : muted;
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
+                        Send {
+                            x: 10px;
+                            y: 10px;
+                            size: 18px;
+                            tint: root.has-draft ? outgoing-text : muted;
                         }
                     }
                 }
             }
             Text {
                 text: "Messages are shown here as a local UI preview.";
-                font-size: 9px;
+                font-size: 12px;
                 color: muted;
                 horizontal-alignment: center;
             }
@@ -1039,7 +940,7 @@ export component ChatScreen inherits Rectangle {
             border-radius: 25px;
             background: surface-strong;
             border-width: 1px;
-            border-color: rgba(255,255,255,0.92);
+            border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
             drop-shadow-blur: 30px;
             drop-shadow-color: rgba(0,0,0,0.12);
             drop-shadow-offset-y: 10px;
@@ -1072,7 +973,7 @@ export component ChatScreen inherits Rectangle {
                         HorizontalLayout {
                             spacing: 12px;
                             padding-left: 8px;
-                            Text { text: "🔍"; font-size: 14px; vertical-alignment: center; }
+                            Search { size: 15px; tint: muted; }
                             Text { text: "Search in conversation"; font-size: 13px; color: ink; vertical-alignment: center; }
                         }
                     }
@@ -1086,7 +987,7 @@ export component ChatScreen inherits Rectangle {
                         HorizontalLayout {
                             spacing: 12px;
                             padding-left: 8px;
-                            Text { text: "↩"; font-size: 14px; vertical-alignment: center; }
+                            Reply { size: 15px; tint: muted; }
                             Text { text: "Reply to latest message"; font-size: 13px; color: ink; vertical-alignment: center; }
                         }
                     }
@@ -1100,7 +1001,7 @@ export component ChatScreen inherits Rectangle {
                         HorizontalLayout {
                             spacing: 12px;
                             padding-left: 8px;
-                            Text { text: "ℹ"; font-size: 14px; vertical-alignment: center; }
+                            InfoIcon { size: 15px; tint: muted; }
                             Text { text: "Conversation details"; font-size: 13px; color: ink; vertical-alignment: center; }
                         }
                     }

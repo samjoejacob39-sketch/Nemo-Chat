@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f2f2f1">
+<title>Nemo — Welcome</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f1f1ef;
+    --paper: rgba(255,255,255,.72);
+    --paper-strong: rgba(255,255,255,.88);
+    --ink: #171717;
+    --ink-2: #3f3f3f;
+    --muted: #777775;
+    --muted-2: #999996;
+    --line: rgba(30,30,30,.095);
+    --line-strong: rgba(255,255,255,.92);
+    --field: rgba(244,244,242,.82);
+    --button: #171717;
+    --button-text: #fff;
+    --shadow: 0 24px 70px rgba(0,0,0,.085), 0 4px 14px rgba(0,0,0,.035);
+    --ease: cubic-bezier(.2,.75,.25,1);
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #111111;
+    --paper: rgba(37,37,37,.74);
+    --paper-strong: rgba(43,43,43,.9);
+    --ink: #f4f4f2;
+    --ink-2: #d7d7d4;
+    --muted: #aaa9a5;
+    --muted-2: #777773;
+    --line: rgba(255,255,255,.105);
+    --line-strong: rgba(255,255,255,.16);
+    --field: rgba(18,18,18,.62);
+    --button: #f2f2f0;
+    --button-text: #171717;
+    --shadow: 0 26px 80px rgba(0,0,0,.42), 0 4px 18px rgba(0,0,0,.25);
+  }
+  * { box-sizing: border-box; }
+  html, body { width:100%; min-height:100%; margin:0; }
+  body {
+    min-height:100svh;
+    overflow-x:hidden;
+    background:var(--bg);
+    color:var(--ink);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    transition:background .5s var(--ease), color .5s var(--ease);
+  }
+  button, input { font:inherit; }
+  button { -webkit-tap-highlight-color:transparent; }
+  .app {
+    min-height:100svh;
+    position:relative;
+    isolation:isolate;
+    display:flex;
+    justify-content:center;
+    overflow:hidden;
+    padding: max(env(safe-area-inset-top), 18px) 22px max(env(safe-area-inset-bottom), 22px);
+  }
+  .ambient {
+    position:absolute; z-index:-2; pointer-events:none; border-radius:50%;
+    filter:blur(2px); opacity:.8;
+  }
+  .ambient.one {
+    width:440px;height:440px;top:-275px;right:-205px;
+    background:radial-gradient(circle at 42% 62%, rgba(255,255,255,.95), rgba(205,205,202,.36) 34%, transparent 70%);
+    animation: drift 17s ease-in-out infinite alternate;
+  }
+  .ambient.two {
+    width:390px;height:390px;bottom:-255px;left:-235px;
+    background:radial-gradient(circle at 55% 40%, rgba(255,255,255,.83), rgba(190,190,186,.30) 37%, transparent 72%);
+    animation: drift 21s ease-in-out infinite alternate-reverse;
+  }
+  [data-theme="dark"] .ambient.one { background:radial-gradient(circle at 42% 62%, rgba(255,255,255,.18), rgba(150,150,150,.13) 34%, transparent 70%); }
+  [data-theme="dark"] .ambient.two { background:radial-gradient(circle at 55% 40%, rgba(255,255,255,.14), rgba(150,150,150,.1) 37%, transparent 72%); }
+  .grain {
+    position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.13;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
+    mix-blend-mode:soft-light;
+  }
+  .screen {
+    width:min(100%, 430px);
+    min-height:calc(100svh - max(env(safe-area-inset-top),18px) - max(env(safe-area-inset-bottom),22px));
+    display:flex; flex-direction:column;
+    position:relative;
+  }
+  .topbar {
+    height:48px; flex:0 0 48px;
+    display:flex; align-items:center; justify-content:space-between;
+    animation:fadeDown .75s var(--ease) both;
+  }
+  .brand { display:flex; align-items:center; gap:10px; min-width:0; }
+  .brand-mark {
+    width:27px;height:27px;border-radius:50%; position:relative; overflow:hidden;
+    background:radial-gradient(circle at 32% 25%, #fff 0 5%, #d7d7d4 18%, #8d8d89 55%, #4a4a48 100%);
+    box-shadow:inset -3px -4px 7px rgba(0,0,0,.25),inset 2px 2px 5px rgba(255,255,255,.9),0 2px 7px rgba(0,0,0,.13);
+  }
+  [data-theme="dark"] .brand-mark { background:radial-gradient(circle at 32% 25%, #f5f5f3 0 5%, #aaa 18%, #555 55%, #222 100%); }
+  .brand-mark::after {content:"";position:absolute;inset:1px;border-radius:50%;border:1px solid rgba(255,255,255,.55)}
+  .brand-name { font-size:17px;font-weight:720;letter-spacing:-.055em; }
+  .theme-toggle {
+    width:38px;height:38px;border:1px solid var(--line);border-radius:50%;
+    background:var(--paper);color:var(--ink-2);display:grid;place-items:center;
+    backdrop-filter:blur(18px) saturate(120%);-webkit-backdrop-filter:blur(18px) saturate(120%);
+    box-shadow:0 3px 12px rgba(0,0,0,.035);cursor:pointer;
+    transition:transform .35s var(--ease),background .4s,color .4s,border-color .4s;
+  }
+  .theme-toggle:active { transform:scale(.92); background:var(--paper-strong); }
+  .theme-toggle:focus-visible, .password-toggle:focus-visible, .text-button:focus-visible,
+  .switch-row button:focus-visible, .primary-button:focus-visible {outline:2px solid var(--muted);outline-offset:3px;}
+  .theme-toggle svg { width:17px;height:17px; }
+  .content {
+    width:100%; flex:1; display:flex; flex-direction:column; justify-content:center;
+    padding:clamp(24px,6vh,62px) 0 clamp(18px,4vh,38px);
+  }
+  .intro { margin:0 0 30px; animation:rise .85s .08s var(--ease) both; }
+  .eyebrow {
+    display:inline-flex;align-items:center;gap:8px;margin-bottom:14px;
+    color:var(--muted);font-size:10px;line-height:1.2;font-weight:700;
+    text-transform:uppercase;letter-spacing:.19em;
+  }
+  .eyebrow::before {content:"";width:18px;height:1px;background:currentColor;opacity:.55}
+  h1 {
+    margin:0;max-width:360px;font-size:clamp(36px,10vw,47px);
+    line-height:1.045;letter-spacing:-.067em;font-weight:690;
+  }
+  .intro-copy { margin:14px 0 0;max-width:310px;color:var(--muted);font-size:14px;line-height:1.65;letter-spacing:-.015em; }
+  .glass-shell {
+    position:relative;border-radius:30px;padding:1px;
+    background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(255,255,255,.34) 34%,rgba(120,120,120,.16) 72%,rgba(255,255,255,.82));
+    box-shadow:var(--shadow);
+    animation:cardIn .95s .14s var(--ease) both;
+    transform:translateZ(0);
+  }
+  [data-theme="dark"] .glass-shell { background:linear-gradient(145deg,rgba(255,255,255,.34),rgba(255,255,255,.08) 34%,rgba(255,255,255,.035) 72%,rgba(255,255,255,.2)); }
+  .glass-card {
+    position:relative;overflow:hidden;border-radius:29px;padding:27px 23px 22px;
+    background:linear-gradient(145deg,var(--paper-strong),var(--paper) 56%,rgba(230,230,227,.52));
+    backdrop-filter:blur(26px) saturate(112%);-webkit-backdrop-filter:blur(26px) saturate(112%);
+    isolation:isolate;
+  }
+  [data-theme="dark"] .glass-card { background:linear-gradient(145deg,rgba(47,47,47,.92),rgba(31,31,31,.78) 56%,rgba(45,45,45,.8)); }
+  /* Touch-only feedback: a brief light bloom where the finger touches the glass. */
+  .glass-card.touch-lit::before {
+    background:
+      radial-gradient(circle at var(--touch-x,50%) var(--touch-y,50%), rgba(255,255,255,.34), transparent 34%),
+      linear-gradient(125deg,rgba(255,255,255,.58),transparent 24%,transparent 66%,rgba(255,255,255,.10));
+    opacity:1;
+  }
+  [data-theme="dark"] .glass-card.touch-lit::before {
+    background:
+      radial-gradient(circle at var(--touch-x,50%) var(--touch-y,50%), rgba(255,255,255,.16), transparent 36%),
+      linear-gradient(125deg,rgba(255,255,255,.18),transparent 24%,transparent 66%,rgba(255,255,255,.06));
+  }
+  .touch-ripple {
+    position:absolute;z-index:2;pointer-events:none;border-radius:50%;
+    width:18px;height:18px;left:var(--tap-x);top:var(--tap-y);
+    transform:translate(-50%,-50%) scale(.15);
+    background:radial-gradient(circle,rgba(255,255,255,.30),rgba(255,255,255,.10) 48%,transparent 72%);
+    border:1px solid rgba(255,255,255,.32);
+    animation:touchRipple .72s ease-out forwards;
+  }
+  .glass-card::before {
+    content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;pointer-events:none;
+    background:linear-gradient(125deg,rgba(255,255,255,.58),transparent 24%,transparent 66%,rgba(255,255,255,.10));
+    background-size:160% 160%;
+    opacity:.72;
+    animation:glassFlow 12s ease-in-out infinite alternate;
+  }
+  .glass-card::after {
+    content:"";position:absolute;left:12%;right:12%;top:0;height:1px;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.98),transparent);
+    background-size:220% 100%;
+    box-shadow:0 0 16px rgba(255,255,255,.35);
+    animation:edgeShimmer 8s ease-in-out infinite;
+  }
+  .card-heading { margin-bottom:23px; }
+  .card-heading h2 {margin:0;font-size:21px;line-height:1.2;letter-spacing:-.045em;font-weight:670;}
+  .card-heading p {margin:7px 0 0;color:var(--muted);font-size:12.5px;line-height:1.5;}
+  .field {display:block;margin:0 0 16px;}
+  .field-label {display:block;margin:0 0 8px 2px;font-size:11px;font-weight:650;color:var(--ink-2);letter-spacing:.015em;}
+  .input-wrap {position:relative;}
+  .field input {
+    width:100%;height:53px;border:1px solid var(--line);outline:none;border-radius:15px;
+    padding:0 47px 0 15px;background:var(--field);color:var(--ink);
+    font-size:14px;letter-spacing:-.01em;
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.025),0 1px 0 rgba(255,255,255,.35);
+    transition:border-color .25s,box-shadow .3s,background .35s,transform .3s var(--ease);
+  }
+  .field input::placeholder {color:var(--muted-2);opacity:1;}
+  .field input:focus {border-color:rgba(100,100,100,.46);box-shadow:0 0 0 3px rgba(100,100,100,.09),inset 0 1px 2px rgba(0,0,0,.02);background:var(--paper-strong);}
+  .field input:focus-visible {outline:none;}
+  .input-icon {position:absolute;right:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--muted-2);pointer-events:none;}
+  .password-toggle {position:absolute;right:10px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer;border-radius:9px;}
+  .password-toggle:active {background:var(--line);}
+  .password-toggle svg {width:17px;height:17px;}
+  .form-meta {display:flex;align-items:center;justify-content:space-between;gap:10px;margin:3px 1px 21px;}
+  .remember {display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11px;cursor:pointer;user-select:none;}
+  .remember input {appearance:none;width:15px;height:15px;margin:0;border-radius:4px;border:1px solid var(--muted-2);background:var(--paper-strong);display:grid;place-items:center;}
+  .remember input:checked {background:var(--ink);border-color:var(--ink);}
+  .remember input:checked::after {content:"✓";font-size:10px;color:var(--bg);line-height:1;}
+  .text-button {border:0;background:none;padding:5px 0;color:var(--ink-2);font-size:11px;font-weight:650;cursor:pointer;}
+  .primary-button {
+    width:100%;height:54px;border:1px solid rgba(255,255,255,.16);border-radius:16px;
+    position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:10px;
+    background:linear-gradient(110deg,#111 0%,#292929 48%,#171717 100%);color:#fff;
+    font-size:13px;font-weight:680;letter-spacing:.005em;cursor:pointer;
+    box-shadow:0 8px 18px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.19);
+    transition:transform .24s var(--ease),box-shadow .3s,filter .3s;
+  }
+  [data-theme="dark"] .primary-button {background:linear-gradient(110deg,#f4f4f2,#d7d7d4);color:#171717;border-color:rgba(255,255,255,.5);box-shadow:0 8px 22px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.8);}
+  .primary-button::before {content:"";position:absolute;top:-80%;left:-45%;width:36%;height:260%;transform:rotate(24deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.24),transparent);transition:left .75s var(--ease);}
+  .primary-button:active {transform:scale(.985);filter:brightness(1.13);}
+  .primary-button svg {width:16px;height:16px;transition:transform .3s var(--ease);}
+  @media (hover:hover) and (pointer:fine) {
+    .primary-button:hover::before {left:125%;}
+    .primary-button:hover {transform:translateY(-1px);box-shadow:0 11px 24px rgba(0,0,0,.19),inset 0 1px 0 rgba(255,255,255,.2);}
+    .primary-button:hover svg {transform:translateX(3px);}
+  }
+  .switch-row {display:flex;align-items:center;justify-content:center;gap:5px;margin:20px 0 0;color:var(--muted);font-size:11.5px;}
+  .switch-row button {border:0;padding:5px 2px;background:none;color:var(--ink);font-size:11.5px;font-weight:700;cursor:pointer;}
+  .divider {height:1px;background:var(--line);margin:22px 0 17px;}
+  .secure-note {display:flex;align-items:center;justify-content:center;gap:7px;color:var(--muted-2);font-size:10px;letter-spacing:.005em;}
+  .secure-note svg {width:13px;height:13px;}
+  .footer {display:flex;align-items:center;justify-content:center;gap:7px;padding:18px 0 2px;color:var(--muted-2);font-size:10px;animation:fadeUp .8s .35s var(--ease) both;}
+  .footer .dot {width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.65;}
+  .toast {position:fixed;z-index:10;left:50%;bottom:max(25px,env(safe-area-inset-bottom));transform:translate(-50%,18px);opacity:0;pointer-events:none;padding:12px 16px;border:1px solid var(--line-strong);border-radius:14px;background:var(--paper-strong);backdrop-filter:blur(20px);color:var(--ink);font-size:12px;box-shadow:var(--shadow);transition:all .35s var(--ease);white-space:nowrap;}
+  .toast.show {opacity:1;transform:translate(-50%,0);}
+  .signup-extra {display:none;}
+  .signup .signup-extra {display:block;}
+  .signup .login-only {display:none;}
+  .signup .card-heading {margin-bottom:19px;}
+  .signup .field {margin-bottom:12px;}
+  .signup .field input {height:49px;}
+  .signup .form-meta {display:none;}
+  .signup .divider {margin-top:18px;}
+  .mode-enter {animation:modeEnter .42s var(--ease) both;}
+  @keyframes drift {0%{transform:translate3d(0,0,0) scale(1)}100%{transform:translate3d(20px,-15px,0) scale(1.07)}}
+  @keyframes fadeDown {from{opacity:0;transform:translateY(-9px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeUp {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes rise {from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes cardIn {0%{opacity:0;transform:translateY(28px) scale(.985);filter:blur(8px)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+  @keyframes modeEnter {from{opacity:.35;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes glassFlow {0%{background-position:0% 0%;opacity:.58}100%{background-position:100% 100%;opacity:.82}}
+  @keyframes edgeShimmer {0%,18%{background-position:120% 0}58%,100%{background-position:-120% 0}}
+  @keyframes touchRipple {0%{opacity:.72;transform:translate(-50%,-50%) scale(.15)}100%{opacity:0;transform:translate(-50%,-50%) scale(8)}}
+  @media (hover:none), (pointer:coarse) {
+    .primary-button {min-height:54px;touch-action:manipulation;}
+    .theme-toggle,.password-toggle,.text-button,.switch-row button {touch-action:manipulation;}
+    .field input {font-size:16px;} /* Prevent automatic iOS zoom when focusing fields. */
+    .glass-card::before {animation-duration:15s;}
+    .glass-card::after {animation-duration:9s;}
+  }
+  @media (max-height:740px) {
+    .content {padding-top:18px;padding-bottom:10px;}
+    .intro {margin-bottom:20px;}
+    h1 {font-size:36px;}
+    .intro-copy {margin-top:9px;font-size:13px;}
+    .glass-card {padding:22px 20px 18px;}
+    .card-heading {margin-bottom:17px;}
+    .field {margin-bottom:12px;}
+    .field input {height:49px;}
+    .form-meta {margin-bottom:15px;}
+    .primary-button {height:50px;}
+    .divider {margin:17px 0 13px;}
+    .footer {padding-top:9px;}
+  }
+  @media (min-width:600px) {
+    body {background:#e8e8e6;}
+    [data-theme="dark"] body, body:has([data-theme="dark"]) {background:#0d0d0d;}
+    .app {padding-top:26px;padding-bottom:26px;}
+    .screen {max-width:410px;min-height:calc(100svh - 52px);padding:22px 22px 18px;border:1px solid rgba(255,255,255,.58);border-radius:40px;background:rgba(255,255,255,.2);box-shadow:0 25px 90px rgba(0,0,0,.09);}
+    [data-theme="dark"] .screen {border-color:rgba(255,255,255,.08);background:rgba(255,255,255,.025);}
+  }
+  @media (prefers-reduced-motion:reduce) {
+    *,*::before,*::after {animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important;}
+  }
+</style>
+<!-- NEMO-TOKENS:START -->
+<style id="nemo-tokens">
+/* Generated by design/sync-references.ps1. Do not edit inside this block. */
+/* ==========================================================================
+   Nemo Design System v1.0.0 — canonical CSS tokens
+   --------------------------------------------------------------------------
+   This is the single source of truth for the HTML references.
+   The native Slint implementation mirrors these values in
+   apps/mobile/ui/theme.slint. Do not edit a reference token block by hand:
+   run design/sync-references.ps1 after changing this file.
+
+   Palette is strictly monochrome. Light is the default theme. The whole
+   document is switched with <html data-theme="light|dark">.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces ------------------------------------------------------------ */
+  --nemo-bg: #f4f4f3;
+  --nemo-bg-2: #ebebe9;
+  --nemo-surface: rgba(255, 255, 255, 0.70);
+  --nemo-surface-strong: #ffffff;
+  --nemo-surface-soft: rgba(255, 255, 255, 0.48);
+  --nemo-glass-top: rgba(255, 255, 255, 0.80);
+  --nemo-glass-bottom: rgba(255, 255, 255, 0.46);
+  --nemo-glass-edge: rgba(255, 255, 255, 0.98);
+
+  /* Borders & separation ------------------------------------------------ */
+  --nemo-line: rgba(20, 20, 20, 0.09);
+  --nemo-line-strong: rgba(20, 20, 20, 0.15);
+
+  /* Type ---------------------------------------------------------------- */
+  --nemo-text: #171717;
+  --nemo-text-2: #6f6f6c;
+  --nemo-text-3: #9b9b97;
+
+  /* Controls ------------------------------------------------------------ */
+  --nemo-primary: #171717;
+  --nemo-on-primary: #ffffff;
+  --nemo-track: rgba(0, 0, 0, 0.10);
+  --nemo-nav: rgba(250, 250, 249, 0.80);
+  --nemo-scrim: rgba(0, 0, 0, 0.30);
+  --nemo-danger: #4f4f4c;
+  --nemo-danger-soft: rgba(20, 20, 20, 0.07);
+
+  /* Depth --------------------------------------------------------------- */
+  --nemo-shadow: 0 18px 44px rgba(0, 0, 0, 0.075), 0 3px 10px rgba(0, 0, 0, 0.035);
+  --nemo-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.055);
+  --nemo-shadow-nav: 0 14px 38px rgba(0, 0, 0, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --nemo-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --nemo-blur: 24px;
+
+  /* Type ramp ----------------------------------------------------------- */
+  --nemo-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Inter, sans-serif;
+  --nemo-display: 32px;
+  --nemo-title: 28px;
+  --nemo-heading: 24px;
+  --nemo-section: 20px;
+  --nemo-card: 16px;
+  --nemo-body: 14px;
+  --nemo-secondary: 12px;
+  --nemo-label: 12px;
+  --nemo-caption: 10px;
+  --nemo-micro: 9px;
+
+  /* 4px spacing scale --------------------------------------------------- */
+  --nemo-space-1: 4px;
+  --nemo-space-2: 8px;
+  --nemo-space-3: 12px;
+  --nemo-space-4: 16px;
+  --nemo-space-5: 20px;
+  --nemo-space-6: 24px;
+  --nemo-space-7: 32px;
+  --nemo-space-8: 40px;
+  --nemo-space-9: 48px;
+
+  /* Radii --------------------------------------------------------------- */
+  --nemo-radius-card: 24px;
+  --nemo-radius-row: 18px;
+  --nemo-radius-control: 16px;
+  --nemo-radius-sheet: 28px;
+  --nemo-radius-pill: 999px;
+
+  /* Layout -------------------------------------------------------------- */
+  --nemo-screen-pad: 22px;
+  --nemo-control-h: 54px;
+  --nemo-touch: 44px;
+  --nemo-header-h: 62px;
+  --nemo-nav-h: 84px;
+
+  /* Motion -------------------------------------------------------------- */
+  --nemo-tap: 140ms;
+  --nemo-focus: 180ms;
+  --nemo-tab: 220ms;
+  --nemo-sheet: 300ms;
+  --nemo-screen: 320ms;
+  --nemo-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --nemo-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+}
+
+html[data-theme="dark"],
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --nemo-bg: #0e0e0e;
+  --nemo-bg-2: #171717;
+  --nemo-surface: rgba(40, 40, 40, 0.66);
+  --nemo-surface-strong: #242424;
+  --nemo-surface-soft: rgba(44, 44, 44, 0.46);
+  --nemo-glass-top: rgba(255, 255, 255, 0.09);
+  --nemo-glass-bottom: rgba(255, 255, 255, 0.035);
+  --nemo-glass-edge: rgba(255, 255, 255, 0.20);
+
+  --nemo-line: rgba(255, 255, 255, 0.09);
+  --nemo-line-strong: rgba(255, 255, 255, 0.15);
+
+  --nemo-text: #f2f2f0;
+  --nemo-text-2: #a8a8a4;
+  --nemo-text-3: #777774;
+
+  --nemo-primary: #f1f1ef;
+  --nemo-on-primary: #171717;
+  --nemo-track: rgba(255, 255, 255, 0.12);
+  --nemo-nav: rgba(26, 26, 26, 0.84);
+  --nemo-scrim: rgba(0, 0, 0, 0.58);
+  --nemo-danger: #c8c8c4;
+  --nemo-danger-soft: rgba(255, 255, 255, 0.07);
+
+  --nemo-shadow: 0 20px 48px rgba(0, 0, 0, 0.36), 0 3px 12px rgba(0, 0, 0, 0.20);
+  --nemo-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.26);
+  --nemo-shadow-nav: 0 16px 44px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --nemo-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+/* --------------------------------------------------------------------------
+   Compatibility aliases used by earlier references.
+   Declared after both theme blocks, and matched against every theme host, so
+   these canonical mappings win over each reference's local palette in light
+   AND dark. They only ever point at canonical Nemo tokens.
+   -------------------------------------------------------------------------- */
+:root,
+html[data-theme="dark"],
+[data-theme="dark"],
+body[data-theme="dark"] {
+  --bg: var(--nemo-bg);
+  --bg2: var(--nemo-bg-2);
+  --surface: var(--nemo-surface);
+  --surface-strong: var(--nemo-surface-strong);
+  --surface-soft: var(--nemo-surface-soft);
+  --line: var(--nemo-line);
+  --line-strong: var(--nemo-line-strong);
+  --text: var(--nemo-text);
+  --muted: var(--nemo-text-2);
+  --subtle: var(--nemo-text-3);
+  --solid: var(--nemo-primary);
+  --solid-text: var(--nemo-on-primary);
+  --nav: var(--nemo-nav);
+  --track: var(--nemo-track);
+  --danger: var(--nemo-danger);
+  --glass-blur: var(--nemo-blur);
+  --shadow: var(--nemo-shadow);
+  --shadow-soft: var(--nemo-shadow-soft);
+
+  --ink: var(--nemo-text);
+  --ink-2: var(--nemo-text-2);
+  --ink-soft: var(--nemo-text-2);
+  --text-2: var(--nemo-text-2);
+  --muted2: var(--nemo-text-3);
+  --muted-2: var(--nemo-text-3);
+  --subtle-2: var(--nemo-text-3);
+  --line-soft: var(--nemo-line);
+  --glass: var(--nemo-surface);
+  --glass2: var(--nemo-surface-strong);
+  --glass-hi: var(--nemo-glass-edge);
+  --glass-edge: var(--nemo-glass-edge);
+  --glass-strong: var(--nemo-surface-strong);
+  --glass-low: var(--nemo-surface-soft);
+  --panel: var(--nemo-surface);
+  --panel-strong: var(--nemo-surface-strong);
+  --field: var(--nemo-surface-soft);
+  --field-focus: var(--nemo-surface-strong);
+  --input: var(--nemo-surface-soft);
+  --bubble: var(--nemo-surface-soft);
+  --soft: var(--nemo-surface-soft);
+  --chip: var(--nemo-surface-soft);
+  --chip-active: var(--nemo-primary);
+  --chip-active-text: var(--nemo-on-primary);
+  --pill: var(--nemo-surface-soft);
+  --tab: var(--nemo-track);
+  --button: var(--nemo-primary);
+  --button-text: var(--nemo-on-primary);
+  --button-ink: var(--nemo-on-primary);
+  --black: var(--nemo-primary);
+  --white: var(--nemo-on-primary);
+  --inverse: var(--nemo-primary);
+  --inverse-text: var(--nemo-on-primary);
+  --primary: var(--nemo-primary);
+  --primary-text: var(--nemo-on-primary);
+  --pill-active: var(--nemo-primary);
+  --pill-active-text: var(--nemo-on-primary);
+  --toggle: var(--nemo-primary);
+  --toggle-knob: var(--nemo-on-primary);
+  --nav-bg: var(--nemo-nav);
+  --overlay: var(--nemo-scrim);
+  --scrim: var(--nemo-scrim);
+  --shadow-small: var(--nemo-shadow-soft);
+  --focus: var(--nemo-line-strong);
+  --ring: var(--nemo-line-strong);
+  --success: var(--nemo-text-2);
+  --unread: var(--nemo-track);
+  --selected: var(--nemo-primary);
+  --good: var(--nemo-text-2);
+  --avatar-a: var(--nemo-surface-strong);
+  --avatar-b: var(--nemo-surface-soft);
+  --avatar-1: var(--nemo-surface-strong);
+  --avatar-2: var(--nemo-surface);
+  --avatar-3: var(--nemo-surface-soft);
+  --avatar-4: var(--nemo-track);
+  --orb: var(--nemo-surface-strong);
+  --orb1: var(--nemo-surface-strong);
+  --orb2: var(--nemo-surface);
+}
+
+/* --------------------------------------------------------------------------
+   Base helpers shared by every reference.
+   -------------------------------------------------------------------------- */
+.nemo-screen {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100dvh;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  background: var(--nemo-bg);
+  color: var(--nemo-text);
+  font-family: var(--nemo-font);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.nemo-glass {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--nemo-line);
+  border-radius: var(--nemo-radius-card);
+  background: var(--nemo-surface);
+  box-shadow: var(--nemo-inner-highlight), var(--nemo-shadow-soft);
+  -webkit-backdrop-filter: blur(var(--nemo-blur)) saturate(115%);
+  backdrop-filter: blur(var(--nemo-blur)) saturate(115%);
+}
+
+.nemo-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.42), transparent 42%, rgba(255, 255, 255, 0.06));
+  opacity: 0.75;
+}
+
+.nemo-primary-button {
+  height: var(--nemo-control-h);
+  border: 0;
+  border-radius: var(--nemo-radius-control);
+  background: var(--nemo-primary);
+  color: var(--nemo-on-primary);
+  font-size: var(--nemo-card);
+  font-weight: 700;
+  box-shadow: var(--nemo-shadow-soft);
+  transition: transform var(--nemo-tap) var(--nemo-ease-out);
+}
+
+.nemo-primary-button:active { transform: scale(0.985); }
+.nemo-primary-button:disabled { opacity: 0.42; pointer-events: none; }
+
+.nemo-nav {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  width: min(390px, calc(100% - 36px));
+  height: 66px;
+  padding: 6px 8px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border: 1px solid var(--nemo-line-strong);
+  border-radius: 24px;
+  background: var(--nemo-nav);
+  box-shadow: var(--nemo-shadow-nav);
+  -webkit-backdrop-filter: blur(28px) saturate(135%);
+  backdrop-filter: blur(28px) saturate(135%);
+}
+
+.nemo-nav-item {
+  flex: 1;
+  height: 52px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--nemo-text-2);
+  font-size: var(--nemo-micro);
+  font-weight: 650;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.nemo-nav-item.active {
+  background: var(--nemo-primary);
+  color: var(--nemo-on-primary);
+}
+
+/* Self-contained light/dark switch used by references that predate the
+   data-theme switcher. It only flips <html data-theme>. */
+.nemo-theme-toggle {
+  position: fixed;
+  z-index: 40;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--nemo-line-strong);
+  border-radius: 15px;
+  background: var(--nemo-surface);
+  color: var(--nemo-text);
+  box-shadow: var(--nemo-inner-highlight), var(--nemo-shadow-soft);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  touch-action: manipulation;
+  transition: transform var(--nemo-tap) var(--nemo-ease-out);
+}
+
+.nemo-theme-toggle:active { transform: scale(0.94); }
+.nemo-theme-toggle svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nemo-theme-toggle .nemo-icon-sun { display: none; }
+[data-theme="dark"] .nemo-theme-toggle .nemo-icon-sun { display: block; }
+[data-theme="dark"] .nemo-theme-toggle .nemo-icon-moon { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+<!-- NEMO-TOKENS:END -->
+</head>
+<body>
+<main class="app" id="app" data-theme="light">
+  <div class="ambient one"></div><div class="ambient two"></div><div class="grain"></div>
+  <section class="screen" aria-label="Nemo sign in">
+    <header class="topbar">
+      <div class="brand" aria-label="Nemo">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">nemo</span>
+      </div>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark appearance" title="Change appearance">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.4 15.1A8.5 8.5 0 0 1 8.9 3.6 8.6 8.6 0 1 0 20.4 15.1Z"/></svg>
+      </button>
+    </header>
+
+    <div class="content" id="content">
+      <div class="intro">
+        <div class="eyebrow">YOUR SPACE, YOUR PEOPLE</div>
+        <h1 id="heroTitle">Good to<br>have you back.</h1>
+        <p class="intro-copy" id="heroCopy">A quieter place for the conversations that matter.</p>
+      </div>
+
+      <div class="glass-shell">
+        <div class="glass-card" id="glassCard">
+          <div class="card-heading">
+            <h2 id="formTitle">Welcome back</h2>
+            <p id="formSubtitle">Sign in to continue to Nemo.</p>
+          </div>
+          <form id="authForm" novalidate>
+            <label class="field signup-extra" for="displayName">
+              <span class="field-label">Display name</span>
+              <div class="input-wrap"><input id="displayName" name="displayName" type="text" placeholder="What should people call you?" autocomplete="nickname"><svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.7-3.2 3-4.8 6.5-4.8s5.8 1.6 6.5 4.8"/></svg></div>
+            </label>
+            <label class="field" for="username">
+              <span class="field-label">Username</span>
+              <div class="input-wrap"><input id="username" name="username" type="text" placeholder="Enter your username" autocomplete="username" autocapitalize="none" required><svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.7-3.2 3-4.8 6.5-4.8s5.8 1.6 6.5 4.8"/></svg></div>
+            </label>
+            <label class="field" for="password">
+              <span class="field-label">Password</span>
+              <div class="input-wrap"><input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required><button class="password-toggle" id="passwordToggle" type="button" aria-label="Show password"><svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/></svg></button></div>
+            </label>
+            <label class="field signup-extra" for="confirmPassword">
+              <span class="field-label">Confirm password</span>
+              <div class="input-wrap"><input id="confirmPassword" name="confirmPassword" type="password" placeholder="Enter your password again" autocomplete="new-password"><svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+            </label>
+            <div class="form-meta login-only">
+              <label class="remember"><input type="checkbox" id="remember"><span>Remember me</span></label>
+              <button class="text-button" type="button" id="helpButton">Need help?</button>
+            </div>
+            <label class="remember signup-extra" style="margin:2px 1px 17px;align-items:flex-start;line-height:1.5"><input type="checkbox" id="terms" style="margin-top:1px"><span>I agree to the Terms of Service and Privacy Policy.</span></label>
+            <button class="primary-button" type="submit" id="submitButton"><span id="submitLabel">Sign in</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          </form>
+          <div class="switch-row" id="switchRow"><span>New to Nemo?</span><button type="button" id="switchButton">Create an account</button></div>
+          <div class="divider"></div>
+          <div class="secure-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Your conversations belong to you.</span></div>
+        </div>
+      </div>
+    </div>
+    <footer class="footer"><span>Made for your people</span><span class="dot"></span><span>© Nemo</span></footer>
+  </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+  const app = document.getElementById('app');
+  const content = document.getElementById('content');
+  const authForm = document.getElementById('authForm');
+  const password = document.getElementById('password');
+  const toast = document.getElementById('toast');
+  let isSignup = false;
+  let toastTimer;
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+  }
+  function setMode(signup) {
+    isSignup = signup;
+    app.classList.toggle('signup', signup);
+    document.body.classList.toggle('signup', signup);
+    document.getElementById('heroTitle').innerHTML = signup ? 'Make room<br>for your people.' : 'Good to<br>have you back.';
+    document.getElementById('heroCopy').textContent = signup ? 'Create your space. The good conversations start here.' : 'A quieter place for the conversations that matter.';
+    document.getElementById('formTitle').textContent = signup ? 'Create your account' : 'Welcome back';
+    document.getElementById('formSubtitle').textContent = signup ? 'A few details and you’re all set.' : 'Sign in to continue to Nemo.';
+    document.getElementById('submitLabel').textContent = signup ? 'Create account' : 'Sign in';
+    document.getElementById('switchRow').querySelector('span').textContent = signup ? 'Already have an account?' : 'New to Nemo?';
+    document.getElementById('switchButton').textContent = signup ? 'Sign in' : 'Create an account';
+    document.getElementById('password').autocomplete = signup ? 'new-password' : 'current-password';
+    document.getElementById('displayName').required = signup;
+    document.getElementById('confirmPassword').required = signup;
+    document.getElementById('terms').required = signup;
+    document.getElementById('remember').checked = false;
+    password.value = '';
+    document.getElementById('username').value = '';
+    document.getElementById('displayName').value = '';
+    document.getElementById('confirmPassword').value = '';
+    content.classList.remove('mode-enter');
+    void content.offsetWidth;
+    content.classList.add('mode-enter');
+  }
+  document.getElementById('switchButton').addEventListener('click', () => setMode(!isSignup));
+  document.getElementById('passwordToggle').addEventListener('click', () => {
+    const reveal = password.type === 'password';
+    password.type = reveal ? 'text' : 'password';
+    document.getElementById('passwordToggle').setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
+    document.getElementById('eyeIcon').innerHTML = reveal
+      ? '<path d="M3 3l18 18M10.6 10.7a2 2 0 0 0 2.7 2.7"/><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.1 0 9.5 7 9.5 7a16 16 0 0 1-3.1 3.8M6.2 6.3C3.8 8 2.5 12 2.5 12s3.4 7 9.5 7a9.6 9.6 0 0 0 3.2-.6"/>'
+      : '<path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/>';
+  });
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const dark = app.dataset.theme !== 'dark';
+    app.dataset.theme = dark ? 'dark' : 'light';
+    document.querySelector('meta[name="theme-color"]').content = dark ? '#111111' : '#f2f2f1';
+    document.getElementById('themeToggle').setAttribute('aria-label', dark ? 'Switch to light appearance' : 'Switch to dark appearance');
+    document.getElementById('themeIcon').innerHTML = dark
+      ? '<circle cx="12" cy="12" r="3.8"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>'
+      : '<path d="M20.4 15.1A8.5 8.5 0 0 1 8.9 3.6 8.6 8.6 0 1 0 20.4 15.1Z"/>';
+  });
+  document.getElementById('helpButton').addEventListener('click', () => showToast('Account recovery will be available in a future version.'));
+  authForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!authForm.reportValidity()) return;
+    if (isSignup) {
+      if (password.value !== document.getElementById('confirmPassword').value) {
+        showToast('Your passwords do not match.'); return;
+      }
+      if (!document.getElementById('terms').checked) {
+        showToast('Please accept the terms to continue.'); return;
+      }
+      showToast('Preview only — account creation is not connected yet.');
+    } else {
+      showToast('Preview only — sign-in is not connected yet.');
+    }
+  });
+  // Mobile-first interaction: no cursor tracking or mouse-following glow.
+  // A finger tap creates a short-lived local reflection and ripple on the glass.
+  const card = document.getElementById('glassCard');
+  let touchLightTimer;
+  card.addEventListener('pointerdown', (event) => {
+    if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+    const rect = card.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100));
+    card.style.setProperty('--touch-x', `${x}%`);
+    card.style.setProperty('--touch-y', `${y}%`);
+    card.classList.add('touch-lit');
+    clearTimeout(touchLightTimer);
+    touchLightTimer = setTimeout(() => card.classList.remove('touch-lit'), 620);
+
+    const ripple = document.createElement('span');
+    ripple.className = 'touch-ripple';
+    ripple.style.setProperty('--tap-x', `${event.clientX - rect.left}px`);
+    ripple.style.setProperty('--tap-y', `${event.clientY - rect.top}px`);
+    card.appendChild(ripple);
+    ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
+  }, { passive: true });
+  card.addEventListener('pointerup', (event) => {
+    if (event.pointerType === 'touch' || event.pointerType === 'pen') {
+      clearTimeout(touchLightTimer);
+      touchLightTimer = setTimeout(() => card.classList.remove('touch-lit'), 240);
+    }
+  }, { passive: true });
+  card.addEventListener('pointercancel', () => card.classList.remove('touch-lit'), { passive: true });
+</script>
+</body>
+</html>

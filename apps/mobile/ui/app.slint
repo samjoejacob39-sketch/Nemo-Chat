@@ -27,7 +27,7 @@ component DemoBar inherits Rectangle {
     callback pick(string);
 
     height: 48px;
-    background: #0E163399;
+    background: #101010CC;
     VerticalLayout {
         padding-top: 3px;
         padding-bottom: 3px;
@@ -151,6 +151,7 @@ export component AppWindow inherits Window {
     if screen == "recovery": RecoveryScreen {
         codes: root.recovery-codes;
         saved => { root.screen = "terms"; }
+        back => { root.screen = "signup"; }
     }
     if screen == "login": LoginScreen {
         back => { root.screen = "welcome"; }

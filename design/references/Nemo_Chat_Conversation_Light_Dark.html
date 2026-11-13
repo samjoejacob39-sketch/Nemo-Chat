@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f5">
+<title>Nemo — Chat Conversation</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; min-height:100%; }
+  body {
+    --bg: #f4f4f3;
+    --bg-deep: #e9e9e8;
+    --surface: rgba(255,255,255,.76);
+    --surface-strong: rgba(255,255,255,.92);
+    --surface-muted: rgba(235,235,234,.78);
+    --glass-border: rgba(255,255,255,.92);
+    --glass-line: rgba(20,20,20,.08);
+    --text: #171717;
+    --text-2: #505050;
+    --muted: #858585;
+    --outgoing: #202020;
+    --outgoing-text: #fff;
+    --incoming: rgba(255,255,255,.88);
+    --shadow: 0 18px 46px rgba(0,0,0,.075), 0 3px 10px rgba(0,0,0,.035);
+    --soft-shadow: 0 7px 22px rgba(0,0,0,.055);
+    --separator: rgba(0,0,0,.09);
+    --field: rgba(236,236,235,.83);
+    --focus: rgba(0,0,0,.17);
+    --chip: rgba(255,255,255,.62);
+    --scrim: rgba(0,0,0,.28);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(ellipse at 50% -14%, #fff 0, transparent 48%), var(--bg);
+    color: var(--text);
+    min-height:100svh;
+    display:flex;
+    justify-content:center;
+    -webkit-font-smoothing: antialiased;
+    transition: background .3s ease, color .3s ease;
+  }
+  html[data-theme="dark"] { color-scheme: dark; }
+  html[data-theme="dark"] body {
+    --bg: #101010;
+    --bg-deep: #191919;
+    --surface: rgba(34,34,34,.76);
+    --surface-strong: rgba(39,39,39,.94);
+    --surface-muted: rgba(49,49,49,.78);
+    --glass-border: rgba(255,255,255,.12);
+    --glass-line: rgba(255,255,255,.09);
+    --text: #f3f3f3;
+    --text-2: #c0c0c0;
+    --muted: #888;
+    --outgoing: #ededed;
+    --outgoing-text: #171717;
+    --incoming: rgba(47,47,47,.94);
+    --shadow: 0 18px 48px rgba(0,0,0,.34), 0 3px 10px rgba(0,0,0,.2);
+    --soft-shadow: 0 7px 22px rgba(0,0,0,.22);
+    --separator: rgba(255,255,255,.1);
+    --field: rgba(46,46,46,.9);
+    --focus: rgba(255,255,255,.24);
+    --chip: rgba(55,55,55,.7);
+    --scrim: rgba(0,0,0,.56);
+    background: radial-gradient(ellipse at 50% -14%, #292929 0, transparent 50%), var(--bg);
+  }
+  button, input { font:inherit; }
+  button { color:inherit; }
+  .phone {
+    width:100%; max-width:460px; min-height:100svh; height:100svh; max-height:100svh;
+    display:flex; flex-direction:column; position:relative; overflow:hidden;
+    background:linear-gradient(180deg, rgba(255,255,255,.09), transparent 24%);
+    isolation:isolate;
+  }
+  .phone::before {
+    content:""; position:absolute; inset:-30% -45% auto; height:45%; z-index:-1;
+    background:radial-gradient(ellipse, rgba(255,255,255,.78), transparent 68%);
+    filter:blur(25px); pointer-events:none; animation:ambient 13s ease-in-out infinite alternate;
+  }
+  html[data-theme="dark"] .phone::before { background:radial-gradient(ellipse, rgba(255,255,255,.09), transparent 68%); }
+  @keyframes ambient { from { transform:translate3d(-4%,0,0) scale(.95); } to { transform:translate3d(7%,12px,0) scale(1.08); } }
+  .system-bar { height:32px; padding:7px 24px 0; display:flex; align-items:center; justify-content:space-between; flex:none; color:var(--text); font-size:12px; font-weight:650; letter-spacing:.01em; }
+  .sys-right { display:flex; align-items:center; gap:6px; }
+  .signal { display:flex; align-items:end; gap:2px; height:11px; }
+  .signal i { display:block; width:3px; background:currentColor; border-radius:2px; }
+  .signal i:nth-child(1){height:4px}.signal i:nth-child(2){height:6px}.signal i:nth-child(3){height:8px}.signal i:nth-child(4){height:10px}
+  .wifi { width:13px;height:10px;border:1.7px solid currentColor;border-color:currentColor transparent transparent;border-radius:50% 50% 0 0;transform:scaleX(1.1);position:relative;margin-top:5px }
+  .wifi:after {content:"";position:absolute;width:3px;height:3px;left:3.3px;top:2px;background:currentColor;border-radius:50%}
+  .battery { width:20px;height:10px;border:1.4px solid currentColor;border-radius:3px;position:relative;padding:1.5px }
+  .battery:before {content:"";display:block;width:78%;height:100%;background:currentColor;border-radius:1px}
+  .battery:after {content:"";position:absolute;right:-3px;top:2.5px;width:2px;height:4px;background:currentColor;border-radius:0 2px 2px 0}
+  .topbar { display:flex; align-items:center; gap:11px; padding:12px 17px 13px; flex:none; border-bottom:1px solid var(--separator); }
+  .icon-btn { width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--glass-border);background:var(--surface);backdrop-filter:blur(22px) saturate(1.12);-webkit-backdrop-filter:blur(22px) saturate(1.12);border-radius:15px;box-shadow:var(--soft-shadow);cursor:pointer;transition:transform .18s ease,background .2s ease,border-color .2s ease;position:relative;overflow:hidden;flex:none; }
+  .icon-btn:active { transform:scale(.93); }
+  .icon-btn svg { width:19px;height:19px;stroke:var(--text);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round; }
+  .person { width:43px;height:43px;flex:none;border-radius:15px;display:grid;place-items:center;color:var(--text);background:linear-gradient(145deg,#dededc,#a9a9a7);border:1px solid rgba(255,255,255,.8);font-weight:700;font-size:13px;letter-spacing:.02em;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 5px 14px rgba(0,0,0,.09); }
+  html[data-theme="dark"] .person { background:linear-gradient(145deg,#777,#424242);border-color:rgba(255,255,255,.18);color:#fff; }
+  .person.group { border-radius:15px;background:linear-gradient(145deg,#ccc,#888);color:#222; }
+  .title-wrap { min-width:0;flex:1; }
+  .title-wrap h1 { font-size:16px;line-height:1.2;margin:0;font-weight:680;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+  .title-wrap p { margin:4px 0 0;color:var(--muted);font-size:11px;line-height:1.2;letter-spacing:.01em; }
+  .top-actions { display:flex;gap:7px; }
+  .top-actions .icon-btn { width:38px;height:38px;border-radius:14px; }
+  .thread { flex:1;overflow-y:auto;overscroll-behavior:contain;padding:20px 17px 16px;scrollbar-width:none;display:flex;flex-direction:column;gap:13px; }
+  .thread::-webkit-scrollbar {display:none}
+  .day-divider {display:flex;align-items:center;gap:10px;justify-content:center;margin:2px 0 5px;color:var(--muted);font-size:10px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;}
+  .day-divider:before,.day-divider:after {content:"";height:1px;background:var(--separator);flex:1;max-width:72px}
+  .message-row {display:flex;align-items:flex-end;gap:7px;max-width:88%;animation:message-in .42s cubic-bezier(.2,.75,.25,1) both;}
+  .message-row.out {align-self:flex-end;flex-direction:row-reverse;}
+  .message-row.in {align-self:flex-start;}
+  @keyframes message-in {from{opacity:0;transform:translateY(9px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .mini-avatar {width:25px;height:25px;border-radius:9px;display:grid;place-items:center;flex:none;background:linear-gradient(145deg,#d9d9d8,#a7a7a5);font-size:8px;font-weight:750;color:#222;border:1px solid rgba(255,255,255,.75);}
+  html[data-theme="dark"] .mini-avatar {background:linear-gradient(145deg,#666,#3d3d3d);color:white;border-color:rgba(255,255,255,.15)}
+  .bubble-wrap {display:flex;flex-direction:column;gap:5px;min-width:0;}
+  .bubble {padding:11px 14px;border-radius:18px 18px 18px 6px;background:var(--incoming);border:1px solid var(--glass-border);box-shadow:0 5px 16px rgba(0,0,0,.035),inset 0 1px 0 rgba(255,255,255,.46);font-size:13px;line-height:1.48;color:var(--text);overflow-wrap:anywhere;}
+  html[data-theme="dark"] .bubble {box-shadow:0 5px 16px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.05)}
+  .out .bubble {background:var(--outgoing);color:var(--outgoing-text);border-color:transparent;border-radius:18px 18px 6px 18px;box-shadow:0 8px 20px rgba(0,0,0,.11),inset 0 1px 0 rgba(255,255,255,.14);}
+  .meta {display:flex;align-items:center;gap:6px;padding:0 3px;color:var(--muted);font-size:9px;line-height:1;}
+  .out .meta {justify-content:flex-end;}
+  .ticks {font-size:11px;letter-spacing:-3px;padding-right:3px;color:var(--text-2)}
+  .reply-quote {border-left:2px solid var(--muted);padding:5px 8px;margin:0 0 7px;background:rgba(128,128,128,.1);border-radius:0 7px 7px 0;font-size:11px;color:var(--text-2)}
+  .attachment {width:min(220px,63vw);overflow:hidden;border-radius:15px;border:1px solid var(--glass-border);background:var(--surface-muted);box-shadow:var(--soft-shadow);}
+  .photo-placeholder {height:124px;background:linear-gradient(145deg,#d5d5d3,#969694 58%,#c8c8c6);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+  .photo-placeholder:before {content:"";position:absolute;width:165px;height:165px;border-radius:50%;background:rgba(255,255,255,.26);filter:blur(1px);top:-95px;right:-33px;}
+  .photo-placeholder:after {content:"";position:absolute;width:250px;height:70px;transform:rotate(-24deg);background:rgba(35,35,35,.12);bottom:-28px;left:-25px;filter:blur(12px)}
+  .photo-placeholder svg {width:31px;height:31px;stroke:#fff;fill:none;stroke-width:1.5;z-index:1;opacity:.95}
+  .attachment-caption {padding:8px 10px;font-size:10px;color:var(--text-2);}
+  .composer-shell {padding:10px 13px calc(12px + var(--safe-bottom));border-top:1px solid var(--separator);background:linear-gradient(180deg,transparent,var(--bg) 26%);flex:none;}
+  .replying {display:none;align-items:center;justify-content:space-between;padding:8px 10px;margin:0 3px 8px;border:1px solid var(--glass-line);border-radius:12px;background:var(--surface);font-size:10px;color:var(--text-2);}
+  .replying.show {display:flex;}
+  .composer {display:flex;align-items:flex-end;gap:7px;padding:7px;border:1px solid var(--glass-border);border-radius:23px;background:var(--surface-strong);backdrop-filter:blur(28px) saturate(1.2);-webkit-backdrop-filter:blur(28px) saturate(1.2);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.75);position:relative;}
+  html[data-theme="dark"] .composer {box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.08)}
+  .composer-icon {width:37px;height:37px;border:0;background:transparent;border-radius:13px;display:grid;place-items:center;flex:none;cursor:pointer;transition:background .18s,transform .18s;}
+  .composer-icon:active {transform:scale(.9);background:var(--surface-muted)}
+  .composer-icon svg {width:19px;height:19px;stroke:var(--text-2);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  textarea {min-width:0;flex:1;resize:none;max-height:96px;min-height:37px;padding:10px 2px 7px;border:0;outline:0;background:transparent;color:var(--text);font-size:13px;line-height:1.45;font-family:inherit;}
+  textarea::placeholder {color:var(--muted)}
+  .send {width:38px;height:38px;border:0;border-radius:14px;background:var(--outgoing);color:var(--outgoing-text);display:grid;place-items:center;flex:none;cursor:pointer;box-shadow:0 5px 13px rgba(0,0,0,.13);transition:transform .18s,opacity .18s;}
+  .send:active {transform:scale(.9)}
+  .send:disabled {opacity:.36;cursor:default;box-shadow:none}
+  .send svg {width:17px;height:17px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .composer-hint {text-align:center;color:var(--muted);font-size:9px;margin:7px 0 0;letter-spacing:.01em;}
+  .theme-switch {position:fixed;z-index:20;top:48px;right:max(13px,calc((100vw - 460px)/2 + 13px));display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--glass-border);border-radius:999px;background:var(--surface-strong);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:var(--soft-shadow);font-size:10px;font-weight:650;color:var(--text);cursor:pointer;}
+  .theme-switch svg {width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .toast {position:absolute;left:50%;bottom:calc(94px + var(--safe-bottom));transform:translate(-50%,12px);opacity:0;pointer-events:none;padding:9px 13px;border-radius:999px;background:var(--outgoing);color:var(--outgoing-text);font-size:11px;box-shadow:var(--shadow);transition:opacity .22s,transform .22s;white-space:nowrap;z-index:15;}
+  .toast.show {opacity:1;transform:translate(-50%,0)}
+  .sheet-backdrop {position:absolute;inset:0;background:var(--scrim);backdrop-filter:blur(3px);z-index:30;opacity:0;pointer-events:none;transition:opacity .22s;}
+  .sheet-backdrop.open {opacity:1;pointer-events:auto;}
+  .action-sheet {position:absolute;left:10px;right:10px;bottom:calc(10px + var(--safe-bottom));z-index:31;padding:17px;border:1px solid var(--glass-border);border-radius:25px;background:var(--surface-strong);backdrop-filter:blur(35px) saturate(1.2);-webkit-backdrop-filter:blur(35px) saturate(1.2);box-shadow:var(--shadow);transform:translateY(24px);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.2,.8,.2,1),opacity .2s;}
+  .action-sheet.open {transform:translateY(0);opacity:1;pointer-events:auto;}
+  .sheet-grab {width:35px;height:4px;border-radius:10px;background:var(--muted);opacity:.38;margin:0 auto 14px;}
+  .sheet-title {font-weight:700;font-size:14px;margin:0 0 11px;}
+  .sheet-option {width:100%;padding:13px 8px;border:0;border-top:1px solid var(--separator);background:transparent;text-align:left;color:var(--text);font-size:13px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+  .sheet-option svg {width:18px;height:18px;stroke:var(--text-2);fill:none;stroke-width:1.8;}
+  .sheet-option:active {background:var(--surface-muted);border-radius:10px;}
+  .sheet-cancel {width:100%;margin-top:8px;border:0;border-radius:13px;padding:12px;background:var(--surface-muted);color:var(--text);font-weight:650;font-size:12px;}
+  .no-select {user-select:none;-webkit-user-select:none}
+  @media (min-width:600px) {
+    body {align-items:center;padding:20px 0;}
+    .phone {height:min(900px,calc(100svh - 40px));min-height:650px;border:1px solid var(--glass-border);border-radius:34px;box-shadow:0 25px 90px rgba(0,0,0,.18);}
+    .system-bar {padding-top:10px;height:37px;}
+    .theme-switch {top:calc(50% - min(900px, 100svh - 40px)/2 + 43px);}
+  }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after {animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important;} }
+</style>
+<!-- NEMO-TOKENS:START -->
+<style id="nemo-tokens">
+/* Generated by design/sync-references.ps1. Do not edit inside this block. */
+/* ==========================================================================
+   Nemo Design System v1.0.0 — canonical CSS tokens
+   --------------------------------------------------------------------------
+   This is the single source of truth for the HTML references.
+   The native Slint implementation mirrors these values in
+   apps/mobile/ui/theme.slint. Do not edit a reference token block by hand:
+   run design/sync-references.ps1 after changing this file.
+
+   Palette is strictly monochrome. Light is the default theme. The whole
+   document is switched with <html data-theme="light|dark">.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces ------------------------------------------------------------ */
+  --nemo-bg: #f4f4f3;
+  --nemo-bg-2: #ebebe9;
+  --nemo-surface: rgba(255, 255, 255, 0.70);
+  --nemo-surface-strong: #ffffff;
+  --nemo-surface-soft: rgba(255, 255, 255, 0.48);
+  --nemo-glass-top: rgba(255, 255, 255, 0.80);
+  --nemo-glass-bottom: rgba(255, 255, 255, 0.46);
+  --nemo-glass-edge: rgba(255, 255, 255, 0.98);
+
+  /* Borders & separation ------------------------------------------------ */
+  --nemo-line: rgba(20, 20, 20, 0.09);
+  --nemo-line-strong: rgba(20, 20, 20, 0.15);
+
+  /* Type ---------------------------------------------------------------- */
+  --nemo-text: #171717;
+  --nemo-text-2: #6f6f6c;
+  --nemo-text-3: #9b9b97;
+
+  /* Controls ------------------------------------------------------------ */
+  --nemo-primary: #171717;
+  --nemo-on-primary: #ffffff;
+  --nemo-track: rgba(0, 0, 0, 0.10);
+  --nemo-nav: rgba(250, 250, 249, 0.80);
+  --nemo-scrim: rgba(0, 0, 0, 0.30);
+  --nemo-danger: #4f4f4c;
+  --nemo-danger-soft: rgba(20, 20, 20, 0.07);
+
+  /* Depth --------------------------------------------------------------- */
+  --nemo-shadow: 0 18px 44px rgba(0, 0, 0, 0.075), 0 3px 10px rgba(0, 0, 0, 0.035);
+  --nemo-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.055);
+  --nemo-shadow-nav: 0 14px 38px rgba(0, 0, 0, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --nemo-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --nemo-blur: 24px;
+
+  /* Type ramp ----------------------------------------------------------- */
+  --nemo-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Inter, sans-serif;
+  --nemo-display: 32px;
+  --nemo-title: 28px;
+  --nemo-heading: 24px;
+  --nemo-section: 20px;
+  --nemo-card: 16px;
+  --nemo-body: 14px;
+  --nemo-secondary: 12px;
+  --nemo-label: 12px;
+  --nemo-caption: 10px;
+  --nemo-micro: 9px;
+
+  /* 4px spacing scale --------------------------------------------------- */
+  --nemo-space-1: 4px;
+  --nemo-space-2: 8px;
+  --nemo-space-3: 12px;
+  --nemo-space-4: 16px;
+  --nemo-space-5: 20px;
+  --nemo-space-6: 24px;
+  --nemo-space-7: 32px;
+  --nemo-space-8: 40px;
+  --nemo-space-9: 48px;
+
+  /* Radii --------------------------------------------------------------- */
+  --nemo-radius-card: 24px;
+  --nemo-radius-row: 18px;
+  --nemo-radius-control: 16px;
+  --nemo-radius-sheet: 28px;
+  --nemo-radius-pill: 999px;
+
+  /* Layout -------------------------------------------------------------- */
+  --nemo-screen-pad: 22px;
+  --nemo-control-h: 54px;
+  --nemo-touch: 44px;
+  --nemo-header-h: 62px;
+  --nemo-nav-h: 84px;
+
+  /* Motion -------------------------------------------------------------- */
+  --nemo-tap: 140ms;
+  --nemo-focus: 180ms;
+  --nemo-tab: 220ms;
+  --nemo-sheet: 300ms;
+  --nemo-screen: 320ms;
+  --nemo-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --nemo-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+}
+
+html[data-theme="dark"],
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --nemo-bg: #0e0e0e;
+  --nemo-bg-2: #171717;
+  --nemo-surface: rgba(40, 40, 40, 0.66);
+  --nemo-surface-strong: #242424;
+  --nemo-surface-soft: rgba(44, 44, 44, 0.46);
+  --nemo-glass-top: rgba(255, 255, 255, 0.09);
+  --nemo-glass-bottom: rgba(255, 255, 255, 0.035);
+  --nemo-glass-edge: rgba(255, 255, 255, 0.20);
+
+  --nemo-line: rgba(255, 255, 255, 0.09);
+  --nemo-line-strong: rgba(255, 255, 255, 0.15);
+
+  --nemo-text: #f2f2f0;
+  --nemo-text-2: #a8a8a4;
+  --nemo-text-3: #777774;
+
+  --nemo-primary: #f1f1ef;
+  --nemo-on-primary: #171717;
+  --nemo-track: rgba(255, 255, 255, 0.12);
+  --nemo-nav: rgba(26, 26, 26, 0.84);
+  --nemo-scrim: rgba(0, 0, 0, 0.58);
+  --nemo-danger: #c8c8c4;
+  --nemo-danger-soft: rgba(255, 255, 255, 0.07);
+
+  --nemo-shadow: 0 20px 48px rgba(0, 0, 0, 0.36), 0 3px 12px rgba(0, 0, 0, 0.20);
+  --nemo-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.26);
+  --nemo-shadow-nav: 0 16px 44px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --nemo-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+/* --------------------------------------------------------------------------
+   Compatibility aliases used by earlier references.
+   Declared after both theme blocks, and matched against every theme host, so
+   these canonical mappings win over each reference's local palette in light
+   AND dark. They only ever point at canonical Nemo tokens.
+   -------------------------------------------------------------------------- */
+:root,
+html[data-theme="dark"],
+[data-theme="dark"],
+body[data-theme="dark"] {
+  --bg: var(--nemo-bg);
+  --bg2: var(--nemo-bg-2);
+  --surface: var(--nemo-surface);
+  --surface-strong: var(--nemo-surface-strong);
+  --surface-soft: var(--nemo-surface-soft);
+  --line: var(--nemo-line);
+  --line-strong: var(--nemo-line-strong);
+  --text: var(--nemo-text);
+  --muted: var(--nemo-text-2);
+  --subtle: var(--nemo-text-3);
+  --solid: var(--nemo-primary);
+  --solid-text: var(--nemo-on-primary);
+  --nav: var(--nemo-nav);
+  --track: var(--nemo-track);
+  --danger: var(--nemo-danger);
+  --glass-blur: var(--nemo-blur);
+  --shadow: var(--nemo-shadow);
+  --shadow-soft: var(--nemo-shadow-soft);
+
+  --ink: var(--nemo-text);
+  --ink-2: var(--nemo-text-2);
+  --ink-soft: var(--nemo-text-2);
+  --text-2: var(--nemo-text-2);
+  --muted2: var(--nemo-text-3);
+  --muted-2: var(--nemo-text-3);
+  --subtle-2: var(--nemo-text-3);
+  --line-soft: var(--nemo-line);
+  --glass: var(--nemo-surface);
+  --glass2: var(--nemo-surface-strong);
+  --glass-hi: var(--nemo-glass-edge);
+  --glass-edge: var(--nemo-glass-edge);
+  --glass-strong: var(--nemo-surface-strong);
+  --glass-low: var(--nemo-surface-soft);
+  --panel: var(--nemo-surface);
+  --panel-strong: var(--nemo-surface-strong);
+  --field: var(--nemo-surface-soft);
+  --field-focus: var(--nemo-surface-strong);
+  --input: var(--nemo-surface-soft);
+  --bubble: var(--nemo-surface-soft);
+  --soft: var(--nemo-surface-soft);
+  --chip: var(--nemo-surface-soft);
+  --chip-active: var(--nemo-primary);
+  --chip-active-text: var(--nemo-on-primary);
+  --pill: var(--nemo-surface-soft);
+  --tab: var(--nemo-track);
+  --button: var(--nemo-primary);
+  --button-text: var(--nemo-on-primary);
+  --button-ink: var(--nemo-on-primary);
+  --black: var(--nemo-primary);
+  --white: var(--nemo-on-primary);
+  --inverse: var(--nemo-primary);
+  --inverse-text: var(--nemo-on-primary);
+  --primary: var(--nemo-primary);
+  --primary-text: var(--nemo-on-primary);
+  --pill-active: var(--nemo-primary);
+  --pill-active-text: var(--nemo-on-primary);
+  --toggle: var(--nemo-primary);
+  --toggle-knob: var(--nemo-on-primary);
+  --nav-bg: var(--nemo-nav);
+  --overlay: var(--nemo-scrim);
+  --scrim: var(--nemo-scrim);
+  --shadow-small: var(--nemo-shadow-soft);
+  --focus: var(--nemo-line-strong);
+  --ring: var(--nemo-line-strong);
+  --success: var(--nemo-text-2);
+  --unread: var(--nemo-track);
+  --selected: var(--nemo-primary);
+  --good: var(--nemo-text-2);
+  --avatar-a: var(--nemo-surface-strong);
+  --avatar-b: var(--nemo-surface-soft);
+  --avatar-1: var(--nemo-surface-strong);
+  --avatar-2: var(--nemo-surface);
+  --avatar-3: var(--nemo-surface-soft);
+  --avatar-4: var(--nemo-track);
+  --orb: var(--nemo-surface-strong);
+  --orb1: var(--nemo-surface-strong);
+  --orb2: var(--nemo-surface);
+}
+
+/* --------------------------------------------------------------------------
+   Base helpers shared by every reference.
+   -------------------------------------------------------------------------- */
+.nemo-screen {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100dvh;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  background: var(--nemo-bg);
+  color: var(--nemo-text);
+  font-family: var(--nemo-font);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.nemo-glass {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--nemo-line);
+  border-radius: var(--nemo-radius-card);
+  background: var(--nemo-surface);
+  box-shadow: var(--nemo-inner-highlight), var(--nemo-shadow-soft);
+  -webkit-backdrop-filter: blur(var(--nemo-blur)) saturate(115%);
+  backdrop-filter: blur(var(--nemo-blur)) saturate(115%);
+}
+
+.nemo-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.42), transparent 42%, rgba(255, 255, 255, 0.06));
+  opacity: 0.75;
+}
+
+.nemo-primary-button {
+  height: var(--nemo-control-h);
+  border: 0;
+  border-radius: var(--nemo-radius-control);
+  background: var(--nemo-primary);
+  color: var(--nemo-on-primary);
+  font-size: var(--nemo-card);
+  font-weight: 700;
+  box-shadow: var(--nemo-shadow-soft);
+  transition: transform var(--nemo-tap) var(--nemo-ease-out);
+}
+
+.nemo-primary-button:active { transform: scale(0.985); }
+.nemo-primary-button:disabled { opacity: 0.42; pointer-events: none; }
+
+.nemo-nav {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  width: min(390px, calc(100% - 36px));
+  height: 66px;
+  padding: 6px 8px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border: 1px solid var(--nemo-line-strong);
+  border-radius: 24px;
+  background: var(--nemo-nav);
+  box-shadow: var(--nemo-shadow-nav);
+  -webkit-backdrop-filter: blur(28px) saturate(135%);
+  backdrop-filter: blur(28px) saturate(135%);
+}
+
+.nemo-nav-item {
+  flex: 1;
+  height: 52px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--nemo-text-2);
+  font-size: var(--nemo-micro);
+  font-weight: 650;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.nemo-nav-item.active {
+  background: var(--nemo-primary);
+  color: var(--nemo-on-primary);
+}
+
+/* Self-contained light/dark switch used by references that predate the
+   data-theme switcher. It only flips <html data-theme>. */
+.nemo-theme-toggle {
+  position: fixed;
+  z-index: 40;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--nemo-line-strong);
+  border-radius: 15px;
+  background: var(--nemo-surface);
+  color: var(--nemo-text);
+  box-shadow: var(--nemo-inner-highlight), var(--nemo-shadow-soft);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  touch-action: manipulation;
+  transition: transform var(--nemo-tap) var(--nemo-ease-out);
+}
+
+.nemo-theme-toggle:active { transform: scale(0.94); }
+.nemo-theme-toggle svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nemo-theme-toggle .nemo-icon-sun { display: none; }
+[data-theme="dark"] .nemo-theme-toggle .nemo-icon-sun { display: block; }
+[data-theme="dark"] .nemo-theme-toggle .nemo-icon-moon { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+<!-- NEMO-TOKENS:END -->
+</head>
+<body>
+<button class="theme-switch no-select" id="themeToggle" aria-label="Switch appearance">
+  <svg id="themeIcon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+  <span id="themeLabel">Light mode</span>
+</button>
+<main class="phone" aria-label="Nemo chat conversation preview">
+  <div class="system-bar no-select">
+    <span>9:41</span>
+    <div class="sys-right"><span class="signal"><i></i><i></i><i></i><i></i></span><span class="wifi"></span><span class="battery"></span></div>
+  </div>
+  <header class="topbar">
+    <button class="icon-btn" aria-label="Back" id="backBtn"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+    <div class="person">AJ</div>
+    <div class="title-wrap"><h1>Alex Johnson</h1><p>Conversation</p></div>
+    <div class="top-actions">
+      <button class="icon-btn" aria-label="Voice call" data-toast="Voice call preview"><svg viewBox="0 0 24 24"><path d="M7 3H4a1 1 0 0 0-1 1c0 9.4 7.6 17 17 17a1 1 0 0 0 1-1v-3l-5-2-2 2a14 14 0 0 1-6-6l2-2-2-5Z"/></svg></button>
+      <button class="icon-btn" aria-label="More conversation options" id="moreBtn"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>
+    </div>
+  </header>
+  <section class="thread" id="thread" aria-label="Messages">
+    <div class="day-divider">Today · 9:32 AM</div>
+    <div class="message-row in">
+      <div class="mini-avatar">AJ</div>
+      <div class="bubble-wrap"><div class="bubble">Hey! Are we still meeting up later?</div><div class="meta"><span>9:32 AM</span></div></div>
+    </div>
+    <div class="message-row out">
+      <div class="bubble-wrap"><div class="bubble">Yes, absolutely. I should be there around 5.</div><div class="meta"><span>9:34 AM</span><span class="ticks">✓✓</span></div></div>
+    </div>
+    <div class="message-row in">
+      <div class="mini-avatar">AJ</div>
+      <div class="bubble-wrap"><div class="bubble">Perfect. I'll send you the location.</div><div class="meta"><span>9:35 AM</span></div></div>
+    </div>
+    <div class="message-row in">
+      <div class="mini-avatar">AJ</div>
+      <div class="bubble-wrap">
+        <div class="attachment">
+          <div class="photo-placeholder"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>
+          <div class="attachment-caption">A place to meet · Image preview</div>
+        </div>
+        <div class="meta"><span>9:36 AM</span></div>
+      </div>
+    </div>
+    <div class="message-row out">
+      <div class="bubble-wrap"><div class="bubble">Got it. Looks good!</div><div class="meta"><span>9:38 AM</span><span class="ticks">✓✓</span></div></div>
+    </div>
+    <div class="message-row in">
+      <div class="mini-avatar">AJ</div>
+      <div class="bubble-wrap"><div class="bubble">Great. See you there.</div><div class="meta"><span>9:39 AM</span></div></div>
+    </div>
+  </section>
+  <footer class="composer-shell">
+    <div class="replying" id="replying"><span>Replying to Alex</span><button id="cancelReply" aria-label="Cancel reply" style="border:0;background:transparent;color:var(--text-2);font-size:17px">×</button></div>
+    <div class="composer">
+      <button class="composer-icon" id="attachBtn" aria-label="Attach file"><svg viewBox="0 0 24 24"><path d="m20.5 11.5-8.8 8.8a5 5 0 0 1-7.1-7.1l9.2-9.1a3.5 3.5 0 0 1 5 5l-9.2 9.1a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg></button>
+      <textarea id="messageInput" rows="1" placeholder="Write a message…" aria-label="Write a message"></textarea>
+      <button class="composer-icon" id="emojiBtn" aria-label="Add emoji"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg></button>
+      <button class="send" id="sendBtn" aria-label="Send message" disabled><svg viewBox="0 0 24 24"><path d="m5 12 14-7-4 14-3-6-7-1Z"/><path d="m12 13 7-8"/></svg></button>
+    </div>
+    <p class="composer-hint">Messages are shown here as a local UI preview.</p>
+  </footer>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="sheet-backdrop" id="sheetBackdrop"></div>
+  <section class="action-sheet" id="actionSheet" aria-label="Conversation options">
+    <div class="sheet-grab"></div><p class="sheet-title">Conversation options</p>
+    <button class="sheet-option" data-toast="Search in conversation"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>Search in conversation</button>
+    <button class="sheet-option" id="replyAction"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-2"/></svg>Reply to latest message</button>
+    <button class="sheet-option" data-toast="Conversation details preview"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>Conversation details</button>
+    <button class="sheet-cancel" id="closeSheet">Cancel</button>
+  </section>
+</main>
+<script>
+(() => {
+  const root = document.documentElement;
+  const toggle = document.getElementById('themeToggle');
+  const label = document.getElementById('themeLabel');
+  const icon = document.getElementById('themeIcon');
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  function setTheme(theme) {
+    root.dataset.theme = theme;
+    const dark = theme === 'dark';
+    label.textContent = dark ? 'Dark mode' : 'Light mode';
+    icon.innerHTML = dark
+      ? '<path d="M20.5 14A8.5 8.5 0 0 1 10 3.5 8.5 8.5 0 1 0 20.5 14Z"/>'
+      : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>';
+    metaTheme.setAttribute('content', dark ? '#101010' : '#f4f4f3');
+    try { localStorage.setItem('nemo-chat-theme', theme); } catch(e) {}
+  }
+  let initial = 'light';
+  try { initial = localStorage.getItem('nemo-chat-theme') || 'light'; } catch(e) {}
+  setTheme(initial);
+  toggle.addEventListener('click', () => setTheme(root.dataset.theme === 'light' ? 'dark' : 'light'));
+  function showToast(text) {
+    toast.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1900);
+  }
+  document.querySelectorAll('[data-toast]').forEach(btn => btn.addEventListener('click', () => showToast(btn.dataset.toast)));
+  document.getElementById('backBtn').addEventListener('click', () => showToast('Back navigation preview'));
+  const input = document.getElementById('messageInput');
+  const send = document.getElementById('sendBtn');
+  const thread = document.getElementById('thread');
+  function resizeInput() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 96) + 'px'; send.disabled = !input.value.trim(); }
+  input.addEventListener('input', resizeInput);
+  function sendMessage() {
+    const value = input.value.trim();
+    if (!value) return;
+    const row = document.createElement('div'); row.className = 'message-row out';
+    const wrap = document.createElement('div'); wrap.className = 'bubble-wrap';
+    const bubble = document.createElement('div'); bubble.className = 'bubble'; bubble.textContent = value;
+    const meta = document.createElement('div'); meta.className = 'meta'; meta.innerHTML = '<span>Now</span><span class="ticks">✓</span>';
+    wrap.append(bubble, meta); row.append(wrap); thread.append(row);
+    input.value = ''; resizeInput(); thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
+  }
+  send.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+  document.getElementById('emojiBtn').addEventListener('click', () => { input.value += ' 🙂'; input.focus(); resizeInput(); });
+  const backdrop = document.getElementById('sheetBackdrop');
+  const sheet = document.getElementById('actionSheet');
+  function openSheet() { backdrop.classList.add('open'); sheet.classList.add('open'); }
+  function closeSheet() { backdrop.classList.remove('open'); sheet.classList.remove('open'); }
+  document.getElementById('moreBtn').addEventListener('click', openSheet);
+  backdrop.addEventListener('click', closeSheet);
+  document.getElementById('closeSheet').addEventListener('click', closeSheet);
+  document.getElementById('attachBtn').addEventListener('click', () => { closeSheet(); showToast('Attachment picker preview'); });
+  document.getElementById('replyAction').addEventListener('click', () => { closeSheet(); document.getElementById('replying').classList.add('show'); input.focus(); });
+  document.getElementById('cancelReply').addEventListener('click', () => document.getElementById('replying').classList.remove('show'));
+  // Pointer-independent touch feedback: short press ripple only, no cursor-following effects.
+  document.querySelectorAll('.icon-btn, .composer-icon, .send').forEach(el => {
+    el.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'mouse') return;
+      el.animate([{filter:'brightness(1)'},{filter:'brightness(.86)'},{filter:'brightness(1)'}],{duration:260,easing:'ease-out'});
+    }, {passive:true});
+  });
+})();
+</script>
+</body>
+</html>

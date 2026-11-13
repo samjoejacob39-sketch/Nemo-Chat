@@ -1,4 +1,6 @@
 import { Theme } from "../theme.slint";
+import { Warning } from "../icons.slint";
+import { NemoBackButton } from "../widgets.slint";
 
 // App Updates screen — monochrome Liquid Glass (mobile-first).
 export component UpdatesScreen inherits Rectangle {
@@ -21,20 +23,20 @@ export component UpdatesScreen inherits Rectangle {
     in-out property <bool> dark: Theme.is-dark;
     in-out property <bool> sheet-open: false;
 
-    property <color> ink: dark ? #f5f5f5 : #171717;
-    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
-    property <color> muted: dark ? #aaa : #777;
-    property <color> muted-2: dark ? #858585 : #999;
-    property <color> line: dark ? rgba(255,255,255,0.09) : rgba(0,0,0,0.09);
-    property <color> line-strong: dark ? rgba(255,255,255,0.15) : rgba(0,0,0,0.14);
-    property <color> glass: dark ? rgba(42,42,42,0.66) : rgba(255,255,255,0.62);
-    property <color> glass-strong: dark ? rgba(53,53,53,0.82) : rgba(255,255,255,0.82);
-    property <color> surface-soft: dark ? rgba(50,50,50,0.42) : rgba(255,255,255,0.38);
-    property <color> track: dark ? rgba(255,255,255,0.11) : rgba(0,0,0,0.09);
-    property <color> primary: dark ? #f1f1f1 : #171717;
-    property <color> primary-text: dark ? #171717 : #ffffff;
-    property <color> nav-bg: dark ? rgba(27,27,26,0.86) : rgba(250,250,249,0.78);
-    property <color> scrim: dark ? rgba(0,0,0,0.58) : rgba(0,0,0,0.34);
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> muted-2: Theme.n-muted-2;
+    property <color> line: Theme.n-line;
+    property <color> line-strong: Theme.n-line-strong;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
+    property <color> surface-soft: Theme.n-surface-soft;
+    property <color> track: Theme.n-track;
+    property <color> primary: Theme.n-primary;
+    property <color> primary-text: Theme.n-primary-text;
+    property <color> nav-bg: Theme.n-nav-bg;
+    property <color> scrim: Theme.n-scrim;
 
     VerticalLayout {
         padding-left: 22px;
@@ -48,28 +50,8 @@ export component UpdatesScreen inherits Rectangle {
             height: 44px;
             spacing: 0px;
             alignment: start;
-            TouchArea {
-                width: 44px; height: 44px;
-                mouse-cursor: pointer;
+            NemoBackButton {
                 clicked => { root.back(); }
-                Rectangle {
-                    width: 44px; height: 44px;
-                    border-radius: 22px;
-                    background: glass;
-                    border-width: 1px;
-                    border-color: line;
-                    drop-shadow-blur: 12px;
-                    drop-shadow-color: rgba(0,0,0,0.045);
-                    drop-shadow-offset-y: 4px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "←";
-                        font-size: 18px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                }
             }
             Rectangle { horizontal-stretch: 1; }
             Text {
@@ -106,7 +88,7 @@ export component UpdatesScreen inherits Rectangle {
                                 Text {
                                     width: parent.width; height: parent.height;
                                     text: "Light";
-                                    font-size: 10px;
+                                    font-size: 12px;
                                     font-weight: 650;
                                     color: !root.dark ? primary-text : muted;
                                     horizontal-alignment: center;
@@ -125,7 +107,7 @@ export component UpdatesScreen inherits Rectangle {
                                 Text {
                                     width: parent.width; height: parent.height;
                                     text: "Dark";
-                                    font-size: 10px;
+                                    font-size: 12px;
                                     font-weight: 650;
                                     color: root.dark ? primary-text : muted;
                                     horizontal-alignment: center;
@@ -141,7 +123,7 @@ export component UpdatesScreen inherits Rectangle {
         // Eyebrow + heading
         Text {
             text: "NEMO • PREVIEW CHANNEL";
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 750;
             color: muted;
             letter-spacing: 1.2px;
@@ -149,7 +131,7 @@ export component UpdatesScreen inherits Rectangle {
         }
         Text {
             text: "Stay up to date.";
-            font-size: 34px;
+            font-size: 31px;
             font-weight: 760;
             color: ink;
             letter-spacing: -1.5px;
@@ -190,7 +172,7 @@ export component UpdatesScreen inherits Rectangle {
                         border-radius: 14px;
                         background: @linear-gradient(145deg, #e9e9e9 0%, #c9c9c9 100%);
                         border-width: 1px;
-                        border-color: rgba(255,255,255,0.92);
+                        border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
                         Text {
                             width: parent.width; height: parent.height;
                             text: "N";
@@ -210,7 +192,7 @@ export component UpdatesScreen inherits Rectangle {
                         Text {
                             width: parent.width; height: parent.height;
                             text: "UI PREVIEW BUILD";
-                            font-size: 9px;
+                            font-size: 12px;
                             font-weight: 800;
                             color: muted;
                             letter-spacing: 1.2px;
@@ -250,7 +232,7 @@ export component UpdatesScreen inherits Rectangle {
                         VerticalLayout {
                             padding: 10px;
                             spacing: 2px;
-                            Text { text: "Installed version"; font-size: 9px; color: muted; font-weight: 600; }
+                            Text { text: "Installed version"; font-size: 12px; color: muted; font-weight: 600; }
                             Text { text: root.current-version; font-size: 15px; font-weight: 760; color: ink; }
                         }
                     }
@@ -264,7 +246,7 @@ export component UpdatesScreen inherits Rectangle {
                         VerticalLayout {
                             padding: 10px;
                             spacing: 2px;
-                            Text { text: "Installed build"; font-size: 9px; color: muted; font-weight: 600; }
+                            Text { text: "Installed build"; font-size: 12px; color: muted; font-weight: 600; }
                             Text { text: root.current-build; font-size: 15px; font-weight: 760; color: ink; }
                         }
                     }
@@ -278,7 +260,7 @@ export component UpdatesScreen inherits Rectangle {
                         VerticalLayout {
                             padding: 10px;
                             spacing: 2px;
-                            Text { text: "Channel"; font-size: 9px; color: muted; font-weight: 600; }
+                            Text { text: "Channel"; font-size: 12px; color: muted; font-weight: 600; }
                             Text { text: "Testing"; font-size: 15px; font-weight: 760; color: ink; }
                         }
                     }
@@ -300,7 +282,7 @@ export component UpdatesScreen inherits Rectangle {
                 }
                 Text {
                     text: "Last checked just now";
-                    font-size: 10px;
+                    font-size: 12px;
                     color: muted;
                 }
             }
@@ -337,7 +319,7 @@ export component UpdatesScreen inherits Rectangle {
                             }
                             Text {
                                 text: root.latest-build != "" ? (root.latest-build + " · 12 Nov 2026 · 18 MB") : "Build #14 · 12 Nov 2026 · 18 MB";
-                                font-size: 10px;
+                                font-size: 12px;
                                 color: muted;
                             }
                         }
@@ -348,7 +330,7 @@ export component UpdatesScreen inherits Rectangle {
                             Text {
                                 width: parent.width; height: parent.height;
                                 text: root.status == "available" ? "Update available" : (root.status == "checking" ? "Checking…" : "Up to date");
-                                font-size: 9px;
+                                font-size: 12px;
                                 font-weight: 800;
                                 color: root.status == "available" ? primary-text : muted;
                                 horizontal-alignment: center;
@@ -370,8 +352,8 @@ export component UpdatesScreen inherits Rectangle {
                         for note in ["Refined Liquid Glass surfaces and reflections.", "Improved spacing across chats and profile.", "Smoother touch feedback and screen transitions.", "General fixes and stability improvements."]: HorizontalLayout {
                             spacing: 8px;
                             alignment: start;
-                            Text { text: "↗"; font-size: 11px; color: muted; vertical-alignment: top; }
-                            Text { text: note; font-size: 11px; color: muted; wrap: word-wrap; vertical-alignment: top; }
+                            Text { text: "↗"; font-size: 12px; color: muted; vertical-alignment: top; }
+                            Text { text: note; font-size: 12px; color: muted; wrap: word-wrap; vertical-alignment: top; }
                         }
                     }
 
@@ -435,14 +417,14 @@ export component UpdatesScreen inherits Rectangle {
                         HorizontalLayout {
                             Text {
                                 text: root.status == "ready" ? "Download complete" : "Downloading update…";
-                                font-size: 11px;
+                                font-size: 12px;
                                 color: muted;
                                 vertical-alignment: center;
                             }
                             Rectangle { horizontal-stretch: 1; }
                             Text {
                                 text: root.progress + "%";
-                                font-size: 11px;
+                                font-size: 12px;
                                 font-weight: 700;
                                 color: ink;
                                 vertical-alignment: center;
@@ -464,7 +446,7 @@ export component UpdatesScreen inherits Rectangle {
                             Text { text: "●"; font-size: 8px; color: muted; vertical-alignment: center; }
                             Text {
                                 text: root.status == "ready" ? "Download finished. Tap install to continue." : "Connecting to release…";
-                                font-size: 10px;
+                                font-size: 12px;
                                 color: muted;
                                 vertical-alignment: center;
                             }
@@ -487,11 +469,11 @@ export component UpdatesScreen inherits Rectangle {
                 padding: 14px;
                 spacing: 10px;
                 alignment: start;
-                Text { text: "⚠"; font-size: 16px; color: muted; vertical-alignment: center; }
+                Warning { size: 17px; tint: muted; }
                 Text {
                     horizontal-stretch: 1;
                     text: root.error != "" ? root.error : "Something went wrong.";
-                    font-size: 11px;
+                    font-size: 12px;
                     color: muted;
                     wrap: word-wrap;
                     vertical-alignment: center;
@@ -523,47 +505,47 @@ export component UpdatesScreen inherits Rectangle {
                     padding-left: 16px; padding-right: 16px;
                     padding-top: 12px; 
                     spacing: 0px;
-                    Text { text: "Application"; font-size: 11px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
-                    Text { text: "Nemo"; font-size: 11px; font-weight: 650; color: ink; vertical-alignment: center; }
+                    Text { text: "Application"; font-size: 12px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
+                    Text { text: "Nemo"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
                 }
                 Rectangle { height: 1px; background: line; }
                 HorizontalLayout {
                     padding-left: 16px; padding-right: 16px;
                     padding-top: 12px; 
                     spacing: 0px;
-                    Text { text: "Package"; font-size: 11px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
-                    Text { text: "com.nemo.app"; font-size: 11px; font-weight: 650; color: ink; vertical-alignment: center; }
+                    Text { text: "Package"; font-size: 12px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
+                    Text { text: "com.nemo.app"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
                 }
                 Rectangle { height: 1px; background: line; }
                 HorizontalLayout {
                     padding-left: 16px; padding-right: 16px;
                     padding-top: 12px; 
                     spacing: 0px;
-                    Text { text: "Minimum Android"; font-size: 11px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
-                    Text { text: "Android 8.0+"; font-size: 11px; font-weight: 650; color: ink; vertical-alignment: center; }
+                    Text { text: "Minimum Android"; font-size: 12px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
+                    Text { text: "Android 8.0+"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
                 }
                 Rectangle { height: 1px; background: line; }
                 HorizontalLayout {
                     padding-left: 16px; padding-right: 16px;
                     padding-top: 12px; 
                     spacing: 0px;
-                    Text { text: "Update source"; font-size: 11px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
-                    Text { text: "GitHub Releases"; font-size: 11px; font-weight: 650; color: ink; vertical-alignment: center; }
+                    Text { text: "Update source"; font-size: 12px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
+                    Text { text: "GitHub Releases"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
                 }
                 Rectangle { height: 1px; background: line; }
                 HorizontalLayout {
                     padding-left: 16px; padding-right: 16px;
                     padding-top: 12px; 
                     spacing: 0px;
-                    Text { text: "Release type"; font-size: 11px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
-                    Text { text: "Pre-release"; font-size: 11px; font-weight: 650; color: ink; vertical-alignment: center; }
+                    Text { text: "Release type"; font-size: 12px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
+                    Text { text: "Pre-release"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
                 }
             }
         }
 
         Text {
             text: "Preview builds may contain unfinished features. Install updates only from the official Nemo release source. Your Android device will ask you to confirm installation.";
-            font-size: 9px;
+            font-size: 12px;
             color: muted;
             wrap: word-wrap;
             

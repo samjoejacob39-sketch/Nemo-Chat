@@ -1,73 +1,82 @@
-// Nemo Blue Glass — design tokens.
-// Visual source of truth: the approved Nook design board.
-// Light + dark themes, spacing, typography, radii and motion.
+// Nemo Design System v1.0.0 -- tokens.
+//
+// Strict monochrome Liquid Glass. Light is the default; one shared
+// `Theme.is-dark` flag drives the whole app. Every screen and widget resolves
+// its colors from these tokens so the 14 screens cannot drift apart.
+//
+// Slint has no backdrop blur. The glass material is therefore emulated with
+// layered translucency, a specular top edge, an inset bottom reflection and
+// soft depth shadows. See design/NEMO_DESIGN_SYSTEM.md for the full contract.
 
 export global Theme {
     // ------------------------------------------------------------------
-    // Light palette
+    // Shared appearance state
     // ------------------------------------------------------------------
-    out property <color> bg-1: #F4F7FF;          // page base (lavender white)
-    out property <color> bg-2: #E7EDFF;          // gradient partner
-    out property <color> blob-1: #C9D8FF;        // decorative blob
-    out property <color> blob-2: #EAD9FF;        // soft violet blob
-    out property <color> surface: #FFFFFF;       // cards (with alpha below)
-    out property <color> surface-alpha: surface.transparentize(0.28);
-    out property <color> surface-strong: #FFFFFF;
-    out property <color> surface-dim: rgba(255, 255, 255, 0.55);
-    out property <color> text: #0E1633;
-    out property <color> text-2: #66708C;
-    out property <color> text-3: #98A1BB;
-    out property <color> accent: #2F6BFF;
-    out property <color> accent-hi: #4D8DFF;
-    out property <color> accent-deep: #1E52E8;
-    out property <color> accent-soft: #E4EDFF;
-    out property <color> accent-alpha: rgba(47, 107, 255, 0.16);
-    out property <color> on-accent: #FFFFFF;
-    out property <color> bubble-in: #F1F4FA;
-    out property <color> online: #34C759;
-    out property <color> danger: #FF3B4E;
-    out property <color> danger-soft: rgba(255, 59, 78, 0.12);
-    out property <color> hairline: rgba(22, 42, 96, 0.10);
-    out property <color> stroke-glass: rgba(255, 255, 255, 0.85);
-    out property <color> nav-glass: rgba(255, 255, 255, 0.62);
-    out property <color> shadow: rgba(30, 50, 110, 0.14);
-    out property <color> shadow-soft: rgba(30, 50, 110, 0.07);
-    out property <color> overlay-scrim: rgba(12, 18, 40, 0.35);
-    // Liquid-glass layers (Slint has no backdrop blur; depth is emulated
-    // with translucent gradients, a specular edge and layered shadows).
+    in-out property <bool> is-dark: false;
+    in-out property <bool> reduced-motion: false;
+
+    // ------------------------------------------------------------------
+    // Canonical monochrome palette (light)
+    // ------------------------------------------------------------------
+    out property <color> bg-1: #f4f4f3;
+    out property <color> bg-2: #ebebe9;
+    out property <color> blob-1: #ffffff;
+    out property <color> blob-2: #dcdcd8;
+    out property <color> surface: #ffffff;
+    out property <color> surface-alpha: rgba(255, 255, 255, 0.70);
+    out property <color> surface-strong: #ffffff;
+    out property <color> surface-dim: rgba(255, 255, 255, 0.48);
+    out property <color> text: #171717;
+    out property <color> text-2: #6f6f6c;
+    out property <color> text-3: #9b9b97;
+    out property <color> accent: #171717;
+    out property <color> accent-hi: #2e2e2e;
+    out property <color> accent-deep: #000000;
+    out property <color> accent-soft: rgba(20, 20, 20, 0.06);
+    out property <color> accent-alpha: rgba(20, 20, 20, 0.14);
+    out property <color> on-accent: #ffffff;
+    out property <color> bubble-in: rgba(255, 255, 255, 0.76);
+    // No semantic hues: online / danger stay monochrome by design.
+    out property <color> online: #6f6f6c;
+    out property <color> danger: #4f4f4c;
+    out property <color> danger-soft: rgba(20, 20, 20, 0.07);
+    out property <color> hairline: rgba(20, 20, 20, 0.09);
+    out property <color> stroke-glass: rgba(255, 255, 255, 0.84);
+    out property <color> nav-glass: rgba(250, 250, 249, 0.80);
+    out property <color> shadow: rgba(0, 0, 0, 0.11);
+    out property <color> shadow-soft: rgba(0, 0, 0, 0.055);
+    out property <color> overlay-scrim: rgba(0, 0, 0, 0.30);
     out property <color> glass-top: rgba(255, 255, 255, 0.80);
-    out property <color> glass-bottom: rgba(255, 255, 255, 0.44);
+    out property <color> glass-bottom: rgba(255, 255, 255, 0.46);
     out property <color> glass-edge: rgba(255, 255, 255, 0.98);
 
     // ------------------------------------------------------------------
-    // Dark palette
+    // Canonical monochrome palette (dark)
     // ------------------------------------------------------------------
-    out property <color> d-bg-1: #0C0F17;
-    out property <color> d-bg-2: #131A2A;
-    out property <color> d-blob-1: #1B3A8F;
-    out property <color> d-blob-2: #3A2A6E;
-    out property <color> d-surface-alpha: rgba(255, 255, 255, 0.055);
-    out property <color> d-surface-strong: #1C2233;
+    out property <color> d-bg-1: #0e0e0e;
+    out property <color> d-bg-2: #171717;
+    out property <color> d-blob-1: #2b2b2b;
+    out property <color> d-blob-2: #1f1f1f;
+    out property <color> d-surface-alpha: rgba(255, 255, 255, 0.06);
+    out property <color> d-surface-strong: #242424;
     out property <color> d-surface-dim: rgba(255, 255, 255, 0.035);
-    out property <color> d-text: #F2F5FF;
-    out property <color> d-text-2: #A2ABC4;
-    out property <color> d-text-3: #6E7896;
-    out property <color> d-accent-soft: rgba(77, 141, 255, 0.20);
-    out property <color> d-bubble-in: #232A3C;
+    out property <color> d-text: #f2f2f0;
+    out property <color> d-text-2: #a8a8a4;
+    out property <color> d-text-3: #777774;
+    out property <color> d-accent-soft: rgba(255, 255, 255, 0.09);
+    out property <color> d-bubble-in: #262626;
     out property <color> d-hairline: rgba(255, 255, 255, 0.09);
     out property <color> d-stroke-glass: rgba(255, 255, 255, 0.14);
-    out property <color> d-nav-glass: rgba(16, 20, 32, 0.72);
-    out property <color> d-shadow: rgba(0, 0, 0, 0.45);
-    out property <color> d-shadow-soft: rgba(0, 0, 0, 0.25);
+    out property <color> d-nav-glass: rgba(24, 24, 24, 0.84);
+    out property <color> d-shadow: rgba(0, 0, 0, 0.48);
+    out property <color> d-shadow-soft: rgba(0, 0, 0, 0.26);
     out property <color> d-glass-top: rgba(255, 255, 255, 0.10);
     out property <color> d-glass-bottom: rgba(255, 255, 255, 0.04);
     out property <color> d-glass-edge: rgba(255, 255, 255, 0.20);
 
     // ------------------------------------------------------------------
-    // Resolved tokens (switched by is-dark)
+    // Resolved legacy aliases (kept so every existing call site keeps working)
     // ------------------------------------------------------------------
-    in-out property <bool> is-dark: false;
-
     out property <color> c-bg-1: is-dark ? d-bg-1 : bg-1;
     out property <color> c-bg-2: is-dark ? d-bg-2 : bg-2;
     out property <color> c-blob-1: is-dark ? d-blob-1 : blob-1;
@@ -91,40 +100,110 @@ export global Theme {
     out property <color> c-glass-edge: is-dark ? d-glass-edge : glass-edge;
 
     // ------------------------------------------------------------------
-    // Type ramp
+    // Canonical screen tokens (preferred names for new code)
     // ------------------------------------------------------------------
-    out property <length> fs-caption: 11.5px;
-    out property <length> fs-small: 13px;
-    out property <length> fs-body: 15px;
-    out property <length> fs-body-lg: 16.5px;
-    out property <length> fs-title: 21px;
-    out property <length> fs-large: 26px;
-    out property <length> fs-hero: 34px;
+    out property <color> n-ink: is-dark ? #f2f2f0 : #171717;
+    out property <color> n-ink-soft: is-dark ? #dadad7 : #3d3d3b;
+    out property <color> n-muted: is-dark ? #a8a8a4 : #6f6f6c;
+    out property <color> n-muted-2: is-dark ? #777774 : #9b9b97;
+    out property <color> n-line: is-dark ? rgba(255, 255, 255, 0.09) : rgba(20, 20, 20, 0.09);
+    out property <color> n-line-strong: is-dark ? rgba(255, 255, 255, 0.15) : rgba(20, 20, 20, 0.15);
+    out property <color> n-glass: is-dark ? rgba(40, 40, 40, 0.66) : rgba(255, 255, 255, 0.62);
+    out property <color> n-glass-strong: is-dark ? rgba(50, 50, 50, 0.84) : rgba(255, 255, 255, 0.84);
+    out property <color> n-glass-soft: is-dark ? rgba(44, 44, 44, 0.46) : rgba(255, 255, 255, 0.42);
+    out property <color> n-surface-soft: is-dark ? rgba(48, 48, 48, 0.58) : rgba(246, 246, 245, 0.72);
+    out property <color> n-nav-bg: is-dark ? rgba(26, 26, 26, 0.86) : rgba(250, 250, 249, 0.80);
+    out property <color> n-primary: is-dark ? #f1f1ef : #171717;
+    out property <color> n-primary-text: is-dark ? #171717 : #ffffff;
+    out property <color> n-scrim: is-dark ? rgba(0, 0, 0, 0.58) : rgba(0, 0, 0, 0.30);
+    out property <color> n-track: is-dark ? rgba(255, 255, 255, 0.12) : rgba(0, 0, 0, 0.10);
+    out property <color> n-glass-top: is-dark ? rgba(255, 255, 255, 0.09) : rgba(255, 255, 255, 0.82);
+    out property <color> n-glass-bottom: is-dark ? rgba(255, 255, 255, 0.035) : rgba(255, 255, 255, 0.46);
+    out property <color> n-glass-edge: is-dark ? rgba(255, 255, 255, 0.20) : rgba(255, 255, 255, 0.98);
+    out property <color> n-inner-shadow: is-dark ? rgba(0, 0, 0, 0.22) : rgba(0, 0, 0, 0.035);
 
     // ------------------------------------------------------------------
-    // Radii & spacing
+    // Type ramp -- one family, one scale
     // ------------------------------------------------------------------
-    out property <length> r-card: 24px;
-    out property <length> r-row: 18px;
-    out property <length> r-input: 16px;
+    out property <length> n-display: 32px;
+    out property <length> n-title: 28px;
+    out property <length> n-heading: 24px;
+    out property <length> n-section: 20px;
+    out property <length> n-card: 16px;
+    out property <length> n-body: 14px;
+    out property <length> n-secondary: 12px;
+    out property <length> n-label: 12px;
+    out property <length> n-caption: 10px;
+    out property <length> n-micro: 9px;
+
+    out property <length> fs-caption: n-caption;
+    out property <length> fs-small: n-secondary;
+    out property <length> fs-body: n-body;
+    out property <length> fs-body-lg: n-card;
+    out property <length> fs-title: n-section;
+    out property <length> fs-large: n-heading;
+    out property <length> fs-hero: n-display;
+
+    // ------------------------------------------------------------------
+    // 4px spacing scale
+    // ------------------------------------------------------------------
+    out property <length> n-xxs: 4px;
+    out property <length> n-xs: 8px;
+    out property <length> n-sm: 12px;
+    out property <length> n-md: 16px;
+    out property <length> n-lg: 20px;
+    out property <length> n-xl: 24px;
+    out property <length> n-xxl: 32px;
+    out property <length> n-xxxl: 40px;
+    out property <length> n-section-gap: 48px;
+
+    out property <length> sp-1: n-xxs;
+    out property <length> sp-2: n-xs;
+    out property <length> sp-3: n-sm;
+    out property <length> sp-4: n-md;
+    out property <length> sp-5: n-lg;
+    out property <length> sp-6: n-xl;
+    out property <length> sp-7: n-xxl;
+
+    // ------------------------------------------------------------------
+    // Radii
+    // ------------------------------------------------------------------
+    out property <length> n-r-card: 24px;
+    out property <length> n-r-row: 18px;
+    out property <length> n-r-control: 16px;
+    out property <length> n-r-input: 16px;
+    out property <length> n-r-sheet: 28px;
+    out property <length> n-r-pill: 999px;
+
+    out property <length> r-card: n-r-card;
+    out property <length> r-row: n-r-row;
+    out property <length> r-input: n-r-input;
     out property <length> r-bubble: 22px;
     out property <length> r-tail: 7px;
-    out property <length> sp-1: 4px;
-    out property <length> sp-2: 8px;
-    out property <length> sp-3: 12px;
-    out property <length> sp-4: 16px;
-    out property <length> sp-5: 20px;
-    out property <length> sp-6: 24px;
-    out property <length> sp-7: 32px;
-    out property <length> bar-h: 56px;     // top bars
-    out property <length> nav-h: 64px;     // floating bottom nav
-    out property <length> touch-min: 44px; // minimum touch target
 
     // ------------------------------------------------------------------
-    // Motion
+    // Layout constants
     // ------------------------------------------------------------------
-    out property <duration> t-fast: 120ms;
+    out property <length> n-screen-pad: 22px;
+    out property <length> n-control-h: 54px;
+    out property <length> n-touch: 44px;
+    out property <length> n-header-h: 62px;
+    out property <length> n-nav-h: 84px;
+    out property <length> bar-h: n-header-h;
+    out property <length> nav-h: 64px;
+    out property <length> touch-min: n-touch;
+
+    // ------------------------------------------------------------------
+    // Motion -- one language
+    // ------------------------------------------------------------------
+    out property <duration> n-tap: 140ms;
+    out property <duration> n-focus: 180ms;
+    out property <duration> n-tab: 220ms;
+    out property <duration> n-sheet: 300ms;
+    out property <duration> n-screen: 320ms;
+    out property <duration> t-fast: n-tap;
     out property <duration> t-med: 200ms;
-    out property <duration> t-slow: 320ms;
+    out property <duration> t-slow: n-screen;
     out property <easing> ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    out property <easing> ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }

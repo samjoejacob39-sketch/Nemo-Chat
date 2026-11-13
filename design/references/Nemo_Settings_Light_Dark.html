@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f4f3">
+<title>Nemo — Settings</title>
+<style>
+:root{color-scheme:light;--bg:#f2f2f1;--bg2:#e8e8e7;--surface:rgba(255,255,255,.76);--surface-solid:#fff;--surface-soft:rgba(245,245,244,.82);--text:#171717;--muted:#777774;--subtle:#9b9b98;--line:rgba(20,20,20,.09);--line-strong:rgba(20,20,20,.15);--shadow:0 18px 45px rgba(0,0,0,.07),inset 0 1px 0 rgba(255,255,255,.85);--shadow-small:0 7px 22px rgba(0,0,0,.055),inset 0 1px 0 rgba(255,255,255,.86);--pill:#e9e9e8;--pill-active:#1b1b1b;--pill-active-text:#fff;--accent:#191919;--nav:rgba(250,250,249,.78);--overlay:rgba(0,0,0,.34);--toggle:#202020;--toggle-knob:#fff;--focus:rgba(30,30,30,.2)}
+html[data-theme=dark]{color-scheme:dark;--bg:#111110;--bg2:#1b1b1a;--surface:rgba(38,38,37,.78);--surface-solid:#242423;--surface-soft:rgba(31,31,30,.88);--text:#f4f4f2;--muted:#aaa9a5;--subtle:#777772;--line:rgba(255,255,255,.085);--line-strong:rgba(255,255,255,.15);--shadow:0 18px 45px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.07);--shadow-small:0 7px 22px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.06);--pill:#30302f;--pill-active:#f2f2f0;--pill-active-text:#171717;--accent:#f1f1ef;--nav:rgba(27,27,26,.86);--overlay:rgba(0,0,0,.58);--toggle:#eaeae8;--toggle-knob:#181818;--focus:rgba(255,255,255,.2)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;background:var(--bg);color:var(--text)}body{min-height:100svh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation}button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--text);outline-offset:3px}.app{position:relative;max-width:470px;min-height:100svh;margin:0 auto;padding:env(safe-area-inset-top) 20px calc(32px + env(safe-area-inset-bottom));overflow:hidden;background:radial-gradient(ellipse at 50% -18%,var(--bg2),transparent 54%),var(--bg)}.app:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(145deg,rgba(255,255,255,.15),transparent 38%,rgba(0,0,0,.018));z-index:0}.topbar,.content,.bottom-nav,.sheet-wrap,.toast{position:relative;z-index:1}.topbar{height:58px;display:flex;align-items:center;justify-content:space-between}.icon-btn{width:42px;height:42px;border-radius:16px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow-small);display:grid;place-items:center;transition:transform .18s,background .2s;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}.icon-btn:active{transform:scale(.93)}.top-actions{display:flex;gap:9px}.theme-chip{height:40px;padding:0 13px;border-radius:15px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow-small);display:flex;align-items:center;gap:8px;font-size:12px;font-weight:650;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}.content{padding-top:15px}.eyebrow{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--muted);font-weight:750}.heading{font-size:35px;letter-spacing:-1.5px;line-height:1.05;font-weight:760;margin:7px 0 7px}.subheading{font-size:13px;line-height:1.55;color:var(--muted);margin:0 0 22px}.profile-card{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;padding:16px;border-radius:25px;background:linear-gradient(145deg,var(--surface),var(--surface-soft));border:1px solid var(--line-strong);box-shadow:var(--shadow);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);margin-bottom:24px}.profile-card:before{content:"";position:absolute;left:18px;right:18px;top:1px;height:1px;background:linear-gradient(90deg,transparent,var(--text),transparent);opacity:.12}.avatar{width:54px;height:54px;flex:0 0 auto;border-radius:19px;background:linear-gradient(145deg,#d8d8d6,#a8a8a5);display:grid;place-items:center;color:#222;font-weight:780;font-size:16px;box-shadow:inset 0 1px 1px #fff9,0 5px 15px #00000012}.nameblock{min-width:0;flex:1}.name{font-size:15px;font-weight:720;letter-spacing:-.25px}.handle{font-size:12px;color:var(--muted);margin-top:4px}.edit-btn{padding:10px 13px;border-radius:13px;background:var(--pill);font-size:11px;font-weight:700;transition:transform .16s}.edit-btn:active{transform:scale(.95)}.section{margin:0 0 22px}.section-head{display:flex;align-items:center;justify-content:space-between;margin:0 3px 9px}.section-title{font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:760;color:var(--muted)}.section-note{font-size:10px;color:var(--subtle)}.group{overflow:hidden;border:1px solid var(--line);border-radius:22px;background:var(--surface);box-shadow:var(--shadow-small);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}.row{width:100%;min-height:59px;display:flex;align-items:center;gap:12px;padding:11px 14px;background:transparent;text-align:left;transition:background .18s;position:relative}.row+.row:before{content:"";position:absolute;top:0;left:57px;right:14px;border-top:1px solid var(--line)}.row:active{background:var(--surface-soft)}.row-icon{width:34px;height:34px;border-radius:12px;background:var(--pill);display:grid;place-items:center;flex:0 0 auto;color:var(--text)}.row-copy{min-width:0;flex:1}.row-title{display:block;font-size:13px;font-weight:650;line-height:1.3}.row-desc{display:block;margin-top:3px;font-size:10.5px;color:var(--muted);line-height:1.35}.row-value{font-size:11px;color:var(--muted);margin-right:2px;white-space:nowrap}.chevron{color:var(--subtle);font-size:18px;line-height:1}.switch{width:43px;height:25px;border-radius:99px;background:var(--bg2);border:1px solid var(--line-strong);padding:2px;display:flex;align-items:center;justify-content:flex-start;transition:background .2s,border .2s;flex:0 0 auto}.switch .knob{width:19px;height:19px;border-radius:50%;background:var(--surface-solid);box-shadow:0 1px 4px #0003;transition:transform .22s cubic-bezier(.2,.8,.2,1)}.switch[aria-checked=true]{background:var(--toggle);border-color:var(--toggle)}.switch[aria-checked=true] .knob{transform:translateX(17px);background:var(--toggle-knob)}.version{text-align:center;color:var(--subtle);font-size:10px;letter-spacing:.04em;padding:6px 0 0}.logout{color:#777}.bottom-nav{position:fixed;z-index:5;left:50%;bottom:calc(13px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(430px,calc(100% - 28px));height:68px;border-radius:24px;border:1px solid var(--line-strong);background:var(--nav);box-shadow:0 14px 38px #00000016,inset 0 1px 0 #ffffff80;backdrop-filter:blur(28px) saturate(1.1);-webkit-backdrop-filter:blur(28px) saturate(1.1);display:flex;align-items:center;justify-content:space-around;padding:6px 12px}.nav-item{height:52px;min-width:76px;border-radius:18px;background:transparent;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;color:var(--muted);font-size:9px;font-weight:650;transition:background .2s,transform .18s}.nav-item.active{background:var(--pill);color:var(--text)}.nav-item:active{transform:scale(.94)}.nav-item svg{width:19px;height:19px}.sheet-wrap{position:fixed;inset:0;z-index:20;display:none;align-items:flex-end;justify-content:center;background:var(--overlay);padding:14px 12px calc(14px + env(safe-area-inset-bottom));backdrop-filter:blur(7px)}.sheet-wrap.open{display:flex;animation:fade .2s ease}.sheet{width:min(470px,100%);border:1px solid var(--line-strong);border-radius:28px;background:var(--surface-solid);box-shadow:0 24px 80px #0004;padding:12px 18px 20px;animation:rise .28s cubic-bezier(.2,.8,.2,1)}.handlebar{height:4px;width:38px;border-radius:99px;background:var(--subtle);opacity:.45;margin:0 auto 18px}.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}.sheet-title{font-weight:760;font-size:18px;letter-spacing:-.4px}.sheet-sub{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:16px}.choice{width:100%;min-height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;border-radius:15px;background:var(--surface-soft);margin-top:7px;text-align:left;font-size:13px;font-weight:630;border:1px solid var(--line)}.choice.selected{border-color:var(--text)}.primary{width:100%;height:51px;border-radius:16px;background:var(--text);color:var(--bg);font-size:13px;font-weight:750;margin-top:14px;transition:transform .16s,opacity .16s}.primary:active{transform:scale(.98);opacity:.88}.secondary{width:100%;height:47px;border-radius:15px;background:var(--pill);color:var(--text);font-size:12px;font-weight:700;margin-top:8px}.toast{position:fixed;z-index:40;left:50%;bottom:calc(94px + env(safe-area-inset-bottom));transform:translate(-50%,12px);padding:11px 15px;border-radius:14px;background:var(--text);color:var(--bg);font-size:12px;font-weight:650;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;box-shadow:0 10px 28px #0003}.toast.show{opacity:1;transform:translate(-50%,0)}.ripple{position:absolute;border-radius:50%;background:currentColor;opacity:.12;transform:scale(0);pointer-events:none;animation:ripple .55s ease-out}.row,.icon-btn,.theme-chip,.nav-item,.edit-btn,.primary,.secondary,.choice{overflow:hidden;isolation:isolate}@keyframes ripple{to{transform:scale(3.7);opacity:0}}@keyframes fade{from{opacity:0}to{opacity:1}}@keyframes rise{from{transform:translateY(28px);opacity:.7}to{transform:translateY(0);opacity:1}}@media(min-width:600px){body{padding:20px 0;background:#ddd}.app{min-height:calc(100svh - 40px);border-radius:34px;box-shadow:0 24px 90px #0002}.bottom-nav{bottom:calc(30px + env(safe-area-inset-bottom))}.toast{bottom:calc(110px + env(safe-area-inset-bottom))}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+</style>
+<!-- NEMO-TOKENS:START -->
+<style id="nemo-tokens">
+/* Generated by design/sync-references.ps1. Do not edit inside this block. */
+/* ==========================================================================
+   Nemo Design System v1.0.0 — canonical CSS tokens
+   --------------------------------------------------------------------------
+   This is the single source of truth for the HTML references.
+   The native Slint implementation mirrors these values in
+   apps/mobile/ui/theme.slint. Do not edit a reference token block by hand:
+   run design/sync-references.ps1 after changing this file.
+
+   Palette is strictly monochrome. Light is the default theme. The whole
+   document is switched with <html data-theme="light|dark">.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces ------------------------------------------------------------ */
+  --nemo-bg: #f4f4f3;
+  --nemo-bg-2: #ebebe9;
+  --nemo-surface: rgba(255, 255, 255, 0.70);
+  --nemo-surface-strong: #ffffff;
+  --nemo-surface-soft: rgba(255, 255, 255, 0.48);
+  --nemo-glass-top: rgba(255, 255, 255, 0.80);
+  --nemo-glass-bottom: rgba(255, 255, 255, 0.46);
+  --nemo-glass-edge: rgba(255, 255, 255, 0.98);
+
+  /* Borders & separation ------------------------------------------------ */
+  --nemo-line: rgba(20, 20, 20, 0.09);
+  --nemo-line-strong: rgba(20, 20, 20, 0.15);
+
+  /* Type ---------------------------------------------------------------- */
+  --nemo-text: #171717;
+  --nemo-text-2: #6f6f6c;
+  --nemo-text-3: #9b9b97;
+
+  /* Controls ------------------------------------------------------------ */
+  --nemo-primary: #171717;
+  --nemo-on-primary: #ffffff;
+  --nemo-track: rgba(0, 0, 0, 0.10);
+  --nemo-nav: rgba(250, 250, 249, 0.80);
+  --nemo-scrim: rgba(0, 0, 0, 0.30);
+  --nemo-danger: #4f4f4c;
+  --nemo-danger-soft: rgba(20, 20, 20, 0.07);
+
+  /* Depth --------------------------------------------------------------- */
+  --nemo-shadow: 0 18px 44px rgba(0, 0, 0, 0.075), 0 3px 10px rgba(0, 0, 0, 0.035);
+  --nemo-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.055);
+  --nemo-shadow-nav: 0 14px 38px rgba(0, 0, 0, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --nemo-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --nemo-blur: 24px;
+
+  /* Type ramp ----------------------------------------------------------- */
+  --nemo-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Inter, sans-serif;
+  --nemo-display: 32px;
+  --nemo-title: 28px;
+  --nemo-heading: 24px;
+  --nemo-section: 20px;
+  --nemo-card: 16px;
+  --nemo-body: 14px;
+  --nemo-secondary: 12px;
+  --nemo-label: 12px;
+  --nemo-caption: 10px;
+  --nemo-micro: 9px;
+
+  /* 4px spacing scale --------------------------------------------------- */
+  --nemo-space-1: 4px;
+  --nemo-space-2: 8px;
+  --nemo-space-3: 12px;
+  --nemo-space-4: 16px;
+  --nemo-space-5: 20px;
+  --nemo-space-6: 24px;
+  --nemo-space-7: 32px;
+  --nemo-space-8: 40px;
+  --nemo-space-9: 48px;
+
+  /* Radii --------------------------------------------------------------- */
+  --nemo-radius-card: 24px;
+  --nemo-radius-row: 18px;
+  --nemo-radius-control: 16px;
+  --nemo-radius-sheet: 28px;
+  --nemo-radius-pill: 999px;
+
+  /* Layout -------------------------------------------------------------- */
+  --nemo-screen-pad: 22px;
+  --nemo-control-h: 54px;
+  --nemo-touch: 44px;
+  --nemo-header-h: 62px;
+  --nemo-nav-h: 84px;
+
+  /* Motion -------------------------------------------------------------- */
+  --nemo-tap: 140ms;
+  --nemo-focus: 180ms;
+  --nemo-tab: 220ms;
+  --nemo-sheet: 300ms;
+  --nemo-screen: 320ms;
+  --nemo-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --nemo-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+}
+
+html[data-theme="dark"],
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --nemo-bg: #0e0e0e;
+  --nemo-bg-2: #171717;
+  --nemo-surface: rgba(40, 40, 40, 0.66);
+  --nemo-surface-strong: #242424;
+  --nemo-surface-soft: rgba(44, 44, 44, 0.46);
+  --nemo-glass-top: rgba(255, 255, 255, 0.09);
+  --nemo-glass-bottom: rgba(255, 255, 255, 0.035);
+  --nemo-glass-edge: rgba(255, 255, 255, 0.20);
+
+  --nemo-line: rgba(255, 255, 255, 0.09);
+  --nemo-line-strong: rgba(255, 255, 255, 0.15);
+
+  --nemo-text: #f2f2f0;
+  --nemo-text-2: #a8a8a4;
+  --nemo-text-3: #777774;
+
+  --nemo-primary: #f1f1ef;
+  --nemo-on-primary: #171717;
+  --nemo-track: rgba(255, 255, 255, 0.12);
+  --nemo-nav: rgba(26, 26, 26, 0.84);
+  --nemo-scrim: rgba(0, 0, 0, 0.58);
+  --nemo-danger: #c8c8c4;
+  --nemo-danger-soft: rgba(255, 255, 255, 0.07);
+
+  --nemo-shadow: 0 20px 48px rgba(0, 0, 0, 0.36), 0 3px 12px rgba(0, 0, 0, 0.20);
+  --nemo-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.26);
+  --nemo-shadow-nav: 0 16px 44px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --nemo-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+/* --------------------------------------------------------------------------
+   Compatibility aliases used by earlier references.
+   Declared after both theme blocks, and matched against every theme host, so
+   these canonical mappings win over each reference's local palette in light
+   AND dark. They only ever point at canonical Nemo tokens.
+   -------------------------------------------------------------------------- */
+:root,
+html[data-theme="dark"],
+[data-theme="dark"],
+body[data-theme="dark"] {
+  --bg: var(--nemo-bg);
+  --bg2: var(--nemo-bg-2);
+  --surface: var(--nemo-surface);
+  --surface-strong: var(--nemo-surface-strong);
+  --surface-soft: var(--nemo-surface-soft);
+  --line: var(--nemo-line);
+  --line-strong: var(--nemo-line-strong);
+  --text: var(--nemo-text);
+  --muted: var(--nemo-text-2);
+  --subtle: var(--nemo-text-3);
+  --solid: var(--nemo-primary);
+  --solid-text: var(--nemo-on-primary);
+  --nav: var(--nemo-nav);
+  --track: var(--nemo-track);
+  --danger: var(--nemo-danger);
+  --glass-blur: var(--nemo-blur);
+  --shadow: var(--nemo-shadow);
+  --shadow-soft: var(--nemo-shadow-soft);
+
+  --ink: var(--nemo-text);
+  --ink-2: var(--nemo-text-2);
+  --ink-soft: var(--nemo-text-2);
+  --text-2: var(--nemo-text-2);
+  --muted2: var(--nemo-text-3);
+  --muted-2: var(--nemo-text-3);
+  --subtle-2: var(--nemo-text-3);
+  --line-soft: var(--nemo-line);
+  --glass: var(--nemo-surface);
+  --glass2: var(--nemo-surface-strong);
+  --glass-hi: var(--nemo-glass-edge);
+  --glass-edge: var(--nemo-glass-edge);
+  --glass-strong: var(--nemo-surface-strong);
+  --glass-low: var(--nemo-surface-soft);
+  --panel: var(--nemo-surface);
+  --panel-strong: var(--nemo-surface-strong);
+  --field: var(--nemo-surface-soft);
+  --field-focus: var(--nemo-surface-strong);
+  --input: var(--nemo-surface-soft);
+  --bubble: var(--nemo-surface-soft);
+  --soft: var(--nemo-surface-soft);
+  --chip: var(--nemo-surface-soft);
+  --chip-active: var(--nemo-primary);
+  --chip-active-text: var(--nemo-on-primary);
+  --pill: var(--nemo-surface-soft);
+  --tab: var(--nemo-track);
+  --button: var(--nemo-primary);
+  --button-text: var(--nemo-on-primary);
+  --button-ink: var(--nemo-on-primary);
+  --black: var(--nemo-primary);
+  --white: var(--nemo-on-primary);
+  --inverse: var(--nemo-primary);
+  --inverse-text: var(--nemo-on-primary);
+  --primary: var(--nemo-primary);
+  --primary-text: var(--nemo-on-primary);
+  --pill-active: var(--nemo-primary);
+  --pill-active-text: var(--nemo-on-primary);
+  --toggle: var(--nemo-primary);
+  --toggle-knob: var(--nemo-on-primary);
+  --nav-bg: var(--nemo-nav);
+  --overlay: var(--nemo-scrim);
+  --scrim: var(--nemo-scrim);
+  --shadow-small: var(--nemo-shadow-soft);
+  --focus: var(--nemo-line-strong);
+  --ring: var(--nemo-line-strong);
+  --success: var(--nemo-text-2);
+  --unread: var(--nemo-track);
+  --selected: var(--nemo-primary);
+  --good: var(--nemo-text-2);
+  --avatar-a: var(--nemo-surface-strong);
+  --avatar-b: var(--nemo-surface-soft);
+  --avatar-1: var(--nemo-surface-strong);
+  --avatar-2: var(--nemo-surface);
+  --avatar-3: var(--nemo-surface-soft);
+  --avatar-4: var(--nemo-track);
+  --orb: var(--nemo-surface-strong);
+  --orb1: var(--nemo-surface-strong);
+  --orb2: var(--nemo-surface);
+}
+
+/* --------------------------------------------------------------------------
+   Base helpers shared by every reference.
+   -------------------------------------------------------------------------- */
+.nemo-screen {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100dvh;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  background: var(--nemo-bg);
+  color: var(--nemo-text);
+  font-family: var(--nemo-font);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.nemo-glass {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--nemo-line);
+  border-radius: var(--nemo-radius-card);
+  background: var(--nemo-surface);
+  box-shadow: var(--nemo-inner-highlight), var(--nemo-shadow-soft);
+  -webkit-backdrop-filter: blur(var(--nemo-blur)) saturate(115%);
+  backdrop-filter: blur(var(--nemo-blur)) saturate(115%);
+}
+
+.nemo-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.42), transparent 42%, rgba(255, 255, 255, 0.06));
+  opacity: 0.75;
+}
+
+.nemo-primary-button {
+  height: var(--nemo-control-h);
+  border: 0;
+  border-radius: var(--nemo-radius-control);
+  background: var(--nemo-primary);
+  color: var(--nemo-on-primary);
+  font-size: var(--nemo-card);
+  font-weight: 700;
+  box-shadow: var(--nemo-shadow-soft);
+  transition: transform var(--nemo-tap) var(--nemo-ease-out);
+}
+
+.nemo-primary-button:active { transform: scale(0.985); }
+.nemo-primary-button:disabled { opacity: 0.42; pointer-events: none; }
+
+.nemo-nav {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  width: min(390px, calc(100% - 36px));
+  height: 66px;
+  padding: 6px 8px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border: 1px solid var(--nemo-line-strong);
+  border-radius: 24px;
+  background: var(--nemo-nav);
+  box-shadow: var(--nemo-shadow-nav);
+  -webkit-backdrop-filter: blur(28px) saturate(135%);
+  backdrop-filter: blur(28px) saturate(135%);
+}
+
+.nemo-nav-item {
+  flex: 1;
+  height: 52px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--nemo-text-2);
+  font-size: var(--nemo-micro);
+  font-weight: 650;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.nemo-nav-item.active {
+  background: var(--nemo-primary);
+  color: var(--nemo-on-primary);
+}
+
+/* Self-contained light/dark switch used by references that predate the
+   data-theme switcher. It only flips <html data-theme>. */
+.nemo-theme-toggle {
+  position: fixed;
+  z-index: 40;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--nemo-line-strong);
+  border-radius: 15px;
+  background: var(--nemo-surface);
+  color: var(--nemo-text);
+  box-shadow: var(--nemo-inner-highlight), var(--nemo-shadow-soft);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  touch-action: manipulation;
+  transition: transform var(--nemo-tap) var(--nemo-ease-out);
+}
+
+.nemo-theme-toggle:active { transform: scale(0.94); }
+.nemo-theme-toggle svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nemo-theme-toggle .nemo-icon-sun { display: none; }
+[data-theme="dark"] .nemo-theme-toggle .nemo-icon-sun { display: block; }
+[data-theme="dark"] .nemo-theme-toggle .nemo-icon-moon { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+<!-- NEMO-TOKENS:END -->
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <button class="icon-btn" aria-label="Go back" onclick="toast('Back to Profile')"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+    <div class="top-actions">
+      <button class="theme-chip" id="themeToggle" aria-label="Switch theme"><span id="themeGlyph">◐</span><span id="themeLabel">Dark mode</span></button>
+    </div>
+  </header>
+  <main class="content">
+    <div class="eyebrow">NEMO · PERSONALISE</div>
+    <h1 class="heading">Settings</h1>
+    <p class="subheading">Make your space feel like yours.</p>
+
+    <section class="profile-card" aria-label="Your account">
+      <div class="avatar">AM</div>
+      <div class="nameblock"><div class="name">Alex Morgan</div><div class="handle">@alexmorgan</div></div>
+      <button class="edit-btn" onclick="toast('Opening profile')">Edit profile</button>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><span class="section-title">Preferences</span><span class="section-note">Your experience</span></div>
+      <div class="group">
+        <button class="row" onclick="openAppearance()">
+          <span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z"/></svg></span>
+          <span class="row-copy"><span class="row-title">Appearance</span><span class="row-desc">Choose light, dark or follow device</span></span><span class="row-value" id="appearanceValue">Light</span><span class="chevron">›</span>
+        </button>
+        <div class="row">
+          <span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span>
+          <span class="row-copy"><span class="row-title">Push notifications</span><span class="row-desc">Friend requests and new messages</span></span><button class="switch" role="switch" aria-checked="true" aria-label="Push notifications" onclick="toggleSwitch(this,'Push notifications')"><span class="knob"></span></button>
+        </div>
+        <div class="row">
+          <span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 10v4h4l5 4V6l-5 4H4zM17 9a5 5 0 0 1 0 6M19 6a9 9 0 0 1 0 12"/></svg></span>
+          <span class="row-copy"><span class="row-title">Message sounds</span><span class="row-desc">Play a sound for new messages</span></span><button class="switch" role="switch" aria-checked="false" aria-label="Message sounds" onclick="toggleSwitch(this,'Message sounds')"><span class="knob"></span></button>
+        </div>
+        <div class="row">
+          <span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 4v16M16 4v16M4 8h16M4 16h16"/></svg></span>
+          <span class="row-copy"><span class="row-title">Haptic feedback</span><span class="row-desc">Subtle feedback when you interact</span></span><button class="switch" role="switch" aria-checked="true" aria-label="Haptic feedback" onclick="toggleSwitch(this,'Haptic feedback')"><span class="knob"></span></button>
+        </div>
+        <div class="row">
+          <span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="m4 8 8 5 8-5"/></svg></span>
+          <span class="row-copy"><span class="row-title">Message previews</span><span class="row-desc">Show message text in notifications</span></span><button class="switch" role="switch" aria-checked="true" aria-label="Message previews" onclick="toggleSwitch(this,'Message previews')"><span class="knob"></span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><span class="section-title">Privacy & security</span></div>
+      <div class="group">
+        <button class="row" onclick="openChoice('Friend requests','Choose who can send you friend requests',['Everyone','Nobody'])"><span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M16 20v-1.5a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4V20M9.5 10.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM19 8v6M16 11h6"/></svg></span><span class="row-copy"><span class="row-title">Friend requests</span><span class="row-desc">Control who can add you</span></span><span class="row-value">Everyone</span><span class="chevron">›</span></button>
+        <div class="row"><span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="row-copy"><span class="row-title">Read receipts</span><span class="row-desc">Let friends know when you've read a message</span></span><button class="switch" role="switch" aria-checked="true" aria-label="Read receipts" onclick="toggleSwitch(this,'Read receipts')"><span class="knob"></span></button></div>
+        <button class="row" onclick="toast('Opening blocked accounts')"><span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg></span><span class="row-copy"><span class="row-title">Blocked accounts</span><span class="row-desc">Manage people you have blocked</span></span><span class="chevron">›</span></button>
+        <button class="row" onclick="toast('Recovery codes are managed in account recovery')"><span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3M12 14v3"/></svg></span><span class="row-copy"><span class="row-title">Recovery codes</span><span class="row-desc">Review your account recovery options</span></span><span class="chevron">›</span></button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><span class="section-title">Chats</span></div>
+      <div class="group">
+        <div class="row"><span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg></span><span class="row-copy"><span class="row-title">Enter to send</span><span class="row-desc">Send a message with the enter key</span></span><button class="switch" role="switch" aria-checked="false" aria-label="Enter to send" onclick="toggleSwitch(this,'Enter to send')"><span class="knob"></span></button></div>
+        <button class="row" onclick="openChoice('Media downloads','Choose how media is downloaded',['Wi-Fi only','Wi-Fi and mobile data','Never automatically'])"><span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-4-4 4 4 4-4M4 17v3h16v-3"/></svg></span><span class="row-copy"><span class="row-title">Media downloads</span><span class="row-desc">Choose when photos and files download</span></span><span class="row-value">Wi-Fi only</span><span class="chevron">›</span></button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><span class="section-title">Support & about</span></div>
+      <div class="group">
+        <button class="row" onclick="toast('Opening Help Center')"><span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 4.2 1.8c-1 .9-1.8 1.2-1.8 2.7M12 17.2h.01"/></svg></span><span class="row-copy"><span class="row-title">Help center</span><span class="row-desc">Get help with using Nemo</span></span><span class="chevron">›</span></button>
+        <button class="row" onclick="toast('Opening community guidelines')"><span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-7-4-7 4z"/><path d="M9 8h6M9 11h6"/></svg></span><span class="row-copy"><span class="row-title">Community guidelines</span><span class="row-desc">How we keep Nemo welcoming</span></span><span class="chevron">›</span></button>
+        <button class="row" onclick="toast('Opening terms and privacy')"><span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg></span><span class="row-copy"><span class="row-title">Terms & privacy</span><span class="row-desc">Read Nemo's policies</span></span><span class="chevron">›</span></button>
+        <button class="row" onclick="toast('Checking for updates')"><span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9A7 7 0 0 1 18 6l2 1M4 17l2 1a7 7 0 0 0 12.4-3"/></svg></span><span class="row-copy"><span class="row-title">App updates</span><span class="row-desc">Check the latest Nemo version</span></span><span class="chevron">›</span></button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="group">
+        <button class="row logout" onclick="openLogout()"><span class="row-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5M15 12H3M21 4v16"/></svg></span><span class="row-copy"><span class="row-title">Log out</span><span class="row-desc">Sign out of this device</span></span><span class="chevron">›</span></button>
+      </div>
+    </section>
+    <div class="version">NEMO · VERSION 0.1.0 · UI PREVIEW</div>
+  </main>
+</div>
+
+<div class="sheet-wrap" id="sheetWrap" onclick="if(event.target===this)closeSheet()" role="presentation">
+  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="handlebar"></div>
+    <div class="sheet-head"><div class="sheet-title" id="sheetTitle">Appearance</div><button class="icon-btn" style="width:34px;height:34px;border-radius:12px;box-shadow:none" aria-label="Close" onclick="closeSheet()">×</button></div>
+    <div class="sheet-sub" id="sheetSub">Choose how Nemo looks on this device.</div>
+    <div id="sheetChoices"></div>
+    <button class="primary" id="sheetConfirm" onclick="confirmSheet()">Done</button>
+    <button class="secondary" onclick="closeSheet()">Cancel</button>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+const root=document.documentElement;let selectedTheme=localStorage.getItem('nemo-demo-theme')||'light';let pendingChoice=null;let toastTimer;
+function applyTheme(mode){selectedTheme=mode;const effective=mode==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):mode;root.dataset.theme=effective;document.querySelector('meta[name="theme-color"]').content=effective==='dark'?'#111110':'#f2f2f1';document.getElementById('themeLabel').textContent=effective==='dark'?'Light mode':'Dark mode';document.getElementById('themeGlyph').textContent=effective==='dark'?'☼':'◐';document.getElementById('appearanceValue').textContent=mode[0].toUpperCase()+mode.slice(1);localStorage.setItem('nemo-demo-theme',mode)}
+applyTheme(selectedTheme);document.getElementById('themeToggle').addEventListener('click',()=>applyTheme(root.dataset.theme==='dark'?'light':'dark'));
+function toast(message){const el=document.getElementById('toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1900)}
+function toggleSwitch(btn,label){const next=btn.getAttribute('aria-checked')!=='true';btn.setAttribute('aria-checked',String(next));toast(label+(next?' enabled':' disabled'))}
+function openSheet(title,sub,choices,selected,onSelect){pendingChoice={selected,onSelect};document.getElementById('sheetTitle').textContent=title;document.getElementById('sheetSub').textContent=sub;const holder=document.getElementById('sheetChoices');holder.innerHTML='';choices.forEach(choice=>{const b=document.createElement('button');b.className='choice'+(choice===selected?' selected':'');b.type='button';b.innerHTML='<span>'+escapeHtml(choice)+'</span><span>'+(choice===selected?'✓':'')+'</span>';b.addEventListener('click',()=>{pendingChoice.selected=choice;[...holder.children].forEach(x=>{x.classList.toggle('selected',x===b);x.lastElementChild.textContent=x===b?'✓':''})});holder.appendChild(b)});document.getElementById('sheetWrap').classList.add('open')}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function openAppearance(){openSheet('Appearance','Choose how Nemo looks on this device.',['Light','Dark','System'],selectedTheme[0].toUpperCase()+selectedTheme.slice(1),v=>applyTheme(v.toLowerCase()))}
+function openChoice(title,sub,choices){openSheet(title,sub,choices,choices[0],v=>toast(title+': '+v))}
+function confirmSheet(){if(pendingChoice&&pendingChoice.onSelect)pendingChoice.onSelect(pendingChoice.selected);closeSheet()}
+function closeSheet(){document.getElementById('sheetWrap').classList.remove('open')}
+function openLogout(){openSheet('Log out?','You will need to sign in again to use Nemo.',['Stay signed in','Log out'],'Stay signed in',v=>toast(v==='Log out'?'Log out is a preview action':'You are still signed in'))}
+document.addEventListener('click',e=>{const target=e.target.closest('button');if(!target||target.closest('.sheet'))return;const r=target.getBoundingClientRect();const size=Math.max(r.width,r.height);const span=document.createElement('span');span.className='ripple';span.style.width=span.style.height=size+'px';span.style.left=(e.clientX?e.clientX-r.left:r.width/2)-size/2+'px';span.style.top=(e.clientY?e.clientY-r.top:r.height/2)-size/2+'px';target.appendChild(span);setTimeout(()=>span.remove(),600)});
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(selectedTheme==='system')applyTheme('system')});
+</script>
+</body>
+</html>

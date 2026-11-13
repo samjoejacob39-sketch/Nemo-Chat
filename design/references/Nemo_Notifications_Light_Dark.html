@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f5">
+<title>Nemo — Notifications</title>
+<style>
+:root{color-scheme:light;--bg:#f3f3f3;--surface:rgba(255,255,255,.78);--surface-solid:#fff;--surface-soft:rgba(245,245,245,.82);--text:#171717;--muted:#777;--muted-2:#999;--line:rgba(0,0,0,.085);--line-strong:rgba(0,0,0,.14);--shadow:0 16px 42px rgba(0,0,0,.075);--shadow-soft:0 6px 20px rgba(0,0,0,.045);--glass-hi:rgba(255,255,255,.9);--glass-low:rgba(255,255,255,.24);--inverse:#171717;--inverse-text:#fff;--chip:#e9e9e9;--unread:rgba(0,0,0,.035);--scrim:rgba(0,0,0,.28);--nav:rgba(255,255,255,.78);--success:#333}
+html[data-theme="dark"]{color-scheme:dark;--bg:#111;--surface:rgba(35,35,35,.8);--surface-solid:#202020;--surface-soft:rgba(44,44,44,.82);--text:#f4f4f4;--muted:#aaa;--muted-2:#777;--line:rgba(255,255,255,.09);--line-strong:rgba(255,255,255,.16);--shadow:0 18px 46px rgba(0,0,0,.32);--shadow-soft:0 7px 24px rgba(0,0,0,.2);--glass-hi:rgba(255,255,255,.14);--glass-low:rgba(255,255,255,.035);--inverse:#f2f2f2;--inverse-text:#171717;--chip:#303030;--unread:rgba(255,255,255,.045);--scrim:rgba(0,0,0,.58);--nav:rgba(30,30,30,.82);--success:#ddd}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;background:var(--bg);color:var(--text)}body{min-height:100svh;display:flex;justify-content:center;transition:background .3s,color .3s;-webkit-tap-highlight-color:transparent}.app{width:100%;max-width:480px;min-height:100svh;position:relative;overflow:hidden;background:var(--bg);padding:env(safe-area-inset-top) 0 calc(32px + env(safe-area-inset-bottom));isolation:isolate}.ambient{position:absolute;inset:0;z-index:-2;pointer-events:none;overflow:hidden}.ambient:before,.ambient:after{content:"";position:absolute;border-radius:50%;filter:blur(55px);opacity:.35;animation:drift 15s ease-in-out infinite alternate}.ambient:before{width:290px;height:290px;top:-160px;right:-120px;background:radial-gradient(circle,#fff,transparent 68%)}.ambient:after{width:260px;height:260px;bottom:15%;left:-180px;background:radial-gradient(circle,#cfcfcf,transparent 70%);opacity:.23;animation-delay:-7s}html[data-theme="dark"] .ambient:before{opacity:.1}html[data-theme="dark"] .ambient:after{opacity:.12}@keyframes drift{to{transform:translate3d(26px,22px,0) scale(1.1)}}
+.topbar{padding:18px 22px 10px;display:flex;align-items:center;justify-content:space-between}.top-actions{display:flex;gap:9px}.icon-btn{width:43px;height:43px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--text);display:grid;place-items:center;box-shadow:var(--shadow-soft);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);cursor:pointer;transition:transform .18s,background .25s,border-color .25s}.icon-btn:active{transform:scale(.93)}.icon-btn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.brand-mark{font-size:13px;font-weight:750;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}.content{padding:18px 20px 22px}.heading-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:7px}.eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:750;margin:0 0 9px}.title{font-size:34px;line-height:1.04;letter-spacing:-1.45px;font-weight:760;margin:0}.subtitle{color:var(--muted);font-size:13px;line-height:1.5;margin:10px 0 0}.mark-all{border:0;background:transparent;color:var(--text);font-size:11px;font-weight:700;padding:9px 0 7px;white-space:nowrap;cursor:pointer;text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:4px}.summary{margin:20px 0 18px;padding:14px 15px;border:1px solid var(--line);border-radius:21px;background:linear-gradient(140deg,var(--glass-hi),var(--glass-low)),var(--surface);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:var(--shadow-soft);display:flex;align-items:center;gap:12px;position:relative;overflow:hidden}.summary:before{content:"";position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,var(--glass-hi),transparent)}.summary-icon{width:39px;height:39px;flex:0 0 auto;border-radius:14px;background:var(--chip);display:grid;place-items:center}.summary-icon svg{width:18px;height:18px;stroke:var(--text);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.summary-copy{flex:1;min-width:0}.summary-copy strong{display:block;font-size:12px;font-weight:750;margin-bottom:3px}.summary-copy span{display:block;font-size:11px;color:var(--muted)}.count-pill{height:27px;min-width:27px;padding:0 8px;border-radius:999px;background:var(--inverse);color:var(--inverse-text);font-size:11px;font-weight:750;display:grid;place-items:center}
+.tabs{display:flex;gap:7px;padding:4px;border-radius:17px;background:var(--surface-soft);border:1px solid var(--line);margin-bottom:24px}.tab{flex:1;border:0;background:transparent;color:var(--muted);border-radius:13px;padding:10px 8px;font-size:12px;font-weight:700;cursor:pointer;transition:background .22s,color .22s,transform .18s}.tab:active{transform:scale(.97)}.tab.active{background:var(--surface-solid);color:var(--text);box-shadow:0 3px 12px rgba(0,0,0,.07);border:1px solid var(--line)}.section{margin:0 0 23px}.section-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 10px}.section-head h2{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:800;margin:0}.section-head span{font-size:10px;color:var(--muted-2)}.notice-list{display:flex;flex-direction:column;gap:8px}.notice{position:relative;display:flex;gap:12px;padding:14px 13px;border-radius:21px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow-soft);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);overflow:hidden;transition:background .25s,border-color .25s,transform .2s,opacity .2s}.notice.unread{background:linear-gradient(135deg,var(--unread),transparent 75%),var(--surface);border-color:var(--line-strong)}.notice:before{content:"";position:absolute;top:0;left:17px;right:17px;height:1px;background:linear-gradient(90deg,transparent,var(--glass-hi),transparent);opacity:.85}.avatar{width:43px;height:43px;flex:0 0 43px;border-radius:16px;background:linear-gradient(145deg,#e9e9e9,#c9c9c9);color:#272727;display:grid;place-items:center;font-size:11px;font-weight:800;letter-spacing:.02em;border:1px solid rgba(0,0,0,.07);position:relative}.avatar.group{border-radius:15px;background:linear-gradient(145deg,#d7d7d7,#a9a9a9)}.avatar.system{background:linear-gradient(145deg,#f2f2f2,#c6c6c6)}html[data-theme="dark"] .avatar{background:linear-gradient(145deg,#666,#393939);color:#f5f5f5;border-color:rgba(255,255,255,.08)}html[data-theme="dark"] .avatar.group{background:linear-gradient(145deg,#777,#414141)}html[data-theme="dark"] .avatar.system{background:linear-gradient(145deg,#555,#292929)}.avatar svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.notice-body{min-width:0;flex:1;padding-top:1px}.notice-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.notice-title{font-size:12px;line-height:1.4;font-weight:760;margin:0;color:var(--text)}.notice-title .person{font-weight:800}.time{font-size:10px;color:var(--muted-2);white-space:nowrap;padding-top:2px}.message{font-size:11px;line-height:1.48;color:var(--muted);margin:4px 0 0}.notice-actions{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}.small-btn{height:30px;padding:0 13px;border-radius:11px;border:1px solid var(--line-strong);background:var(--surface-solid);color:var(--text);font-size:10px;font-weight:750;cursor:pointer;transition:transform .16s,background .2s}.small-btn:active{transform:scale(.95)}.small-btn.primary{background:var(--inverse);color:var(--inverse-text);border-color:transparent}.small-btn.quiet{background:transparent;color:var(--muted)}.unread-dot{width:7px;height:7px;border-radius:50%;background:var(--text);position:absolute;top:17px;right:12px}.notice.is-read .unread-dot{display:none}.notice-status{font-size:10px;color:var(--muted);margin-top:9px;display:flex;align-items:center;gap:5px}.notice-status svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8}.empty{display:none;text-align:center;padding:42px 20px 46px;border:1px dashed var(--line-strong);border-radius:22px;color:var(--muted)}.empty.show{display:block}.empty-icon{width:48px;height:48px;border-radius:17px;background:var(--surface-soft);display:grid;place-items:center;margin:0 auto 12px}.empty-icon svg{width:22px;height:22px;stroke:var(--text);fill:none;stroke-width:1.6}.empty strong{display:block;color:var(--text);font-size:13px;margin-bottom:5px}.empty p{font-size:11px;line-height:1.5;margin:0}
+.bottom-nav{position:absolute;z-index:5;bottom:calc(13px + env(safe-area-inset-bottom));left:18px;right:18px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:23px;background:var(--nav);backdrop-filter:blur(28px) saturate(1.2);-webkit-backdrop-filter:blur(28px) saturate(1.2);box-shadow:var(--shadow);display:flex;justify-content:space-around}.nav-item{min-width:60px;border:0;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 11px;border-radius:15px;font-size:9px;font-weight:700;cursor:pointer}.nav-item svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.nav-item.active{color:var(--text);background:var(--surface-soft)}.nav-item:active{transform:scale(.94)}
+.sheet-backdrop{position:fixed;inset:0;background:var(--scrim);z-index:10;opacity:0;pointer-events:none;transition:opacity .22s}.sheet-backdrop.open{opacity:1;pointer-events:auto}.sheet{position:fixed;z-index:11;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));width:min(448px,calc(100% - 24px));transform:translate(-50%,calc(110% + 20px));border:1px solid var(--line-strong);border-radius:26px;background:var(--surface-solid);box-shadow:var(--shadow);padding:14px;transition:transform .3s cubic-bezier(.2,.8,.2,1)}.sheet.open{transform:translate(-50%,0)}.sheet-grab{width:34px;height:4px;border-radius:99px;background:var(--muted-2);opacity:.45;margin:0 auto 16px}.sheet h3{font-size:15px;margin:0 0 5px}.sheet p{font-size:11px;color:var(--muted);margin:0 0 14px;line-height:1.5}.sheet-action{width:100%;display:flex;align-items:center;gap:11px;padding:13px 10px;border:0;border-radius:13px;background:transparent;color:var(--text);font-size:12px;font-weight:650;text-align:left}.sheet-action:active{background:var(--surface-soft)}.sheet-action svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7}.toast{position:fixed;z-index:20;left:50%;bottom:calc(95px + env(safe-area-inset-bottom));transform:translate(-50%,15px);opacity:0;pointer-events:none;padding:11px 16px;border:1px solid var(--line-strong);border-radius:14px;background:var(--inverse);color:var(--inverse-text);box-shadow:var(--shadow);font-size:11px;font-weight:650;white-space:nowrap;transition:opacity .2s,transform .2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(min-width:600px){body{padding:24px 0}.app{min-height:850px;height:calc(100svh - 48px);max-height:980px;border:1px solid var(--line-strong);border-radius:34px;box-shadow:0 25px 80px rgba(0,0,0,.12)}.bottom-nav{bottom:18px}.toast{bottom:105px}.sheet{bottom:20px}}
+@media(max-width:360px){.content{padding-left:15px;padding-right:15px}.title{font-size:31px}.notice{gap:9px;padding:12px 10px}.avatar{width:39px;height:39px;flex-basis:39px}.mark-all{font-size:10px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+</style>
+<!-- NEMO-TOKENS:START -->
+<style id="nemo-tokens">
+/* Generated by design/sync-references.ps1. Do not edit inside this block. */
+/* ==========================================================================
+   Nemo Design System v1.0.0 — canonical CSS tokens
+   --------------------------------------------------------------------------
+   This is the single source of truth for the HTML references.
+   The native Slint implementation mirrors these values in
+   apps/mobile/ui/theme.slint. Do not edit a reference token block by hand:
+   run design/sync-references.ps1 after changing this file.
+
+   Palette is strictly monochrome. Light is the default theme. The whole
+   document is switched with <html data-theme="light|dark">.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces ------------------------------------------------------------ */
+  --nemo-bg: #f4f4f3;
+  --nemo-bg-2: #ebebe9;
+  --nemo-surface: rgba(255, 255, 255, 0.70);
+  --nemo-surface-strong: #ffffff;
+  --nemo-surface-soft: rgba(255, 255, 255, 0.48);
+  --nemo-glass-top: rgba(255, 255, 255, 0.80);
+  --nemo-glass-bottom: rgba(255, 255, 255, 0.46);
+  --nemo-glass-edge: rgba(255, 255, 255, 0.98);
+
+  /* Borders & separation ------------------------------------------------ */
+  --nemo-line: rgba(20, 20, 20, 0.09);
+  --nemo-line-strong: rgba(20, 20, 20, 0.15);
+
+  /* Type ---------------------------------------------------------------- */
+  --nemo-text: #171717;
+  --nemo-text-2: #6f6f6c;
+  --nemo-text-3: #9b9b97;
+
+  /* Controls ------------------------------------------------------------ */
+  --nemo-primary: #171717;
+  --nemo-on-primary: #ffffff;
+  --nemo-track: rgba(0, 0, 0, 0.10);
+  --nemo-nav: rgba(250, 250, 249, 0.80);
+  --nemo-scrim: rgba(0, 0, 0, 0.30);
+  --nemo-danger: #4f4f4c;
+  --nemo-danger-soft: rgba(20, 20, 20, 0.07);
+
+  /* Depth --------------------------------------------------------------- */
+  --nemo-shadow: 0 18px 44px rgba(0, 0, 0, 0.075), 0 3px 10px rgba(0, 0, 0, 0.035);
+  --nemo-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.055);
+  --nemo-shadow-nav: 0 14px 38px rgba(0, 0, 0, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --nemo-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --nemo-blur: 24px;
+
+  /* Type ramp ----------------------------------------------------------- */
+  --nemo-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Inter, sans-serif;
+  --nemo-display: 32px;
+  --nemo-title: 28px;
+  --nemo-heading: 24px;
+  --nemo-section: 20px;
+  --nemo-card: 16px;
+  --nemo-body: 14px;
+  --nemo-secondary: 12px;
+  --nemo-label: 12px;
+  --nemo-caption: 10px;
+  --nemo-micro: 9px;
+
+  /* 4px spacing scale --------------------------------------------------- */
+  --nemo-space-1: 4px;
+  --nemo-space-2: 8px;
+  --nemo-space-3: 12px;
+  --nemo-space-4: 16px;
+  --nemo-space-5: 20px;
+  --nemo-space-6: 24px;
+  --nemo-space-7: 32px;
+  --nemo-space-8: 40px;
+  --nemo-space-9: 48px;
+
+  /* Radii --------------------------------------------------------------- */
+  --nemo-radius-card: 24px;
+  --nemo-radius-row: 18px;
+  --nemo-radius-control: 16px;
+  --nemo-radius-sheet: 28px;
+  --nemo-radius-pill: 999px;
+
+  /* Layout -------------------------------------------------------------- */
+  --nemo-screen-pad: 22px;
+  --nemo-control-h: 54px;
+  --nemo-touch: 44px;
+  --nemo-header-h: 62px;
+  --nemo-nav-h: 84px;
+
+  /* Motion -------------------------------------------------------------- */
+  --nemo-tap: 140ms;
+  --nemo-focus: 180ms;
+  --nemo-tab: 220ms;
+  --nemo-sheet: 300ms;
+  --nemo-screen: 320ms;
+  --nemo-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --nemo-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+}
+
+html[data-theme="dark"],
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --nemo-bg: #0e0e0e;
+  --nemo-bg-2: #171717;
+  --nemo-surface: rgba(40, 40, 40, 0.66);
+  --nemo-surface-strong: #242424;
+  --nemo-surface-soft: rgba(44, 44, 44, 0.46);
+  --nemo-glass-top: rgba(255, 255, 255, 0.09);
+  --nemo-glass-bottom: rgba(255, 255, 255, 0.035);
+  --nemo-glass-edge: rgba(255, 255, 255, 0.20);
+
+  --nemo-line: rgba(255, 255, 255, 0.09);
+  --nemo-line-strong: rgba(255, 255, 255, 0.15);
+
+  --nemo-text: #f2f2f0;
+  --nemo-text-2: #a8a8a4;
+  --nemo-text-3: #777774;
+
+  --nemo-primary: #f1f1ef;
+  --nemo-on-primary: #171717;
+  --nemo-track: rgba(255, 255, 255, 0.12);
+  --nemo-nav: rgba(26, 26, 26, 0.84);
+  --nemo-scrim: rgba(0, 0, 0, 0.58);
+  --nemo-danger: #c8c8c4;
+  --nemo-danger-soft: rgba(255, 255, 255, 0.07);
+
+  --nemo-shadow: 0 20px 48px rgba(0, 0, 0, 0.36), 0 3px 12px rgba(0, 0, 0, 0.20);
+  --nemo-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.26);
+  --nemo-shadow-nav: 0 16px 44px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  --nemo-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+/* --------------------------------------------------------------------------
+   Compatibility aliases used by earlier references.
+   Declared after both theme blocks, and matched against every theme host, so
+   these canonical mappings win over each reference's local palette in light
+   AND dark. They only ever point at canonical Nemo tokens.
+   -------------------------------------------------------------------------- */
+:root,
+html[data-theme="dark"],
+[data-theme="dark"],
+body[data-theme="dark"] {
+  --bg: var(--nemo-bg);
+  --bg2: var(--nemo-bg-2);
+  --surface: var(--nemo-surface);
+  --surface-strong: var(--nemo-surface-strong);
+  --surface-soft: var(--nemo-surface-soft);
+  --line: var(--nemo-line);
+  --line-strong: var(--nemo-line-strong);
+  --text: var(--nemo-text);
+  --muted: var(--nemo-text-2);
+  --subtle: var(--nemo-text-3);
+  --solid: var(--nemo-primary);
+  --solid-text: var(--nemo-on-primary);
+  --nav: var(--nemo-nav);
+  --track: var(--nemo-track);
+  --danger: var(--nemo-danger);
+  --glass-blur: var(--nemo-blur);
+  --shadow: var(--nemo-shadow);
+  --shadow-soft: var(--nemo-shadow-soft);
+
+  --ink: var(--nemo-text);
+  --ink-2: var(--nemo-text-2);
+  --ink-soft: var(--nemo-text-2);
+  --text-2: var(--nemo-text-2);
+  --muted2: var(--nemo-text-3);
+  --muted-2: var(--nemo-text-3);
+  --subtle-2: var(--nemo-text-3);
+  --line-soft: var(--nemo-line);
+  --glass: var(--nemo-surface);
+  --glass2: var(--nemo-surface-strong);
+  --glass-hi: var(--nemo-glass-edge);
+  --glass-edge: var(--nemo-glass-edge);
+  --glass-strong: var(--nemo-surface-strong);
+  --glass-low: var(--nemo-surface-soft);
+  --panel: var(--nemo-surface);
+  --panel-strong: var(--nemo-surface-strong);
+  --field: var(--nemo-surface-soft);
+  --field-focus: var(--nemo-surface-strong);
+  --input: var(--nemo-surface-soft);
+  --bubble: var(--nemo-surface-soft);
+  --soft: var(--nemo-surface-soft);
+  --chip: var(--nemo-surface-soft);
+  --chip-active: var(--nemo-primary);
+  --chip-active-text: var(--nemo-on-primary);
+  --pill: var(--nemo-surface-soft);
+  --tab: var(--nemo-track);
+  --button: var(--nemo-primary);
+  --button-text: var(--nemo-on-primary);
+  --button-ink: var(--nemo-on-primary);
+  --black: var(--nemo-primary);
+  --white: var(--nemo-on-primary);
+  --inverse: var(--nemo-primary);
+  --inverse-text: var(--nemo-on-primary);
+  --primary: var(--nemo-primary);
+  --primary-text: var(--nemo-on-primary);
+  --pill-active: var(--nemo-primary);
+  --pill-active-text: var(--nemo-on-primary);
+  --toggle: var(--nemo-primary);
+  --toggle-knob: var(--nemo-on-primary);
+  --nav-bg: var(--nemo-nav);
+  --overlay: var(--nemo-scrim);
+  --scrim: var(--nemo-scrim);
+  --shadow-small: var(--nemo-shadow-soft);
+  --focus: var(--nemo-line-strong);
+  --ring: var(--nemo-line-strong);
+  --success: var(--nemo-text-2);
+  --unread: var(--nemo-track);
+  --selected: var(--nemo-primary);
+  --good: var(--nemo-text-2);
+  --avatar-a: var(--nemo-surface-strong);
+  --avatar-b: var(--nemo-surface-soft);
+  --avatar-1: var(--nemo-surface-strong);
+  --avatar-2: var(--nemo-surface);
+  --avatar-3: var(--nemo-surface-soft);
+  --avatar-4: var(--nemo-track);
+  --orb: var(--nemo-surface-strong);
+  --orb1: var(--nemo-surface-strong);
+  --orb2: var(--nemo-surface);
+}
+
+/* --------------------------------------------------------------------------
+   Base helpers shared by every reference.
+   -------------------------------------------------------------------------- */
+.nemo-screen {
+  width: 100%;
+  max-width: 430px;
+  min-height: 100dvh;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  background: var(--nemo-bg);
+  color: var(--nemo-text);
+  font-family: var(--nemo-font);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.nemo-glass {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--nemo-line);
+  border-radius: var(--nemo-radius-card);
+  background: var(--nemo-surface);
+  box-shadow: var(--nemo-inner-highlight), var(--nemo-shadow-soft);
+  -webkit-backdrop-filter: blur(var(--nemo-blur)) saturate(115%);
+  backdrop-filter: blur(var(--nemo-blur)) saturate(115%);
+}
+
+.nemo-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.42), transparent 42%, rgba(255, 255, 255, 0.06));
+  opacity: 0.75;
+}
+
+.nemo-primary-button {
+  height: var(--nemo-control-h);
+  border: 0;
+  border-radius: var(--nemo-radius-control);
+  background: var(--nemo-primary);
+  color: var(--nemo-on-primary);
+  font-size: var(--nemo-card);
+  font-weight: 700;
+  box-shadow: var(--nemo-shadow-soft);
+  transition: transform var(--nemo-tap) var(--nemo-ease-out);
+}
+
+.nemo-primary-button:active { transform: scale(0.985); }
+.nemo-primary-button:disabled { opacity: 0.42; pointer-events: none; }
+
+.nemo-nav {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  width: min(390px, calc(100% - 36px));
+  height: 66px;
+  padding: 6px 8px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border: 1px solid var(--nemo-line-strong);
+  border-radius: 24px;
+  background: var(--nemo-nav);
+  box-shadow: var(--nemo-shadow-nav);
+  -webkit-backdrop-filter: blur(28px) saturate(135%);
+  backdrop-filter: blur(28px) saturate(135%);
+}
+
+.nemo-nav-item {
+  flex: 1;
+  height: 52px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--nemo-text-2);
+  font-size: var(--nemo-micro);
+  font-weight: 650;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.nemo-nav-item.active {
+  background: var(--nemo-primary);
+  color: var(--nemo-on-primary);
+}
+
+/* Self-contained light/dark switch used by references that predate the
+   data-theme switcher. It only flips <html data-theme>. */
+.nemo-theme-toggle {
+  position: fixed;
+  z-index: 40;
+  top: calc(14px + env(safe-area-inset-top));
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--nemo-line-strong);
+  border-radius: 15px;
+  background: var(--nemo-surface);
+  color: var(--nemo-text);
+  box-shadow: var(--nemo-inner-highlight), var(--nemo-shadow-soft);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  touch-action: manipulation;
+  transition: transform var(--nemo-tap) var(--nemo-ease-out);
+}
+
+.nemo-theme-toggle:active { transform: scale(0.94); }
+.nemo-theme-toggle svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nemo-theme-toggle .nemo-icon-sun { display: none; }
+[data-theme="dark"] .nemo-theme-toggle .nemo-icon-sun { display: block; }
+[data-theme="dark"] .nemo-theme-toggle .nemo-icon-moon { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+<!-- NEMO-TOKENS:END -->
+</head>
+<body>
+<main class="app" aria-label="Nemo notifications screen">
+ <div class="ambient"></div>
+ <header class="topbar">
+  <button class="icon-btn" id="backBtn" aria-label="Back"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+  <div class="brand-mark">N E M O</div>
+  <div class="top-actions">
+   <button class="icon-btn" id="themeBtn" aria-label="Switch theme"><svg id="themeIcon" viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4m0-12.8L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4"/></svg></button>
+   <button class="icon-btn" id="moreBtn" aria-label="More options"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>
+  </div>
+ </header>
+ <section class="content">
+  <div class="eyebrow">YOUR ACTIVITY</div>
+  <div class="heading-row"><div><h1 class="title">Notifications</h1><p class="subtitle">Stay up to date with what's happening.</p></div><button class="mark-all" id="markAll">Mark all read</button></div>
+  <div class="summary"><div class="summary-icon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></div><div class="summary-copy"><strong id="summaryTitle">You're all caught up? Almost.</strong><span id="summaryText">You have 3 unread notifications.</span></div><div class="count-pill" id="unreadCount">3</div></div>
+  <div class="tabs" role="tablist" aria-label="Notification filters"><button class="tab active" data-filter="all" role="tab" aria-selected="true">All</button><button class="tab" data-filter="unread" role="tab" aria-selected="false">Unread <span id="unreadTabCount">3</span></button></div>
+  <div id="notificationSections">
+   <section class="section" data-section="today"><div class="section-head"><h2>Today</h2><span>Recent activity</span></div><div class="notice-list">
+    <article class="notice unread" data-unread="true" data-id="maya-request" data-kind="request"><div class="avatar">MC</div><div class="notice-body"><div class="notice-top"><p class="notice-title"><span class="person">Maya Chen</span> sent you a friend request</p><time class="time">2m ago</time></div><p class="message">Maya would like to connect with you on Nemo.</p><div class="notice-actions"><button class="small-btn primary" data-action="accept">Accept request</button><button class="small-btn quiet" data-action="decline">Decline</button></div></div><i class="unread-dot"></i></article>
+    <article class="notice unread" data-unread="true" data-id="group-invite" data-kind="invite"><div class="avatar group">WK</div><div class="notice-body"><div class="notice-top"><p class="notice-title"><span class="person">Weekend Crew</span> invited you to a group</p><time class="time">18m ago</time></div><p class="message">Arjun invited you to join Weekend Crew.</p><div class="notice-actions"><button class="small-btn primary" data-action="join">View invite</button><button class="small-btn quiet" data-action="dismiss">Not now</button></div></div><i class="unread-dot"></i></article>
+    <article class="notice unread" data-unread="true" data-id="friend-accepted" data-kind="accepted"><div class="avatar">AR</div><div class="notice-body"><div class="notice-top"><p class="notice-title"><span class="person">Arjun Rao</span> accepted your friend request</p><time class="time">1h ago</time></div><p class="message">You're now connected. You can start a conversation.</p><div class="notice-actions"><button class="small-btn" data-action="message">Message Arjun</button></div></div><i class="unread-dot"></i></article>
+   </div></section>
+   <section class="section" data-section="yesterday"><div class="section-head"><h2>Yesterday</h2><span>11 November</span></div><div class="notice-list">
+    <article class="notice" data-unread="false" data-id="group-update" data-kind="group"><div class="avatar group">DT</div><div class="notice-body"><div class="notice-top"><p class="notice-title"><span class="person">Design Talk</span> group details changed</p><time class="time">Yesterday</time></div><p class="message">The group description was updated by Priya.</p><div class="notice-status"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg> Read</div></div></article>
+    <article class="notice" data-unread="false" data-id="friend-request-sent" data-kind="accepted"><div class="avatar">SK</div><div class="notice-body"><div class="notice-top"><p class="notice-title"><span class="person">Sam Kumar</span> accepted your friend request</p><time class="time">Yesterday</time></div><p class="message">You and Sam are now friends on Nemo.</p><div class="notice-status"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg> Read</div></div></article>
+   </div></section>
+   <section class="section" data-section="earlier"><div class="section-head"><h2>Earlier</h2><span>Previous activity</span></div><div class="notice-list">
+    <article class="notice" data-unread="false" data-id="welcome" data-kind="system"><div class="avatar system"><svg viewBox="0 0 24 24"><path d="M12 3 4.5 7v5c0 4.5 3.2 7.8 7.5 9 4.3-1.2 7.5-4.5 7.5-9V7L12 3Z"/><path d="m9 12 2 2 4-4"/></svg></div><div class="notice-body"><div class="notice-top"><p class="notice-title">Welcome to Nemo</p><time class="time">12 Nov</time></div><p class="message">Your account is ready. Find friends and start a conversation.</p><div class="notice-status"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg> Read</div></div></article>
+   </div></section>
+  </div>
+  <div class="empty" id="emptyState"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></div><strong>You're all caught up</strong><p>There are no unread notifications right now.</p></div>
+ </section>
+</main>
+<div class="sheet-backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Notification options"><div class="sheet-grab"></div><h3>Notification options</h3><p>Manage the activity shown in your Nemo inbox.</p><button class="sheet-action" id="sheetMark"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>Mark all as read</button><button class="sheet-action" id="clearRead"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg>Clear read notifications</button><button class="sheet-action" id="closeSheet"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>Close</button></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(()=>{
+ const root=document.documentElement,themeBtn=document.getElementById('themeBtn'),themeIcon=document.getElementById('themeIcon');
+ const toastEl=document.getElementById('toast');let toastTimer;
+ function toast(message){toastEl.textContent=message;toastEl.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),2100)}
+ function setTheme(theme){root.dataset.theme=theme;themeIcon.innerHTML=theme==='dark'?'<path d="M20.5 14A8.5 8.5 0 0 1 10 3.5 8.5 8.5 0 1 0 20.5 14Z"/>':'<path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4m0-12.8L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4"/>';document.querySelector('meta[name="theme-color"]').content=theme==='dark'?'#111111':'#f3f3f3'}
+ themeBtn.addEventListener('click',()=>setTheme(root.dataset.theme==='light'?'dark':'light'));
+ const notices=[...document.querySelectorAll('.notice')],tabs=[...document.querySelectorAll('.tab')];let filter='all';
+ function updateCounts(){const unread=notices.filter(n=>n.dataset.unread==='true').length;document.getElementById('unreadCount').textContent=unread;document.getElementById('unreadTabCount').textContent=unread;document.getElementById('summaryText').textContent=unread===0?'You have no unread notifications.':`You have ${unread} unread notification${unread===1?'':'s'}.`;document.getElementById('summaryTitle').textContent=unread===0?'You are all caught up.':'A few things need your attention.';document.getElementById('markAll').style.opacity=unread===0?'.45':'1';}
+ function applyFilter(){let visible=0;notices.forEach(n=>{const show=filter==='all'||n.dataset.unread==='true';n.style.display=show?'flex':'none';if(show)visible++});document.querySelectorAll('.section').forEach(s=>{const any=[...s.querySelectorAll('.notice')].some(n=>n.style.display!=='none');s.style.display=any?'block':'none'});document.getElementById('emptyState').classList.toggle('show',visible===0);updateCounts()}
+ function markRead(n){if(!n)return;n.dataset.unread='false';n.classList.remove('unread');n.classList.add('is-read');let status=n.querySelector('.notice-status');if(!status){status=document.createElement('div');status.className='notice-status';status.innerHTML='<svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg> Read';n.querySelector('.notice-body').appendChild(status)}updateCounts();}
+ tabs.forEach(tab=>tab.addEventListener('click',()=>{filter=tab.dataset.filter;tabs.forEach(t=>{t.classList.toggle('active',t===tab);t.setAttribute('aria-selected',t===tab?'true':'false')});applyFilter()}));
+ function markAll(){notices.forEach(markRead);applyFilter();toast('All notifications marked as read')}
+ document.getElementById('markAll').addEventListener('click',markAll);document.getElementById('sheetMark').addEventListener('click',()=>{closeSheet();markAll()});
+ document.querySelectorAll('.notice').forEach(n=>n.addEventListener('click',e=>{if(e.target.closest('button'))return;markRead(n);if(filter==='unread')applyFilter()}));
+ document.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();const n=btn.closest('.notice'),action=btn.dataset.action;if(action==='accept'){n.querySelector('.notice-actions').innerHTML='<span class="notice-status"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg> Request accepted · You are now friends</span>';markRead(n);toast('Friend request accepted')}else if(action==='decline'){n.remove();toast('Request declined')}else if(action==='join'){btn.textContent='Invite opened';btn.disabled=true;markRead(n);toast('Group invitation opened (preview)')}else if(action==='dismiss'){n.remove();toast('Invitation dismissed')}else if(action==='message'){markRead(n);toast('Opening conversation (preview)')}updateCounts();applyFilter()}));
+ const sheet=document.getElementById('sheet'),backdrop=document.getElementById('backdrop');function openSheet(){sheet.classList.add('open');backdrop.classList.add('open')}function closeSheet(){sheet.classList.remove('open');backdrop.classList.remove('open')}document.getElementById('moreBtn').addEventListener('click',openSheet);document.getElementById('closeSheet').addEventListener('click',closeSheet);backdrop.addEventListener('click',closeSheet);document.getElementById('clearRead').addEventListener('click',()=>{notices.filter(n=>n.dataset.unread!=='true').forEach(n=>n.remove());closeSheet();applyFilter();toast('Read notifications cleared')});
+ document.getElementById('backBtn').addEventListener('click',()=>toast('Back to previous screen (preview)'));document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.nav==='notifications')return;toast(`Open ${b.dataset.nav} (navigation preview)`)}));
+ // Touch-only ripple: no mouse tracking or hover effects.
+ document.addEventListener('touchstart',e=>{const target=e.target.closest('button,.notice');if(!target)return;target.classList.add('touching');},{passive:true});document.addEventListener('touchend',()=>document.querySelectorAll('.touching').forEach(el=>el.classList.remove('touching')),{passive:true});
+ updateCounts();applyFilter();
+})();
+</script>
+</body>
+</html>

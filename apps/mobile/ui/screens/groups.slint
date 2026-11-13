@@ -1,10 +1,13 @@
 // Group creation and group info screens.
 
 import { Theme } from "../theme.slint";
-import { Users, Check } from "../icons.slint";
+import {
+    Users, Check, Sun, Moon, Search, EditPencil, Bell, MutedIcon, Shield,
+    Picture, LinkIcon, Plus,
+} from "../icons.slint";
 import {
     GlassCard, Hairline, SearchField, Avatar, PrimaryButton, GhostButton,
-    PillTag, SectionLabel, TopBar, NookField,
+    PillTag, SectionLabel, TopBar, NookField, NemoBackButton,
 } from "../widgets.slint";
 import { Chip, LinkRow, ToggleRow } from "social.slint";
 
@@ -151,18 +154,18 @@ export component CreateGroupScreen inherits Rectangle {
     in-out property <bool> dark: Theme.is-dark;
     in-out property <bool> modal-open: false;
 
-    property <color> ink: dark ? #f4f4f3 : #171717;
-    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
-    property <color> muted: dark ? #aaa9a6 : #777775;
-    property <color> soft: dark ? #777673 : #a4a4a1;
-    property <color> line: dark ? rgba(255,255,255,0.10) : rgba(30,30,30,0.10);
-    property <color> glass: dark ? rgba(42,42,42,0.56) : rgba(255,255,255,0.54);
-    property <color> glass-strong: dark ? rgba(48,48,48,0.78) : rgba(255,255,255,0.76);
-    property <color> field: dark ? rgba(38,38,38,0.72) : rgba(255,255,255,0.60);
-    property <color> selected-bg: dark ? rgba(255,255,255,0.10) : rgba(20,20,20,0.085);
-    property <color> primary: dark ? #f1f1f0 : #171717;
-    property <color> primary-text: dark ? #171717 : #ffffff;
-    property <color> scrim: dark ? rgba(0,0,0,0.56) : rgba(0,0,0,0.28);
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> soft: Theme.n-muted-2;
+    property <color> line: Theme.n-line;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
+    property <color> field: Theme.n-glass-soft;
+    property <color> selected-bg: Theme.n-glass-soft;
+    property <color> primary: Theme.n-primary;
+    property <color> primary-text: Theme.n-primary-text;
+    property <color> scrim: Theme.n-scrim;
 
     VerticalLayout {
         padding-left: 20px;
@@ -190,28 +193,8 @@ export component CreateGroupScreen inherits Rectangle {
             height: 48px;
             spacing: 0px;
             alignment: start;
-            TouchArea {
-                width: 42px; height: 42px;
-                mouse-cursor: pointer;
+            NemoBackButton {
                 clicked => { root.back(); }
-                Rectangle {
-                    width: 42px; height: 42px;
-                    border-radius: 15px;
-                    background: glass;
-                    border-width: 1px;
-                    border-color: line;
-                    drop-shadow-blur: 12px;
-                    drop-shadow-color: rgba(0,0,0,0.045);
-                    drop-shadow-offset-y: 4px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "←";
-                        font-size: 18px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                }
             }
             Text {
                 text: "Nemo";
@@ -238,7 +221,8 @@ export component CreateGroupScreen inherits Rectangle {
                     HorizontalLayout {
                         alignment: center;
                         spacing: 8px;
-                        Text { text: root.dark ? "☀" : "☾"; font-size: 13px; color: ink; vertical-alignment: center; }
+                        if root.dark: Sun { size: 15px; tint: ink; }
+                        if !root.dark: Moon { size: 15px; tint: ink; }
                         Text { text: root.dark ? "Light" : "Dark"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
                     }
                 }
@@ -251,14 +235,14 @@ export component CreateGroupScreen inherits Rectangle {
             padding-bottom: 22px;
             Text {
                 text: "MAKE IT A GROUP";
-                font-size: 10px;
+                font-size: 12px;
                 font-weight: 750;
                 color: muted;
                 letter-spacing: 1.8px;
             }
             Text {
                 text: "Create a group.";
-                font-size: 34px;
+                font-size: 31px;
                 font-weight: 760;
                 color: ink;
                 letter-spacing: -1.7px;
@@ -353,7 +337,7 @@ export component CreateGroupScreen inherits Rectangle {
                             padding-left: 15px; padding-right: 15px;
                             spacing: 11px;
                             alignment: center;
-                            Text { text: "📝"; font-size: 14px; color: muted; vertical-alignment: center; }
+                            EditPencil { size: 15px; tint: muted; }
                             TextInput {
                                 horizontal-stretch: 1;
                                 text <=> root.name;
@@ -380,7 +364,7 @@ export component CreateGroupScreen inherits Rectangle {
                             HorizontalLayout {
                                 spacing: 11px;
                                 alignment: start;
-                                Text { text: "📝"; font-size: 14px; color: muted; vertical-alignment: center; }
+                                EditPencil { size: 15px; tint: muted; }
                                 TextInput {
                                     horizontal-stretch: 1;
                                     text <=> root.query; // reuse query as description placeholder
@@ -431,7 +415,7 @@ export component CreateGroupScreen inherits Rectangle {
                 padding-left: 14px; padding-right: 14px;
                 spacing: 10px;
                 alignment: center;
-                Text { text: "🔍"; font-size: 14px; color: muted; vertical-alignment: center; }
+                Search { size: 16px; tint: muted; }
                 TextInput {
                     horizontal-stretch: 1;
                     text <=> root.query;
@@ -460,11 +444,11 @@ export component CreateGroupScreen inherits Rectangle {
                 HorizontalLayout {
                     alignment: space-between;
                     Text { text: "Selected members"; font-size: 12px; font-weight: 700; color: ink; vertical-alignment: center; }
-                    Text { text: root.selected-count >= 2 ? "Ready to create" : "Choose at least 2 friends"; font-size: 11px; color: muted; vertical-alignment: center; }
+                    Text { text: root.selected-count >= 2 ? "Ready to create" : "Choose at least 2 friends"; font-size: 12px; color: muted; vertical-alignment: center; }
                 }
                 if root.selected-count == 0: Text {
                     text: "Your selected friends will appear here";
-                    font-size: 11px;
+                    font-size: 12px;
                     color: muted;
                 }
             }
@@ -513,7 +497,7 @@ export component CreateGroupScreen inherits Rectangle {
                             }
                             Text {
                                 text: "@" + f.handle;
-                                font-size: 11px;
+                                font-size: 12px;
                                 color: muted;
                             }
                         }
@@ -526,7 +510,7 @@ export component CreateGroupScreen inherits Rectangle {
                             Text {
                                 width: parent.width; height: parent.height;
                                 text: f.selected ? "✓" : "";
-                                font-size: 11px;
+                                font-size: 12px;
                                 color: primary-text;
                                 horizontal-alignment: center;
                                 vertical-alignment: center;
@@ -567,7 +551,7 @@ export component CreateGroupScreen inherits Rectangle {
                     }
                     Text {
                         text: root.selected-count >= 2 ? "Your group is almost ready" : "Select at least 2 friends";
-                        font-size: 11px;
+                        font-size: 12px;
                         color: muted;
                     }
                 }
@@ -613,7 +597,7 @@ export component CreateGroupScreen inherits Rectangle {
             border-radius: 28px;
             background: glass-strong;
             border-width: 1px;
-            border-color: rgba(255,255,255,0.92);
+            border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
             drop-shadow-blur: 30px;
             drop-shadow-color: rgba(0,0,0,0.12);
             drop-shadow-offset-y: 10px;
@@ -676,19 +660,19 @@ export component GroupInfoScreen inherits Rectangle {
     in-out property <bool> sheet-open: false;
     in-out property <bool> leave-open: false;
 
-    property <color> ink: dark ? #f2f2f0 : #191919;
-    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
-    property <color> muted: dark ? #aaa9a6 : #777775;
-    property <color> muted-2: dark ? #777673 : #a1a19e;
-    property <color> line: dark ? rgba(255,255,255,0.085) : rgba(25,25,25,0.09);
-    property <color> line-strong: dark ? rgba(255,255,255,0.14) : rgba(25,25,25,0.14);
-    property <color> glass: dark ? rgba(39,39,39,0.66) : rgba(255,255,255,0.62);
-    property <color> glass-strong: dark ? rgba(47,47,47,0.84) : rgba(255,255,255,0.82);
-    property <color> surface-soft: dark ? rgba(44,44,44,0.48) : rgba(255,255,255,0.42);
-    property <color> nav-bg: dark ? rgba(25,25,25,0.82) : rgba(248,248,247,0.77);
-    property <color> primary: dark ? #f0f0ee : #171717;
-    property <color> primary-text: dark ? #171717 : #ffffff;
-    property <color> scrim: dark ? rgba(0,0,0,0.58) : rgba(0,0,0,0.28);
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> muted-2: Theme.n-muted-2;
+    property <color> line: Theme.n-line;
+    property <color> line-strong: Theme.n-line-strong;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
+    property <color> surface-soft: Theme.n-surface-soft;
+    property <color> nav-bg: Theme.n-nav-bg;
+    property <color> primary: Theme.n-primary;
+    property <color> primary-text: Theme.n-primary-text;
+    property <color> scrim: Theme.n-scrim;
 
     VerticalLayout {
         padding-left: 0px;
@@ -704,28 +688,8 @@ export component GroupInfoScreen inherits Rectangle {
             height: 66px;
             alignment: start;
             spacing: 0px;
-            TouchArea {
-                width: 40px; height: 40px;
-                mouse-cursor: pointer;
+            NemoBackButton {
                 clicked => { root.back(); }
-                Rectangle {
-                    width: 40px; height: 40px;
-                    border-radius: 15px;
-                    background: glass;
-                    border-width: 1px;
-                    border-color: line;
-                    drop-shadow-blur: 12px;
-                    drop-shadow-color: rgba(0,0,0,0.035);
-                    drop-shadow-offset-y: 4px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "←";
-                        font-size: 18px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                }
             }
             Text {
                 horizontal-stretch: 1;
@@ -747,13 +711,17 @@ export component GroupInfoScreen inherits Rectangle {
                     background: glass;
                     border-width: 1px;
                     border-color: line;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: root.dark ? "☀" : "☾";
-                        font-size: 17px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    if root.dark: Sun {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 19px;
+                        tint: ink;
+                    }
+                    if !root.dark: Moon {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 19px;
+                        tint: ink;
                     }
                 }
             }
@@ -818,13 +786,11 @@ export component GroupInfoScreen inherits Rectangle {
                                 drop-shadow-blur: 12px;
                                 drop-shadow-color: rgba(0,0,0,0.08);
                                 drop-shadow-offset-y: 4px;
-                                Text {
-                                    width: parent.width; height: parent.height;
-                                    text: "✎";
-                                    font-size: 13px;
-                                    color: primary-text;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
+                                EditPencil {
+                                    x: 8px;
+                                    y: 8px;
+                                    size: 15px;
+                                    tint: primary-text;
                                 }
                             }
                         }
@@ -864,7 +830,7 @@ export component GroupInfoScreen inherits Rectangle {
                     }
                     Text {
                         text: "Created by Alex Morgan · 12 October 2026";
-                        font-size: 11px;
+                        font-size: 12px;
                         color: muted-2;
                         horizontal-alignment: center;
                         padding-top: 12px;
@@ -903,17 +869,40 @@ export component GroupInfoScreen inherits Rectangle {
                                     background: surface-soft;
                                     border-width: 1px;
                                     border-color: line;
-                                    Text {
-                                        width: parent.width; height: parent.height;
-                                        text: action == "Add" ? "＋" : (action == "Mute" ? (root.group-muted ? "🔇" : "🔔") : (action == "Search" ? "🔍" : "↗"));
-                                        font-size: 17px;
-                                        horizontal-alignment: center;
-                                        vertical-alignment: center;
+                                    if action == "Add": Plus {
+                                        x: (parent.width - self.width) / 2;
+                                        y: (parent.height - self.height) / 2;
+                                        size: 22px;
+                                        tint: ink;
+                                    }
+                                    if action == "Mute" && !root.group-muted: Bell {
+                                        x: (parent.width - self.width) / 2;
+                                        y: (parent.height - self.height) / 2;
+                                        size: 22px;
+                                        tint: ink;
+                                    }
+                                    if action == "Mute" && root.group-muted: MutedIcon {
+                                        x: (parent.width - self.width) / 2;
+                                        y: (parent.height - self.height) / 2;
+                                        size: 22px;
+                                        tint: ink;
+                                    }
+                                    if action == "Search": Search {
+                                        x: (parent.width - self.width) / 2;
+                                        y: (parent.height - self.height) / 2;
+                                        size: 22px;
+                                        tint: ink;
+                                    }
+                                    if action == "Share": LinkIcon {
+                                        x: (parent.width - self.width) / 2;
+                                        y: (parent.height - self.height) / 2;
+                                        size: 22px;
+                                        tint: ink;
                                     }
                                 }
                                 Text {
                                     text: action == "Mute" ? (root.group-muted ? "Unmute" : "Mute") : action;
-                                    font-size: 10px;
+                                    font-size: 12px;
                                     font-weight: 650;
                                     color: ink;
                                     horizontal-alignment: center;
@@ -938,7 +927,7 @@ export component GroupInfoScreen inherits Rectangle {
                     }
                     Text {
                         text: " · " + root.member-count;
-                        font-size: 11px;
+                        font-size: 12px;
                         color: muted;
                         vertical-alignment: center;
                     }
@@ -1016,7 +1005,7 @@ export component GroupInfoScreen inherits Rectangle {
                                 }
                                 Text {
                                     text: m.handle;
-                                    font-size: 11px;
+                                    font-size: 12px;
                                     color: muted;
                                     overflow: elide;
                                 }
@@ -1033,7 +1022,7 @@ export component GroupInfoScreen inherits Rectangle {
                                 Text {
                                     width: parent.width; height: parent.height;
                                     text: "Admin";
-                                    font-size: 10px;
+                                    font-size: 12px;
                                     color: muted;
                                     horizontal-alignment: center;
                                     vertical-alignment: center;
@@ -1089,7 +1078,7 @@ export component GroupInfoScreen inherits Rectangle {
                                     }
                                     Text {
                                         text: "" + root.member-count;
-                                        font-size: 11px;
+                                        font-size: 12px;
                                         color: muted;
                                         vertical-alignment: center;
                                     }
@@ -1172,15 +1161,15 @@ export component GroupInfoScreen inherits Rectangle {
                         // media grid (3 columns, 2 rows)
                         HorizontalLayout {
                             spacing: 8px;
-                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #e8e8e5 0%, #bcbcb8 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "Photo"; font-size: 9px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
-                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #d4d4d1 0%, #999995 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "File"; font-size: 9px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
-                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #f0f0ed 0%, #c5c5c1 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "Link"; font-size: 9px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #e8e8e5 0%, #bcbcb8 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "Photo"; font-size: 12px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #d4d4d1 0%, #999995 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "File"; font-size: 12px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #f0f0ed 0%, #c5c5c1 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "Link"; font-size: 12px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
                         }
                         HorizontalLayout {
                             spacing: 8px;
-                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #c5c5c1 0%, #858581 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "Document"; font-size: 9px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
-                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #ececea 0%, #aaa9a5 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "Shared"; font-size: 9px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
-                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #bdbdb9 0%, #ededeb 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "More"; font-size: 9px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #c5c5c1 0%, #858581 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "Document"; font-size: 12px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #ececea 0%, #aaa9a5 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "Shared"; font-size: 12px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #bdbdb9 0%, #ededeb 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "More"; font-size: 12px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
                         }
                     }
                 }
@@ -1215,7 +1204,7 @@ export component GroupInfoScreen inherits Rectangle {
                                     padding-left: 15px; padding-right: 15px;
                                     spacing: 12px;
                                     alignment: center;
-                                    Rectangle { width: 33px; height: 33px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "✎"; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Rectangle { width: 33px; height: 33px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; EditPencil { x: 9px; y: 9px; size: 15px; tint: ink; } }
                                     Text { horizontal-stretch: 1; text: "Edit group details"; font-size: 12px; font-weight: 630; color: ink; vertical-alignment: center; }
                                     Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                                 }
@@ -1232,7 +1221,7 @@ export component GroupInfoScreen inherits Rectangle {
                                     padding-left: 15px; padding-right: 15px;
                                     spacing: 12px;
                                     alignment: center;
-                                    Rectangle { width: 33px; height: 33px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🛡"; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Rectangle { width: 33px; height: 33px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Shield { x: 9px; y: 9px; size: 15px; tint: ink; } }
                                     Text { horizontal-stretch: 1; text: "Group permissions"; font-size: 12px; font-weight: 630; color: ink; vertical-alignment: center; }
                                     Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                                 }
@@ -1249,9 +1238,9 @@ export component GroupInfoScreen inherits Rectangle {
                                     padding-left: 15px; padding-right: 15px;
                                     spacing: 12px;
                                     alignment: center;
-                                    Rectangle { width: 33px; height: 33px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🖼"; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Rectangle { width: 33px; height: 33px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Picture { x: 9px; y: 9px; size: 15px; tint: ink; } }
                                     Text { horizontal-stretch: 1; text: "Media visibility"; font-size: 12px; font-weight: 630; color: ink; vertical-alignment: center; }
-                                    Text { text: "Default"; font-size: 11px; color: muted; vertical-alignment: center; }
+                                    Text { text: "Default"; font-size: 12px; color: muted; vertical-alignment: center; }
                                     Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                                 }
                             }
@@ -1288,7 +1277,7 @@ export component GroupInfoScreen inherits Rectangle {
 
                 Text {
                     text: "NEMO · GROUP INFORMATION";
-                    font-size: 9px;
+                    font-size: 12px;
                     color: muted;
                     letter-spacing: 0.35px;
                     horizontal-alignment: center;
@@ -1298,46 +1287,6 @@ export component GroupInfoScreen inherits Rectangle {
             }
         }
 
-        // Bottom nav
-        Rectangle {
-            height: 90px;
-            VerticalLayout {
-                padding-left: 18px; padding-right: 18px;
-                
-                spacing: 0px;
-                Rectangle {
-                    height: 66px;
-                    border-radius: 24px;
-                    background: nav-bg;
-                    border-width: 1px;
-                    border-color: rgba(255,255,255,0.92);
-                    drop-shadow-blur: 30px;
-                    drop-shadow-color: rgba(0,0,0,0.10);
-                    drop-shadow-offset-y: 12px;
-                    HorizontalLayout {
-                        alignment: center;
-                        TouchArea {
-                            horizontal-stretch: 1; height: 66px;
-                            mouse-cursor: pointer;
-                            clicked => { root.back(); }
-                            Text { width: parent.width; height: parent.height; text: "Chats"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1; height: 66px;
-                            mouse-cursor: pointer;
-                            clicked => { }
-                            Text { width: parent.width; height: parent.height; text: "Find"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1; height: 66px;
-                            mouse-cursor: pointer;
-                            clicked => { }
-                            Text { width: parent.width; height: parent.height; text: "Profile"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     // More options sheet
@@ -1352,7 +1301,7 @@ export component GroupInfoScreen inherits Rectangle {
             border-radius: 28px;
             background: glass-strong;
             border-width: 1px;
-            border-color: rgba(255,255,255,0.92);
+            border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
             drop-shadow-blur: 30px;
             drop-shadow-color: rgba(0,0,0,0.12);
             drop-shadow-offset-y: 10px;
@@ -1362,7 +1311,7 @@ export component GroupInfoScreen inherits Rectangle {
                 spacing: 0px;
                 Rectangle { height: 4px; width: 38px;  border-radius: 2px; background: muted; opacity: 0.45; }
                 Text { text: "Group options"; font-size: 15px; font-weight: 700; color: ink;  }
-                Text { text: "Manage this group and its appearance."; font-size: 11px; color: muted;  }
+                Text { text: "Manage this group and its appearance."; font-size: 12px; color: muted;  }
                 TouchArea {
                     height: 44px;
                     mouse-cursor: pointer;
@@ -1372,7 +1321,7 @@ export component GroupInfoScreen inherits Rectangle {
                         
                         HorizontalLayout {
                             spacing: 11px; padding-left: 10px;
-                            Text { text: "☀"; font-size: 14px; vertical-alignment: center; }
+                            Sun { size: 15px; tint: ink; }
                             Text { text: "Light appearance"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
                         }
                     }
@@ -1386,7 +1335,7 @@ export component GroupInfoScreen inherits Rectangle {
                         
                         HorizontalLayout {
                             spacing: 11px; padding-left: 10px;
-                            Text { text: "☾"; font-size: 14px; vertical-alignment: center; }
+                            Moon { size: 15px; tint: ink; }
                             Text { text: "Dark appearance"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
                         }
                     }
@@ -1400,7 +1349,7 @@ export component GroupInfoScreen inherits Rectangle {
                         
                         HorizontalLayout {
                             spacing: 11px; padding-left: 10px;
-                            Text { text: "🔗"; font-size: 14px; vertical-alignment: center; }
+                            LinkIcon { size: 15px; tint: ink; }
                             Text { text: "Copy group link"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
                         }
                     }
@@ -1433,7 +1382,7 @@ export component GroupInfoScreen inherits Rectangle {
             border-radius: 28px;
             background: glass-strong;
             border-width: 1px;
-            border-color: rgba(255,255,255,0.92);
+            border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
             drop-shadow-blur: 30px;
             drop-shadow-color: rgba(0,0,0,0.12);
             drop-shadow-offset-y: 10px;
@@ -1443,7 +1392,7 @@ export component GroupInfoScreen inherits Rectangle {
                 spacing: 0px;
                 Rectangle { height: 4px; width: 38px;  border-radius: 2px; background: muted; opacity: 0.45; }
                 Text { text: "Leave this group?"; font-size: 15px; font-weight: 700; color: ink;  }
-                Text { text: "You will stop receiving messages from The Weekend Crew. You can only return if a group member invites you again."; font-size: 11px; color: muted; wrap: word-wrap;  }
+                Text { text: "You will stop receiving messages from The Weekend Crew. You can only return if a group member invites you again."; font-size: 12px; color: muted; wrap: word-wrap;  }
                 TouchArea {
                     height: 44px;
                     mouse-cursor: pointer;

@@ -10,10 +10,14 @@
 // - Chip widths derive from `text.character-count` (pre-bound call, no parens).
 
 import { Theme } from "../theme.slint";
-import { ChevronRight, Gear } from "../icons.slint";
+import {
+    ChevronRight, Gear, Sun, Moon, Bell, Search, Trash, EditPencil, Calendar,
+    Users, User, NavChat, Mail, Speaker, Eye, BlockIcon, Lock, CopyIcon,
+    Document, Refresh, Logout, LinkIcon, ListIcon,
+} from "../icons.slint";
 import {
     GlassCard, Hairline, SearchField, Avatar, EmptyState, NavBar, TopBar,
-    PillTag, SectionLabel, Toggle, GhostButton,
+    PillTag, SectionLabel, Toggle, GhostButton, NemoBackButton,
 } from "../widgets.slint";
 
 // ---------------------------------------------------------------------------
@@ -88,7 +92,7 @@ export component Chip inherits Rectangle {
 // Rows
 // ---------------------------------------------------------------------------
 
-component PersonRow inherits Rectangle {
+export component PersonRow inherits Rectangle {
     in property <UiPerson> person;
     callback primary;
 
@@ -153,7 +157,7 @@ component PersonRow inherits Rectangle {
     }
 }
 
-component RequestRow inherits Rectangle {
+export component RequestRow inherits Rectangle {
     in property <UiPerson> person;
     callback accept;
     callback decline;
@@ -212,7 +216,7 @@ component RequestRow inherits Rectangle {
     }
 }
 
-component ActivityRow inherits Rectangle {
+export component ActivityRow inherits Rectangle {
     in property <string> name: "";
     in property <string> initials: "";
     in property <int> variant: 0;
@@ -377,19 +381,19 @@ export component NotificationsScreen inherits Rectangle {
     in-out property <bool> dark: Theme.is-dark;
     in-out property <bool> sheet-open: false;
 
-    property <color> ink: dark ? #f4f4f4 : #171717;
-    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
-    property <color> muted: dark ? #aaa : #777;
-    property <color> muted-2: dark ? #777 : #999;
-    property <color> line: dark ? rgba(255,255,255,0.09) : rgba(0,0,0,0.085);
-    property <color> line-strong: dark ? rgba(255,255,255,0.16) : rgba(0,0,0,0.14);
-    property <color> glass: dark ? rgba(35,35,35,0.80) : rgba(255,255,255,0.78);
-    property <color> glass-strong: dark ? rgba(44,44,44,0.82) : rgba(255,255,255,0.92);
-    property <color> glass-low: dark ? rgba(255,255,255,0.035) : rgba(255,255,255,0.24);
-    property <color> surface-soft: dark ? rgba(44,44,44,0.82) : rgba(245,245,245,0.82);
-    property <color> unread-bg: dark ? rgba(255,255,255,0.045) : rgba(0,0,0,0.035);
-    property <color> nav-bg: dark ? rgba(30,30,30,0.82) : rgba(255,255,255,0.78);
-    property <color> scrim: dark ? rgba(0,0,0,0.58) : rgba(0,0,0,0.28);
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> muted-2: Theme.n-muted-2;
+    property <color> line: Theme.n-line;
+    property <color> line-strong: Theme.n-line-strong;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
+    property <color> glass-low: Theme.n-glass-soft;
+    property <color> surface-soft: Theme.n-surface-soft;
+    property <color> unread-bg: Theme.n-glass-soft;
+    property <color> nav-bg: Theme.n-nav-bg;
+    property <color> scrim: Theme.n-scrim;
 
     VerticalLayout {
         padding-left: 0px;
@@ -404,28 +408,8 @@ export component NotificationsScreen inherits Rectangle {
             padding-top: 18px; padding-bottom: 10px;
             spacing: 0px;
             alignment: start;
-            TouchArea {
-                width: 43px; height: 43px;
-                mouse-cursor: pointer;
+            NemoBackButton {
                 clicked => { root.back(); }
-                Rectangle {
-                    width: 43px; height: 43px;
-                    border-radius: 16px;
-                    background: glass;
-                    border-width: 1px;
-                    border-color: line;
-                    drop-shadow-blur: 12px;
-                    drop-shadow-color: rgba(0,0,0,0.045);
-                    drop-shadow-offset-y: 4px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "←";
-                        font-size: 18px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                }
             }
             Rectangle { horizontal-stretch: 1; }
             Text {
@@ -447,13 +431,17 @@ export component NotificationsScreen inherits Rectangle {
                     background: glass;
                     border-width: 1px;
                     border-color: line;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: root.dark ? "☀" : "☾";
-                        font-size: 17px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    if root.dark: Sun {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 19px;
+                        tint: ink;
+                    }
+                    if !root.dark: Moon {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 19px;
+                        tint: ink;
                     }
                 }
             }
@@ -491,7 +479,7 @@ export component NotificationsScreen inherits Rectangle {
 
                 Text {
                     text: "YOUR ACTIVITY";
-                    font-size: 10px;
+                    font-size: 12px;
                     font-weight: 750;
                     color: muted;
                     letter-spacing: 1.8px;
@@ -501,7 +489,7 @@ export component NotificationsScreen inherits Rectangle {
                     alignment: start;
                     Text {
                         text: "Notifications";
-                        font-size: 34px;
+                        font-size: 31px;
                         font-weight: 760;
                         color: ink;
                         letter-spacing: -1.45px;
@@ -514,7 +502,7 @@ export component NotificationsScreen inherits Rectangle {
                         Text {
                             width: parent.width; height: parent.height;
                             text: "Mark all read";
-                            font-size: 11px;
+                            font-size: 12px;
                             font-weight: 700;
                             color: ink;
                             horizontal-alignment: right;
@@ -548,12 +536,11 @@ export component NotificationsScreen inherits Rectangle {
                             width: 39px; height: 39px;
                             border-radius: 14px;
                             background: surface-soft;
-                            Text {
-                                width: parent.width; height: parent.height;
-                                text: "🔔";
-                                font-size: 16px;
-                                horizontal-alignment: center;
-                                vertical-alignment: center;
+                            Bell {
+                                x: 10px;
+                                y: 10px;
+                                size: 19px;
+                                tint: ink;
                             }
                         }
                         VerticalLayout {
@@ -567,7 +554,7 @@ export component NotificationsScreen inherits Rectangle {
                             }
                             Text {
                                 text: "You have " + (root.requests.length + root.activity.length) + " unread notification" + (root.requests.length + root.activity.length == 1 ? "" : "s") + ".";
-                                font-size: 11px;
+                                font-size: 12px;
                                 color: muted;
                             }
                         }
@@ -578,7 +565,7 @@ export component NotificationsScreen inherits Rectangle {
                             Text {
                                 width: parent.width; height: parent.height;
                                 text: "" + (root.requests.length + root.activity.length);
-                                font-size: 11px;
+                                font-size: 12px;
                                 font-weight: 750;
                                 color: dark ? #171717 : #ffffff;
                                 horizontal-alignment: center;
@@ -647,7 +634,7 @@ export component NotificationsScreen inherits Rectangle {
                     padding-bottom: 23px;
                     Text {
                         text: "TODAY";
-                        font-size: 11px;
+                        font-size: 12px;
                         font-weight: 800;
                         color: muted;
                         letter-spacing: 1.3px;
@@ -682,7 +669,7 @@ export component NotificationsScreen inherits Rectangle {
                                     Text {
                                         width: parent.width; height: parent.height;
                                         text: req.initials;
-                                        font-size: 11px;
+                                        font-size: 12px;
                                         font-weight: 800;
                                         color: #272727;
                                         horizontal-alignment: center;
@@ -701,7 +688,7 @@ export component NotificationsScreen inherits Rectangle {
                                     }
                                     Text {
                                         text: "2m ago";
-                                        font-size: 10px;
+                                        font-size: 12px;
                                         color: muted;
                                     }
                                 }
@@ -720,7 +707,7 @@ export component NotificationsScreen inherits Rectangle {
                                         Text {
                                             width: parent.width; height: parent.height;
                                             text: "Accept request";
-                                            font-size: 11px;
+                                            font-size: 12px;
                                             font-weight: 700;
                                             color: dark ? #171717 : #ffffff;
                                             horizontal-alignment: center;
@@ -742,7 +729,7 @@ export component NotificationsScreen inherits Rectangle {
                                         Text {
                                             width: parent.width; height: parent.height;
                                             text: "Decline";
-                                            font-size: 11px;
+                                            font-size: 12px;
                                             font-weight: 700;
                                             color: muted;
                                             horizontal-alignment: center;
@@ -781,7 +768,7 @@ export component NotificationsScreen inherits Rectangle {
                                 Text {
                                     width: parent.width; height: parent.height;
                                     text: item.initials;
-                                    font-size: 11px;
+                                    font-size: 12px;
                                     font-weight: 800;
                                     color: #272727;
                                     horizontal-alignment: center;
@@ -800,7 +787,7 @@ export component NotificationsScreen inherits Rectangle {
                                 }
                                 Text {
                                     text: item.time;
-                                    font-size: 10px;
+                                    font-size: 12px;
                                     color: muted;
                                 }
                             }
@@ -809,83 +796,15 @@ export component NotificationsScreen inherits Rectangle {
                 }
 
                 // Empty state
-                if root.requests.length == 0 && root.activity.length == 0: VerticalLayout {
-                    alignment: center;
-                    spacing: 8px;
-                    padding-top: 60px;
-                    Text {
-                        text: "🔔";
-                        font-size: 32px;
-                        horizontal-alignment: center;
-                    }
-                    Text {
-                        text: "You're all caught up";
-                        font-size: 14px;
-                        font-weight: 700;
-                        color: ink;
-                        horizontal-alignment: center;
-                    }
-                    Text {
-                        text: "There are no unread notifications right now.";
-                        font-size: 12px;
-                        color: muted;
-                        horizontal-alignment: center;
-                    }
+                if root.requests.length == 0 && root.activity.length == 0: EmptyState {
+                    height: 220px;
+                    state: "success";
+                    title: "You're all caught up";
+                    subtitle: "There are no unread notifications right now.";
                 }
             }
         }
 
-        // Bottom nav
-        Rectangle {
-            height: 90px;
-            VerticalLayout {
-                padding-left: 18px; padding-right: 18px;
-                padding-bottom: 13px;
-                spacing: 0px;
-                Rectangle {
-                    height: 63px;
-                    border-radius: 23px;
-                    background: nav-bg;
-                    border-width: 1px;
-                    border-color: rgba(255,255,255,0.92);
-                    drop-shadow-blur: 30px;
-                    drop-shadow-color: rgba(0,0,0,0.10);
-                    drop-shadow-offset-y: 12px;
-                    HorizontalLayout {
-                        alignment: center;
-                        TouchArea {
-                            horizontal-stretch: 1; height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { root.open-chats(); }
-                            Text { width: parent.width; height: parent.height; text: "Chats"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1; height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { root.open-find(); }
-                            Text { width: parent.width; height: parent.height; text: "Find"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1; height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { }
-                            Rectangle {
-                                width: parent.width; height: 63px;
-                                background: surface-soft;
-                                border-radius: 15px;
-                                Text { width: parent.width; height: parent.height; text: "Activity"; font-size: 9px; font-weight: 650; color: ink; horizontal-alignment: center; vertical-alignment: center; }
-                            }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1; height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { root.open-profile(); }
-                            Text { width: parent.width; height: parent.height; text: "Profile"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     // More options sheet
@@ -904,7 +823,7 @@ export component NotificationsScreen inherits Rectangle {
             border-radius: 26px;
             background: glass-strong;
             border-width: 1px;
-            border-color: rgba(255,255,255,0.92);
+            border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
             drop-shadow-blur: 30px;
             drop-shadow-color: rgba(0,0,0,0.12);
             drop-shadow-offset-y: 10px;
@@ -927,7 +846,7 @@ export component NotificationsScreen inherits Rectangle {
                 }
                 Text {
                     text: "Manage the activity shown in your Nemo inbox.";
-                    font-size: 11px;
+                    font-size: 12px;
                     color: muted;
                 }
                 TouchArea {
@@ -953,7 +872,7 @@ export component NotificationsScreen inherits Rectangle {
                         
                         HorizontalLayout {
                             spacing: 11px; padding-left: 10px;
-                            Text { text: "🗑"; font-size: 14px; vertical-alignment: center; }
+                            Trash { size: 15px; tint: muted; }
                             Text { text: "Clear read notifications"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
                         }
                     }
@@ -1008,19 +927,19 @@ export component FindScreen inherits Rectangle {
     in-out property <string> selected-name: "";
     in-out property <int> selected-action: 0; // 0 add, 1 accept, 2 remove
 
-    property <color> ink: dark ? #f4f4f4 : #171717;
-    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
-    property <color> muted: dark ? #aaa : #777;
-    property <color> muted-2: dark ? #818181 : #999;
-    property <color> line: dark ? rgba(255,255,255,0.09) : rgba(20,20,20,0.10);
-    property <color> line-strong: dark ? rgba(255,255,255,0.16) : rgba(20,20,20,0.17);
-    property <color> glass: dark ? rgba(39,39,39,0.76) : rgba(255,255,255,0.72);
-    property <color> glass-strong: dark ? rgba(46,46,46,0.94) : rgba(255,255,255,0.91);
-    property <color> surface-soft: dark ? rgba(37,37,37,0.56) : rgba(255,255,255,0.48);
-    property <color> nav-bg: dark ? rgba(28,28,28,0.84) : rgba(250,250,250,0.78);
-    property <color> primary: dark ? #f1f1f1 : #171717;
-    property <color> primary-text: dark ? #151515 : #ffffff;
-    property <color> scrim: dark ? rgba(0,0,0,0.58) : rgba(0,0,0,0.28);
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> muted-2: Theme.n-muted-2;
+    property <color> line: Theme.n-line;
+    property <color> line-strong: Theme.n-line-strong;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
+    property <color> surface-soft: Theme.n-surface-soft;
+    property <color> nav-bg: Theme.n-nav-bg;
+    property <color> primary: Theme.n-primary;
+    property <color> primary-text: Theme.n-primary-text;
+    property <color> scrim: Theme.n-scrim;
 
     VerticalLayout {
         padding-left: 0px;
@@ -1076,13 +995,17 @@ export component FindScreen inherits Rectangle {
                     drop-shadow-blur: 12px;
                     drop-shadow-color: rgba(0,0,0,0.045);
                     drop-shadow-offset-y: 4px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: root.dark ? "☀" : "☾";
-                        font-size: 16px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    if root.dark: Sun {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 18px;
+                        tint: ink;
+                    }
+                    if !root.dark: Moon {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 18px;
+                        tint: ink;
                     }
                 }
             }
@@ -1124,14 +1047,14 @@ export component FindScreen inherits Rectangle {
 
                 Text {
                     text: "YOUR PEOPLE, ONE PLACE";
-                    font-size: 10px;
+                    font-size: 12px;
                     font-weight: 750;
                     color: muted;
                     letter-spacing: 1.85px;
                 }
                 Text {
                     text: "Find friends.";
-                    font-size: 35px;
+                    font-size: 31px;
                     font-weight: 760;
                     color: ink;
                     letter-spacing: -1.75px;
@@ -1158,11 +1081,9 @@ export component FindScreen inherits Rectangle {
                         padding-left: 15px; padding-right: 15px;
                         spacing: 11px;
                         alignment: center;
-                        Text {
-                            text: "🔍";
-                            font-size: 16px;
-                            color: muted;
-                            vertical-alignment: center;
+                        Search {
+                            size: 18px;
+                            tint: muted;
                         }
                         TextInput {
                             horizontal-stretch: 1;
@@ -1283,7 +1204,7 @@ export component FindScreen inherits Rectangle {
                     Rectangle { horizontal-stretch: 1; }
                     Text {
                         text: root.tab == 0 ? "4 people" : (root.tab == 1 ? root.pending-count + " requests" : "2 friends");
-                        font-size: 11px;
+                        font-size: 12px;
                         color: muted;
                         font-weight: 600;
                         vertical-alignment: center;
@@ -1347,13 +1268,13 @@ export component FindScreen inherits Rectangle {
                                     }
                                     Text {
                                         text: "@" + p.handle;
-                                        font-size: 11px;
+                                        font-size: 12px;
                                         color: muted;
                                         overflow: elide;
                                     }
                                     Text {
                                         text: p.subtitle;
-                                        font-size: 10px;
+                                        font-size: 12px;
                                         color: muted-2;
                                     }
                                 }
@@ -1372,7 +1293,7 @@ export component FindScreen inherits Rectangle {
                                         Text {
                                             width: parent.width; height: parent.height;
                                             text: p.state == 2 ? "Message" : (p.state == 1 ? "Requested" : "Add friend");
-                                            font-size: 11px;
+                                            font-size: 12px;
                                             font-weight: 730;
                                             color: p.state == 0 ? primary-text : ink;
                                             horizontal-alignment: center;
@@ -1433,13 +1354,13 @@ export component FindScreen inherits Rectangle {
                                     }
                                     Text {
                                         text: "@" + p.handle;
-                                        font-size: 11px;
+                                        font-size: 12px;
                                         color: muted;
                                         overflow: elide;
                                     }
                                     Text {
                                         text: "Incoming friend request";
-                                        font-size: 10px;
+                                        font-size: 12px;
                                         color: muted-2;
                                     }
                                 }
@@ -1456,7 +1377,7 @@ export component FindScreen inherits Rectangle {
                                         Text {
                                             width: parent.width; height: parent.height;
                                             text: "Accept";
-                                            font-size: 11px;
+                                            font-size: 12px;
                                             font-weight: 730;
                                             color: primary-text;
                                             horizontal-alignment: center;
@@ -1466,12 +1387,11 @@ export component FindScreen inherits Rectangle {
                                 }
                             }
                         }
-                        if root.requests.length == 0: VerticalLayout {
-                            alignment: center;
-                            spacing: 8px;
-                            padding-top: 40px;
-                            Text { text: "No requests"; font-size: 14px; font-weight: 700; color: ink; horizontal-alignment: center; }
-                            Text { text: "New friend requests will appear here."; font-size: 12px; color: muted; horizontal-alignment: center; }
+                        if root.requests.length == 0: EmptyState {
+                            height: 180px;
+                            state: "empty";
+                            title: "No requests";
+                            subtitle: "New friend requests will appear here.";
                         }
                     }
 
@@ -1524,13 +1444,13 @@ export component FindScreen inherits Rectangle {
                                     }
                                     Text {
                                         text: "@" + p.handle;
-                                        font-size: 11px;
+                                        font-size: 12px;
                                         color: muted;
                                         overflow: elide;
                                     }
                                     Text {
                                         text: "Your friend";
-                                        font-size: 10px;
+                                        font-size: 12px;
                                         color: muted-2;
                                     }
                                 }
@@ -1547,7 +1467,7 @@ export component FindScreen inherits Rectangle {
                                         Text {
                                             width: parent.width; height: parent.height;
                                             text: "Message";
-                                            font-size: 11px;
+                                            font-size: 12px;
                                             font-weight: 730;
                                             color: ink;
                                             horizontal-alignment: center;
@@ -1557,21 +1477,19 @@ export component FindScreen inherits Rectangle {
                                 }
                             }
                         }
-                        if root.friends.length == 0: VerticalLayout {
-                            alignment: center;
-                            spacing: 8px;
-                            padding-top: 40px;
-                            Text { text: "No friends yet"; font-size: 14px; font-weight: 700; color: ink; horizontal-alignment: center; }
-                            Text { text: "People you connect with will appear here."; font-size: 12px; color: muted; horizontal-alignment: center; }
+                        if root.friends.length == 0: EmptyState {
+                            height: 180px;
+                            state: "empty";
+                            title: "No friends yet";
+                            subtitle: "People you connect with will appear here.";
                         }
                     }
 
-                    if root.tab == 0 && root.suggested.length == 0: VerticalLayout {
-                        alignment: center;
-                        spacing: 8px;
-                        padding-top: 40px;
-                        Text { text: "No people found"; font-size: 14px; font-weight: 700; color: ink; horizontal-alignment: center; }
-                        Text { text: "Try searching for a username."; font-size: 12px; color: muted; horizontal-alignment: center; }
+                    if root.tab == 0 && root.suggested.length == 0: EmptyState {
+                        height: 180px;
+                        state: "empty";
+                        title: "No people found";
+                        subtitle: "Try searching for a username.";
                     }
                 }
 
@@ -1590,7 +1508,7 @@ export component FindScreen inherits Rectangle {
                         Text {
                             horizontal-stretch: 1;
                             text: "Only accepted friends can start private conversations with you. Search using someone's exact username to find the right person.";
-                            font-size: 10px;
+                            font-size: 12px;
                             color: muted;
                             wrap: word-wrap;
                             vertical-alignment: center;
@@ -1600,49 +1518,13 @@ export component FindScreen inherits Rectangle {
             }
         }
 
-        // Bottom nav
-        Rectangle {
-            height: 90px;
-            VerticalLayout {
-                padding-left: 17px; padding-right: 17px;
-                
-                spacing: 0px;
-                Rectangle {
-                    height: 70px;
-                    border-radius: 25px;
-                    background: nav-bg;
-                    border-width: 1px;
-                    border-color: rgba(255,255,255,0.92);
-                    drop-shadow-blur: 30px;
-                    drop-shadow-color: rgba(0,0,0,0.10);
-                    drop-shadow-offset-y: 12px;
-                    HorizontalLayout {
-                        alignment: center;
-                        TouchArea {
-                            horizontal-stretch: 1; height: 70px;
-                            mouse-cursor: pointer;
-                            clicked => { root.open-chats(); }
-                            Text { width: parent.width; height: parent.height; text: "Chats"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1; height: 70px;
-                            mouse-cursor: pointer;
-                            clicked => { }
-                            Rectangle {
-                                width: parent.width; height: 70px;
-                                background: glass-strong;
-                                border-radius: 18px;
-                                Text { width: parent.width; height: parent.height; text: "Find"; font-size: 9px; font-weight: 650; color: ink; horizontal-alignment: center; vertical-alignment: center; }
-                            }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1; height: 70px;
-                            mouse-cursor: pointer;
-                            clicked => { root.open-profile(); }
-                            Text { width: parent.width; height: parent.height; text: "Profile"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                    }
-                }
+        // Bottom navigation — shared floating glass tab bar.
+        NavBar {
+            selected: 1;
+            requests: root.pending-count;
+            select(i) => {
+                if (i == 0) { root.open-chats(); }
+                if (i == 2) { root.open-profile(); }
             }
         }
     }
@@ -1659,7 +1541,7 @@ export component FindScreen inherits Rectangle {
             border-radius: 27px;
             background: glass-strong;
             border-width: 1px;
-            border-color: rgba(255,255,255,0.92);
+            border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
             drop-shadow-blur: 30px;
             drop-shadow-color: rgba(0,0,0,0.12);
             drop-shadow-offset-y: 10px;
@@ -1669,7 +1551,7 @@ export component FindScreen inherits Rectangle {
                 spacing: 0px;
                 Rectangle { height: 4px; width: 37px; x: (parent.width - 37px) / 2; border-radius: 2px; background: muted; opacity: 0.5; }
                 Text { text: "Find people on Nemo"; font-size: 16px; font-weight: 750; color: ink;  }
-                Text { text: "Enter a username to find someone. Send a friend request, then wait for them to accept before starting a private chat."; font-size: 11px; color: muted; wrap: word-wrap;  }
+                Text { text: "Enter a username to find someone. Send a friend request, then wait for them to accept before starting a private chat."; font-size: 12px; color: muted; wrap: word-wrap;  }
                 TouchArea {
                     height: 44px;
                     mouse-cursor: pointer;
@@ -1697,7 +1579,7 @@ export component FindScreen inherits Rectangle {
             border-radius: 27px;
             background: glass-strong;
             border-width: 1px;
-            border-color: rgba(255,255,255,0.92);
+            border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
             drop-shadow-blur: 30px;
             drop-shadow-color: rgba(0,0,0,0.12);
             drop-shadow-offset-y: 10px;
@@ -1707,7 +1589,7 @@ export component FindScreen inherits Rectangle {
                 spacing: 0px;
                 Rectangle { height: 4px; width: 37px; x: (parent.width - 37px) / 2; border-radius: 2px; background: muted; opacity: 0.5; }
                 Text { text: "Send friend request?"; font-size: 16px; font-weight: 750; color: ink;  }
-                Text { text: "You can message each other after the request is accepted."; font-size: 11px; color: muted; wrap: word-wrap;  }
+                Text { text: "You can message each other after the request is accepted."; font-size: 12px; color: muted; wrap: word-wrap;  }
                 HorizontalLayout {
                     spacing: 9px;
                     TouchArea {
@@ -1768,20 +1650,20 @@ export component ProfileScreen inherits Rectangle {
     in-out property <string> edit-handle: "";
     in-out property <string> edit-bio: "";
 
-    property <color> ink: dark ? #f2f2f1 : #171717;
-    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
-    property <color> muted: dark ? #aaa9a7 : #777776;
-    property <color> muted-2: dark ? #858482 : #989896;
-    property <color> line: dark ? rgba(255,255,255,0.085) : rgba(20,20,20,0.085);
-    property <color> line-strong: dark ? rgba(255,255,255,0.14) : rgba(20,20,20,0.13);
-    property <color> glass: dark ? rgba(43,43,43,0.68) : rgba(255,255,255,0.62);
-    property <color> glass-strong: dark ? rgba(48,48,48,0.56) : rgba(255,255,255,0.48);
-    property <color> surface-soft: dark ? rgba(48,48,48,0.56) : rgba(255,255,255,0.48);
-    property <color> surface-solid: dark ? #242424 : #ffffff;
-    property <color> nav-bg: dark ? rgba(28,28,28,0.82) : rgba(250,250,249,0.78);
-    property <color> primary: dark ? #f1f1ef : #171717;
-    property <color> primary-text: dark ? #151515 : #ffffff;
-    property <color> scrim: dark ? rgba(0,0,0,0.58) : rgba(0,0,0,0.32);
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> muted-2: Theme.n-muted-2;
+    property <color> line: Theme.n-line;
+    property <color> line-strong: Theme.n-line-strong;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
+    property <color> surface-soft: Theme.n-surface-soft;
+    property <color> surface-solid: Theme.n-glass-strong;
+    property <color> nav-bg: Theme.n-nav-bg;
+    property <color> primary: Theme.n-primary;
+    property <color> primary-text: Theme.n-primary-text;
+    property <color> scrim: Theme.n-scrim;
 
     VerticalLayout {
         padding-left: 0px;
@@ -1837,13 +1719,17 @@ export component ProfileScreen inherits Rectangle {
                     drop-shadow-blur: 12px;
                     drop-shadow-color: rgba(0,0,0,0.045);
                     drop-shadow-offset-y: 4px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: root.dark ? "☀" : "☾";
-                        font-size: 16px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    if root.dark: Sun {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 18px;
+                        tint: ink;
+                    }
+                    if !root.dark: Moon {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        size: 18px;
+                        tint: ink;
                     }
                 }
             }
@@ -1860,13 +1746,11 @@ export component ProfileScreen inherits Rectangle {
                     drop-shadow-blur: 12px;
                     drop-shadow-color: rgba(0,0,0,0.045);
                     drop-shadow-offset-y: 4px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "⚙";
-                        font-size: 16px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                    Gear {
+                        x: 10px;
+                        y: 10px;
+                        size: 20px;
+                        tint: ink;
                     }
                 }
             }
@@ -1882,7 +1766,7 @@ export component ProfileScreen inherits Rectangle {
                 spacing: 3px;
                 Text {
                     text: "Your space";
-                    font-size: 10px;
+                    font-size: 12px;
                     font-weight: 700;
                     color: muted;
                     letter-spacing: 1.7px;
@@ -1902,7 +1786,7 @@ export component ProfileScreen inherits Rectangle {
             VerticalLayout {
                 padding-left: 21px;
                 padding-right: 21px;
-                padding-bottom: 112px;
+                padding-bottom: 32px;
                 spacing: 0px;
 
                 // Hero card
@@ -1982,13 +1866,11 @@ export component ProfileScreen inherits Rectangle {
                                         background: primary;
                                         border-width: 2px;
                                         border-color: surface-solid;
-                                        Text {
-                                            width: parent.width; height: parent.height;
-                                            text: "✎";
-                                            font-size: 12px;
-                                            color: primary-text;
-                                            horizontal-alignment: center;
-                                            vertical-alignment: center;
+                                        EditPencil {
+                                            x: 8px;
+                                            y: 8px;
+                                            size: 13px;
+                                            tint: primary-text;
                                         }
                                     }
                                 }
@@ -2009,7 +1891,7 @@ export component ProfileScreen inherits Rectangle {
                                     HorizontalLayout {
                                         alignment: center;
                                         spacing: 8px;
-                                        Text { text: "✎"; font-size: 12px; color: ink; vertical-alignment: center; }
+                                        EditPencil { size: 13px; tint: ink; }
                                         Text { text: "Edit profile"; font-size: 12px; font-weight: 680; color: ink; vertical-alignment: center; }
                                     }
                                 }
@@ -2051,8 +1933,8 @@ export component ProfileScreen inherits Rectangle {
                                     padding-left: 9px; padding-right: 9px;
                                     spacing: 6px;
                                     alignment: center;
-                                    Text { text: "📅"; font-size: 10px; vertical-alignment: center; }
-                                    Text { text: "Joined November 2026"; font-size: 10px; color: muted; vertical-alignment: center; }
+                                    Calendar { size: 12px; tint: muted; }
+                                    Text { text: "Joined November 2026"; font-size: 12px; color: muted; vertical-alignment: center; }
                                 }
                             }
                             Rectangle {
@@ -2065,8 +1947,8 @@ export component ProfileScreen inherits Rectangle {
                                     padding-left: 9px; padding-right: 9px;
                                     spacing: 6px;
                                     alignment: center;
-                                    Text { text: "👥"; font-size: 10px; vertical-alignment: center; }
-                                    Text { text: root.friend-count + " friends"; font-size: 10px; color: muted; vertical-alignment: center; }
+                                    Users { size: 12px; tint: muted; }
+                                    Text { text: root.friend-count + " friends"; font-size: 12px; color: muted; vertical-alignment: center; }
                                 }
                             }
                         }
@@ -2076,7 +1958,7 @@ export component ProfileScreen inherits Rectangle {
                 // About you section
                 Text {
                     text: "About you";
-                    font-size: 15px;
+font-size: 20px;
                     font-weight: 730;
                     color: ink;
                     letter-spacing: -0.25px;
@@ -2105,12 +1987,12 @@ export component ProfileScreen inherits Rectangle {
                                 background: surface-soft;
                                 border-width: 1px;
                                 border-color: line;
-                                Text { width: parent.width; height: parent.height; text: "👤"; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; }
+                                User { x: 9px; y: 9px; size: 17px; tint: ink; }
                             }
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 3px;
-                                Text { text: "Display name"; font-size: 10px; color: muted; }
+                                Text { text: "Display name"; font-size: 12px; color: muted; }
                                 Text { text: root.display-name; font-size: 12px; font-weight: 630; color: ink; overflow: elide; }
                             }
                         }
@@ -2132,7 +2014,7 @@ export component ProfileScreen inherits Rectangle {
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 3px;
-                                Text { text: "Username"; font-size: 10px; color: muted; }
+                                Text { text: "Username"; font-size: 12px; color: muted; }
                                 Text { text: "@" + root.handle; font-size: 12px; font-weight: 630; color: ink; overflow: elide; }
                             }
                             TouchArea {
@@ -2142,7 +2024,7 @@ export component ProfileScreen inherits Rectangle {
                                 Text {
                                     width: parent.width; height: parent.height;
                                     text: "Copy";
-                                    font-size: 11px;
+                                    font-size: 12px;
                                     font-weight: 650;
                                     color: muted;
                                     horizontal-alignment: center;
@@ -2163,12 +2045,12 @@ export component ProfileScreen inherits Rectangle {
                                 background: surface-soft;
                                 border-width: 1px;
                                 border-color: line;
-                                Text { width: parent.width; height: parent.height; text: "💬"; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; }
+                                NavChat { x: 9px; y: 9px; size: 17px; tint: ink; }
                             }
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 3px;
-                                Text { text: "Bio"; font-size: 10px; color: muted; }
+                                Text { text: "Bio"; font-size: 12px; color: muted; }
                                 Text { text: root.bio; font-size: 12px; font-weight: 630; color: ink; wrap: word-wrap; }
                             }
                             TouchArea {
@@ -2178,7 +2060,7 @@ export component ProfileScreen inherits Rectangle {
                                 Text {
                                     width: parent.width; height: parent.height;
                                     text: "Edit";
-                                    font-size: 11px;
+                                    font-size: 12px;
                                     font-weight: 650;
                                     color: muted;
                                     horizontal-alignment: center;
@@ -2192,7 +2074,7 @@ export component ProfileScreen inherits Rectangle {
                 // Your Nemo shortcuts
                 Text {
                     text: "Your Nemo";
-                    font-size: 15px;
+font-size: 20px;
                     font-weight: 730;
                     color: ink;
                     letter-spacing: -0.25px;
@@ -2224,13 +2106,13 @@ export component ProfileScreen inherits Rectangle {
                                 background: surface-soft;
                                 border-width: 1px;
                                 border-color: line;
-                                Text { width: parent.width; height: parent.height; text: "👥"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; }
+                                Users { x: 9px; y: 9px; size: 18px; tint: ink; }
                             }
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "My groups"; font-size: 12px; font-weight: 650; color: ink; }
-                                Text { text: "View group chats"; font-size: 10px; color: muted; }
+                                Text { text: "View group chats"; font-size: 12px; color: muted; }
                             }
                             Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                         }
@@ -2261,13 +2143,18 @@ export component ProfileScreen inherits Rectangle {
                                 background: surface-soft;
                                 border-width: 1px;
                                 border-color: line;
-                                Text { width: parent.width; height: parent.height; text: "⚙"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; }
+                                Gear {
+                                    x: (parent.width - self.width) / 2;
+                                    y: (parent.height - self.height) / 2;
+                                    size: 18px;
+                                    tint: ink;
+                                }
                             }
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Settings"; font-size: 12px; font-weight: 650; color: ink; }
-                                Text { text: "Account preferences"; font-size: 10px; color: muted; }
+                                Text { text: "Account preferences"; font-size: 12px; color: muted; }
                             }
                             Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                         }
@@ -2304,7 +2191,7 @@ export component ProfileScreen inherits Rectangle {
                                 horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Share profile"; font-size: 12px; font-weight: 650; color: ink; }
-                                Text { text: "Let friends find you"; font-size: 10px; color: muted; }
+                                Text { text: "Let friends find you"; font-size: 12px; color: muted; }
                             }
                             Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                         }
@@ -2335,13 +2222,13 @@ export component ProfileScreen inherits Rectangle {
                                 background: surface-soft;
                                 border-width: 1px;
                                 border-color: line;
-                                Text { width: parent.width; height: parent.height; text: "🔒"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; }
+                                Lock { x: 9px; y: 9px; size: 18px; tint: ink; }
                             }
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Privacy"; font-size: 12px; font-weight: 650; color: ink; }
-                                Text { text: "Control your visibility"; font-size: 10px; color: muted; }
+                                Text { text: "Control your visibility"; font-size: 12px; color: muted; }
                             }
                             Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                         }
@@ -2350,55 +2237,12 @@ export component ProfileScreen inherits Rectangle {
             }
         }
 
-        // Bottom nav
-        Rectangle {
-            height: 90px;
-            VerticalLayout {
-                padding-left: 18px; padding-right: 18px;
-                
-                spacing: 0px;
-                Rectangle {
-                    height: 63px;
-                    border-radius: 23px;
-                    background: nav-bg;
-                    border-width: 1px;
-                    border-color: rgba(255,255,255,0.92);
-                    drop-shadow-blur: 30px;
-                    drop-shadow-color: rgba(0,0,0,0.10);
-                    drop-shadow-offset-y: 12px;
-                    HorizontalLayout {
-                        alignment: center;
-                        TouchArea {
-                            horizontal-stretch: 1; height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { root.open-chats(); }
-                            Text { width: parent.width; height: parent.height; text: "Chats"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1; height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { root.open-find(); }
-                            Text { width: parent.width; height: parent.height; text: "Find"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1; height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { }
-                            Rectangle {
-                                width: parent.width; height: 63px;
-                                background: glass-strong;
-                                border-radius: 18px;
-                                Text { width: parent.width; height: parent.height; text: "Profile"; font-size: 9px; font-weight: 650; color: ink; horizontal-alignment: center; vertical-alignment: center; }
-                            }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1; height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { root.open-settings(); }
-                            Text { width: parent.width; height: parent.height; text: "Settings"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                    }
-                }
+        // Bottom navigation — shared floating glass tab bar.
+        NavBar {
+            selected: 2;
+            select(i) => {
+                if (i == 0) { root.open-chats(); }
+                if (i == 1) { root.open-find(); }
             }
         }
     }
@@ -2416,7 +2260,7 @@ export component ProfileScreen inherits Rectangle {
             border-radius: 28px;
             background: glass-strong;
             border-width: 1px;
-            border-color: rgba(255,255,255,0.92);
+            border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
             drop-shadow-blur: 30px;
             drop-shadow-color: rgba(0,0,0,0.12);
             drop-shadow-offset-y: 10px;
@@ -2447,7 +2291,7 @@ export component ProfileScreen inherits Rectangle {
                 VerticalLayout {
                     spacing: 7px;
                     padding-bottom: 12px;
-                    Text { text: "Display name"; font-size: 11px; font-weight: 650; color: ink; }
+                    Text { text: "Display name"; font-size: 12px; font-weight: 650; color: ink; }
                     Rectangle {
                         height: 44px;
                         border-radius: 14px;
@@ -2469,7 +2313,7 @@ export component ProfileScreen inherits Rectangle {
                 VerticalLayout {
                     spacing: 7px;
                     padding-bottom: 12px;
-                    Text { text: "Username"; font-size: 11px; font-weight: 650; color: ink; }
+                    Text { text: "Username"; font-size: 12px; font-weight: 650; color: ink; }
                     Rectangle {
                         height: 44px;
                         border-radius: 14px;
@@ -2491,7 +2335,7 @@ export component ProfileScreen inherits Rectangle {
                 VerticalLayout {
                     spacing: 7px;
                     padding-bottom: 17px;
-                    Text { text: "Bio"; font-size: 11px; font-weight: 650; color: ink; }
+                    Text { text: "Bio"; font-size: 12px; font-weight: 650; color: ink; }
                     Rectangle {
                         height: 70px;
                         border-radius: 14px;
@@ -2576,22 +2420,22 @@ export component SettingsScreen inherits Rectangle {
     in-out property <bool> haptics-on: true;
     in-out property <int> sheet: 0; // 0 none, 1 appearance, 2 logout
 
-    property <color> ink: local-dark ? #f4f4f2 : #171717;
-    property <color> ink-soft: local-dark ? #dadad7 : #3d3d3b;
-    property <color> muted: local-dark ? #aaa9a5 : #777774;
-    property <color> muted-2: local-dark ? #777772 : #9b9b98;
-    property <color> line: local-dark ? rgba(255,255,255,0.085) : rgba(20,20,20,0.09);
-    property <color> line-strong: local-dark ? rgba(255,255,255,0.15) : rgba(20,20,20,0.15);
-    property <color> glass: local-dark ? rgba(38,38,37,0.78) : rgba(255,255,255,0.76);
-    property <color> glass-strong: local-dark ? rgba(31,31,30,0.88) : rgba(255,255,255,0.82);
-    property <color> glass-soft: local-dark ? rgba(31,31,30,0.88) : rgba(245,245,244,0.82);
-    property <color> surface-soft: local-dark ? rgba(31,31,30,0.88) : rgba(245,245,244,0.82);
-    property <color> primary: local-dark ? #f2f2f0 : #171717;
-    property <color> primary-text: local-dark ? #171717 : #ffffff;
-    property <color> nav-bg: local-dark ? rgba(27,27,26,0.86) : rgba(250,250,249,0.78);
-    property <color> scrim: local-dark ? rgba(0,0,0,0.58) : rgba(0,0,0,0.34);
-    property <color> toggle: local-dark ? #eaeae8 : #202020;
-    property <color> toggle-knob: local-dark ? #181818 : #ffffff;
+    property <color> ink: Theme.n-ink;
+    property <color> ink-soft: Theme.n-ink-soft;
+    property <color> muted: Theme.n-muted;
+    property <color> muted-2: Theme.n-muted-2;
+    property <color> line: Theme.n-line;
+    property <color> line-strong: Theme.n-line-strong;
+    property <color> glass: Theme.n-glass;
+    property <color> glass-strong: Theme.n-glass-strong;
+    property <color> glass-soft: Theme.n-glass-soft;
+    property <color> surface-soft: Theme.n-surface-soft;
+    property <color> primary: Theme.n-primary;
+    property <color> primary-text: Theme.n-primary-text;
+    property <color> nav-bg: Theme.n-nav-bg;
+    property <color> scrim: Theme.n-scrim;
+    property <color> toggle: Theme.n-primary;
+    property <color> toggle-knob: Theme.n-primary-text;
 
     VerticalLayout {
         padding-left: 0px;
@@ -2606,28 +2450,8 @@ export component SettingsScreen inherits Rectangle {
             padding-top: 15px; padding-bottom: 0px;
             height: 58px;
             alignment: start;
-            TouchArea {
-                width: 42px; height: 42px;
-                mouse-cursor: pointer;
+            NemoBackButton {
                 clicked => { root.back(); }
-                Rectangle {
-                    width: 42px; height: 42px;
-                    border-radius: 16px;
-                    background: glass;
-                    border-width: 1px;
-                    border-color: line;
-                    drop-shadow-blur: 12px;
-                    drop-shadow-color: rgba(0,0,0,0.045);
-                    drop-shadow-offset-y: 4px;
-                    Text {
-                        width: parent.width; height: parent.height;
-                        text: "←";
-                        font-size: 18px;
-                        color: ink;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                }
             }
             Rectangle { horizontal-stretch: 1; }
             TouchArea {
@@ -2646,7 +2470,8 @@ export component SettingsScreen inherits Rectangle {
                     HorizontalLayout {
                         alignment: center;
                         spacing: 8px;
-                        Text { text: root.local-dark ? "☀" : "◐"; font-size: 13px; color: ink; vertical-alignment: center; }
+                        if root.local-dark: Sun { size: 15px; tint: ink; }
+                        if !root.local-dark: Moon { size: 15px; tint: ink; }
                         Text { text: root.local-dark ? "Light mode" : "Dark mode"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
                     }
                 }
@@ -2659,19 +2484,19 @@ export component SettingsScreen inherits Rectangle {
                 padding-left: 20px;
                 padding-right: 20px;
                 padding-top: 15px;
-                padding-bottom: 112px;
+                padding-bottom: 32px;
                 spacing: 0px;
 
                 Text {
                     text: "NEMO · PERSONALISE";
-                    font-size: 10px;
+                    font-size: 12px;
                     font-weight: 750;
                     color: muted;
                     letter-spacing: 1.7px;
                 }
                 Text {
                     text: "Settings";
-                    font-size: 35px;
+                    font-size: 31px;
                     font-weight: 760;
                     color: ink;
                     letter-spacing: -1.5px;
@@ -2702,7 +2527,7 @@ export component SettingsScreen inherits Rectangle {
                             border-radius: 17px;
                             background: @linear-gradient(145deg, #e9e9e9 0%, #c9c9c9 100%);
                             border-width: 1px;
-                            border-color: rgba(255,255,255,0.92);
+                            border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
                             Text {
                                 width: parent.width; height: parent.height;
                                 text: "AM";
@@ -2717,7 +2542,7 @@ export component SettingsScreen inherits Rectangle {
                             horizontal-stretch: 1;
                             spacing: 2px;
                             Text { text: "Alex Morgan"; font-size: 14px; font-weight: 700; color: ink; }
-                            Text { text: "@alexmorgan"; font-size: 11px; color: muted; }
+                            Text { text: "@alexmorgan"; font-size: 12px; color: muted; }
                         }
                         TouchArea {
                             width: 90px; height: 36px;
@@ -2732,7 +2557,7 @@ export component SettingsScreen inherits Rectangle {
                                 Text {
                                     width: parent.width; height: parent.height;
                                     text: "Edit profile";
-                                    font-size: 11px;
+                                    font-size: 12px;
                                     font-weight: 700;
                                     color: ink;
                                     horizontal-alignment: center;
@@ -2746,7 +2571,7 @@ export component SettingsScreen inherits Rectangle {
                 // Preferences section
                 Text {
                     text: "Preferences";
-                    font-size: 15px;
+font-size: 20px;
                     font-weight: 730;
                     color: ink;
                     letter-spacing: -0.25px;
@@ -2774,14 +2599,14 @@ export component SettingsScreen inherits Rectangle {
                                     padding-left: 16px; padding-right: 16px;
                                     spacing: 12px;
                                     alignment: center;
-                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "◐"; font-size: 15px; color: ink; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; if root.local-dark: Sun { x: 8px; y: 8px; size: 17px; tint: ink; } if !root.local-dark: Moon { x: 8px; y: 8px; size: 17px; tint: ink; } }
                                     VerticalLayout {
                                         horizontal-stretch: 1;
                                         spacing: 2px;
                                         Text { text: "Appearance"; font-size: 12px; font-weight: 650; color: ink; }
-                                        Text { text: "Choose light, dark or follow device"; font-size: 10px; color: muted; }
+                                        Text { text: "Choose light, dark or follow device"; font-size: 12px; color: muted; }
                                     }
-                                    Text { text: root.local-dark ? "Dark" : "Light"; font-size: 11px; font-weight: 700; color: muted; vertical-alignment: center; }
+                                    Text { text: root.local-dark ? "Dark" : "Light"; font-size: 12px; font-weight: 700; color: muted; vertical-alignment: center; }
                                     Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                                 }
                             }
@@ -2793,12 +2618,12 @@ export component SettingsScreen inherits Rectangle {
                             padding-left: 16px; padding-right: 16px;
                             spacing: 12px;
                             alignment: center;
-                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🔔"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Bell { x: 8px; y: 8px; size: 17px; tint: ink; } }
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 2px;
                                 Text { text: "Push notifications"; font-size: 12px; font-weight: 650; color: ink; }
-                                Text { text: "Friend requests and new messages"; font-size: 10px; color: muted; }
+                                Text { text: "Friend requests and new messages"; font-size: 12px; color: muted; }
                             }
                             TouchArea {
                                 width: 44px; height: 26px;
@@ -2827,12 +2652,12 @@ export component SettingsScreen inherits Rectangle {
                             padding-left: 16px; padding-right: 16px;
                             spacing: 12px;
                             alignment: center;
-                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🔊"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Speaker { x: 8px; y: 8px; size: 17px; tint: ink; } }
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 2px;
                                 Text { text: "Message sounds"; font-size: 12px; font-weight: 650; color: ink; }
-                                Text { text: "Play a sound for new messages"; font-size: 10px; color: muted; }
+                                Text { text: "Play a sound for new messages"; font-size: 12px; color: muted; }
                             }
                             TouchArea {
                                 width: 44px; height: 26px;
@@ -2866,7 +2691,7 @@ export component SettingsScreen inherits Rectangle {
                                 horizontal-stretch: 1;
                                 spacing: 2px;
                                 Text { text: "Haptic feedback"; font-size: 12px; font-weight: 650; color: ink; }
-                                Text { text: "Subtle feedback when you interact"; font-size: 10px; color: muted; }
+                                Text { text: "Subtle feedback when you interact"; font-size: 12px; color: muted; }
                             }
                             TouchArea {
                                 width: 44px; height: 26px;
@@ -2895,12 +2720,12 @@ export component SettingsScreen inherits Rectangle {
                             padding-left: 16px; padding-right: 16px;
                             spacing: 12px;
                             alignment: center;
-                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "✉"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Mail { x: 8px; y: 8px; size: 17px; tint: ink; } }
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 2px;
                                 Text { text: "Message previews"; font-size: 12px; font-weight: 650; color: ink; }
-                                Text { text: "Show message text in notifications"; font-size: 10px; color: muted; }
+                                Text { text: "Show message text in notifications"; font-size: 12px; color: muted; }
                             }
                             TouchArea {
                                 width: 44px; height: 26px;
@@ -2928,7 +2753,7 @@ export component SettingsScreen inherits Rectangle {
                 // Privacy & Security
                 Text {
                     text: "Privacy & security";
-                    font-size: 15px;
+font-size: 20px;
                     font-weight: 730;
                     color: ink;
                     letter-spacing: -0.25px;
@@ -2956,14 +2781,14 @@ export component SettingsScreen inherits Rectangle {
                                     padding-left: 16px; padding-right: 16px;
                                     spacing: 12px;
                                     alignment: center;
-                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "👥"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Users { x: 8px; y: 8px; size: 17px; tint: ink; } }
                                     VerticalLayout {
                                         horizontal-stretch: 1;
                                         spacing: 2px;
                                         Text { text: "Friend requests"; font-size: 12px; font-weight: 650; color: ink; }
-                                        Text { text: "Control who can add you"; font-size: 10px; color: muted; }
+                                        Text { text: "Control who can add you"; font-size: 12px; color: muted; }
                                     }
-                                    Text { text: "Everyone"; font-size: 11px; font-weight: 700; color: muted; vertical-alignment: center; }
+                                    Text { text: "Everyone"; font-size: 12px; font-weight: 700; color: muted; vertical-alignment: center; }
                                     Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                                 }
                             }
@@ -2975,12 +2800,12 @@ export component SettingsScreen inherits Rectangle {
                             padding-left: 16px; padding-right: 16px;
                             spacing: 12px;
                             alignment: center;
-                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "👁"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Eye { x: 8px; y: 8px; size: 17px; tint: ink; } }
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 2px;
                                 Text { text: "Read receipts"; font-size: 12px; font-weight: 650; color: ink; }
-                                Text { text: "Let friends know when you've read a message"; font-size: 10px; color: muted; }
+                                Text { text: "Let friends know when you've read a message"; font-size: 12px; color: muted; }
                             }
                             TouchArea {
                                 width: 44px; height: 26px;
@@ -3014,12 +2839,12 @@ export component SettingsScreen inherits Rectangle {
                                     padding-left: 16px; padding-right: 16px;
                                     spacing: 12px;
                                     alignment: center;
-                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🚫"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; BlockIcon { x: 8px; y: 8px; size: 17px; tint: ink; } }
                                     VerticalLayout {
                                         horizontal-stretch: 1;
                                         spacing: 2px;
                                         Text { text: "Blocked accounts"; font-size: 12px; font-weight: 650; color: ink; }
-                                        Text { text: "Manage people you have blocked"; font-size: 10px; color: muted; }
+                                        Text { text: "Manage people you have blocked"; font-size: 12px; color: muted; }
                                     }
                                     Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                                 }
@@ -3037,12 +2862,12 @@ export component SettingsScreen inherits Rectangle {
                                     padding-left: 16px; padding-right: 16px;
                                     spacing: 12px;
                                     alignment: center;
-                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🔐"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Lock { x: 8px; y: 8px; size: 17px; tint: ink; } }
                                     VerticalLayout {
                                         horizontal-stretch: 1;
                                         spacing: 2px;
                                         Text { text: "Recovery codes"; font-size: 12px; font-weight: 650; color: ink; }
-                                        Text { text: "Review your account recovery options"; font-size: 10px; color: muted; }
+                                        Text { text: "Review your account recovery options"; font-size: 12px; color: muted; }
                                     }
                                     Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                                 }
@@ -3054,7 +2879,7 @@ export component SettingsScreen inherits Rectangle {
                 // Chats section
                 Text {
                     text: "Chats";
-                    font-size: 15px;
+font-size: 20px;
                     font-weight: 730;
                     color: ink;
                     letter-spacing: -0.25px;
@@ -3082,7 +2907,7 @@ export component SettingsScreen inherits Rectangle {
                                 horizontal-stretch: 1;
                                 spacing: 2px;
                                 Text { text: "Enter to send"; font-size: 12px; font-weight: 650; color: ink; }
-                                Text { text: "Send a message with the enter key"; font-size: 10px; color: muted; }
+                                Text { text: "Send a message with the enter key"; font-size: 12px; color: muted; }
                             }
                             TouchArea {
                                 width: 44px; height: 26px;
@@ -3121,9 +2946,9 @@ export component SettingsScreen inherits Rectangle {
                                         horizontal-stretch: 1;
                                         spacing: 2px;
                                         Text { text: "Media downloads"; font-size: 12px; font-weight: 650; color: ink; }
-                                        Text { text: "Choose when photos and files download"; font-size: 10px; color: muted; }
+                                        Text { text: "Choose when photos and files download"; font-size: 12px; color: muted; }
                                     }
-                                    Text { text: "Wi-Fi only"; font-size: 11px; font-weight: 700; color: muted; vertical-alignment: center; }
+                                    Text { text: "Wi-Fi only"; font-size: 12px; font-weight: 700; color: muted; vertical-alignment: center; }
                                     Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                                 }
                             }
@@ -3134,7 +2959,7 @@ export component SettingsScreen inherits Rectangle {
                 // Support & about
                 Text {
                     text: "Support & about";
-                    font-size: 15px;
+font-size: 20px;
                     font-weight: 730;
                     color: ink;
                     letter-spacing: -0.25px;
@@ -3167,7 +2992,7 @@ export component SettingsScreen inherits Rectangle {
                                         horizontal-stretch: 1;
                                         spacing: 2px;
                                         Text { text: "Help center"; font-size: 12px; font-weight: 650; color: ink; }
-                                        Text { text: "Get help with using Nemo"; font-size: 10px; color: muted; }
+                                        Text { text: "Get help with using Nemo"; font-size: 12px; color: muted; }
                                     }
                                     Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                                 }
@@ -3185,12 +3010,12 @@ export component SettingsScreen inherits Rectangle {
                                     padding-left: 16px; padding-right: 16px;
                                     spacing: 12px;
                                     alignment: center;
-                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "📋"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; ListIcon { x: 8px; y: 8px; size: 17px; tint: ink; } }
                                     VerticalLayout {
                                         horizontal-stretch: 1;
                                         spacing: 2px;
                                         Text { text: "Community guidelines"; font-size: 12px; font-weight: 650; color: ink; }
-                                        Text { text: "How we keep Nemo welcoming"; font-size: 10px; color: muted; }
+                                        Text { text: "How we keep Nemo welcoming"; font-size: 12px; color: muted; }
                                     }
                                     Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                                 }
@@ -3208,12 +3033,12 @@ export component SettingsScreen inherits Rectangle {
                                     padding-left: 16px; padding-right: 16px;
                                     spacing: 12px;
                                     alignment: center;
-                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "📄"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Document { x: 8px; y: 8px; size: 17px; tint: ink; } }
                                     VerticalLayout {
                                         horizontal-stretch: 1;
                                         spacing: 2px;
                                         Text { text: "Terms & privacy"; font-size: 12px; font-weight: 650; color: ink; }
-                                        Text { text: "Read Nemo's policies"; font-size: 10px; color: muted; }
+                                        Text { text: "Read Nemo's policies"; font-size: 12px; color: muted; }
                                     }
                                     Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                                 }
@@ -3231,12 +3056,12 @@ export component SettingsScreen inherits Rectangle {
                                     padding-left: 16px; padding-right: 16px;
                                     spacing: 12px;
                                     alignment: center;
-                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🔄"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Refresh { x: 8px; y: 8px; size: 17px; tint: ink; } }
                                     VerticalLayout {
                                         horizontal-stretch: 1;
                                         spacing: 2px;
                                         Text { text: "App updates"; font-size: 12px; font-weight: 650; color: ink; }
-                                        Text { text: "Check the latest Nemo version"; font-size: 10px; color: muted; }
+                                        Text { text: "Check the latest Nemo version"; font-size: 12px; color: muted; }
                                     }
                                     Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                                 }
@@ -3265,12 +3090,12 @@ export component SettingsScreen inherits Rectangle {
                                 padding-left: 16px; padding-right: 16px;
                                 spacing: 12px;
                                 alignment: center;
-                                Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🚪"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; } }
+                                Rectangle { width: 34px; height: 34px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Logout { x: 8px; y: 8px; size: 17px; tint: ink; } }
                                 VerticalLayout {
                                     horizontal-stretch: 1;
                                     spacing: 2px;
                                     Text { text: "Log out"; font-size: 12px; font-weight: 650; color: ink; }
-                                    Text { text: "Sign out of this device"; font-size: 10px; color: muted; }
+                                    Text { text: "Sign out of this device"; font-size: 12px; color: muted; }
                                 }
                                 Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
                             }
@@ -3280,7 +3105,7 @@ export component SettingsScreen inherits Rectangle {
 
                 Text {
                     text: "NEMO · VERSION 0.1.0 · UI PREVIEW";
-                    font-size: 9px;
+                    font-size: 12px;
                     color: muted;
                     letter-spacing: 0.35px;
                     horizontal-alignment: center;
@@ -3288,51 +3113,6 @@ export component SettingsScreen inherits Rectangle {
             }
         }
 
-        // Bottom nav (Chats/Find/Profile — Profile active)
-        Rectangle {
-            height: 90px;
-            VerticalLayout {
-                padding-left: 18px; padding-right: 18px;
-                
-                spacing: 0px;
-                Rectangle {
-                    height: 63px;
-                    border-radius: 23px;
-                    background: nav-bg;
-                    border-width: 1px;
-                    border-color: rgba(255,255,255,0.92);
-                    drop-shadow-blur: 30px;
-                    drop-shadow-color: rgba(0,0,0,0.10);
-                    drop-shadow-offset-y: 12px;
-                    HorizontalLayout {
-                        alignment: center;
-                        TouchArea {
-                            horizontal-stretch: 1; height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { root.open-chats(); }
-                            Text { width: parent.width; height: parent.height; text: "Chats"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1; height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { root.open-find(); }
-                            Text { width: parent.width; height: parent.height; text: "Find"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
-                        }
-                        TouchArea {
-                            horizontal-stretch: 1; height: 63px;
-                            mouse-cursor: pointer;
-                            clicked => { }
-                            Rectangle {
-                                width: parent.width; height: 63px;
-                                background: glass-strong;
-                                border-radius: 18px;
-                                Text { width: parent.width; height: parent.height; text: "Profile"; font-size: 9px; font-weight: 650; color: ink; horizontal-alignment: center; vertical-alignment: center; }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     // Appearance sheet
@@ -3347,7 +3127,7 @@ export component SettingsScreen inherits Rectangle {
             border-radius: 28px;
             background: glass-strong;
             border-width: 1px;
-            border-color: rgba(255,255,255,0.92);
+            border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
             drop-shadow-blur: 30px;
             drop-shadow-color: rgba(0,0,0,0.12);
             drop-shadow-offset-y: 10px;
@@ -3357,7 +3137,7 @@ export component SettingsScreen inherits Rectangle {
                 spacing: 0px;
                 Rectangle { height: 4px; width: 34px; x: (parent.width - 34px) / 2; border-radius: 2px; background: muted; opacity: 0.45; }
                 Text { text: "Appearance"; font-size: 15px; font-weight: 700; color: ink;  }
-                Text { text: "Choose how Nemo looks on this device."; font-size: 11px; color: muted;  }
+                Text { text: "Choose how Nemo looks on this device."; font-size: 12px; color: muted;  }
                 TouchArea {
                     height: 44px;
                     mouse-cursor: pointer;
@@ -3419,7 +3199,7 @@ export component SettingsScreen inherits Rectangle {
             border-radius: 28px;
             background: glass-strong;
             border-width: 1px;
-            border-color: rgba(255,255,255,0.92);
+            border-color: Theme.is-dark ? rgba(255,255,255,0.14) : rgba(255,255,255,0.92);
             drop-shadow-blur: 30px;
             drop-shadow-color: rgba(0,0,0,0.12);
             drop-shadow-offset-y: 10px;
@@ -3429,7 +3209,7 @@ export component SettingsScreen inherits Rectangle {
                 spacing: 0px;
                 Rectangle { height: 4px; width: 34px; x: (parent.width - 34px) / 2; border-radius: 2px; background: muted; opacity: 0.45; }
                 Text { text: "Log out?"; font-size: 15px; font-weight: 700; color: ink;  }
-                Text { text: "You will need to sign in again to use Nemo."; font-size: 11px; color: muted;  }
+                Text { text: "You will need to sign in again to use Nemo."; font-size: 12px; color: muted;  }
                 TouchArea {
                     height: 44px;
                     mouse-cursor: pointer;
