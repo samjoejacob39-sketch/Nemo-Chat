@@ -283,7 +283,7 @@ export component CreateGroupScreen inherits Rectangle {
             clip: true;
             // top specular
             Rectangle {
-                x: 12px; y: 0px; width: parent.width - 24px; height: 1px;
+                x: 12px; y: 0px; width: 300px; height: 1px;
                 background: @linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.95) 50%, transparent 100%);
             }
 
@@ -609,7 +609,7 @@ export component CreateGroupScreen inherits Rectangle {
         TouchArea { clicked => { root.modal-open = false; } }
         Rectangle {
             x: 12px; y: parent.height - 200px;
-            width: parent.width - 24px; height: 180px;
+            width: parent.width; height: 180px;
             border-radius: 28px;
             background: glass-strong;
             border-width: 1px;
@@ -658,8 +658,7 @@ export component CreateGroupScreen inherits Rectangle {
 
 // ---------------------------------------------------------------------------
 // Group info
-// ---------------------------------------------------------------------------
-
+// Group Info screen — monochrome Liquid Glass (mobile-first).
 export component GroupInfoScreen inherits Rectangle {
     in property <string> group-name: "";
     in property <string> group-initials: "";
@@ -667,106 +666,806 @@ export component GroupInfoScreen inherits Rectangle {
     in property <int> member-count: 0;
     in property <[UiMember]> members;
     in property <bool> is-admin: false;
-    in-out property <bool> muted: false;
+    in-out property <bool> group-muted: false;
     callback back;
     callback leave;
     background: transparent;
 
+    in-out property <bool> dark: Theme.is-dark;
+    in-out property <int> tab: 0; // 0 members, 1 media
+    in-out property <bool> sheet-open: false;
+    in-out property <bool> leave-open: false;
+
+    property <color> ink: dark ? #f2f2f0 : #191919;
+    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
+    property <color> muted: dark ? #aaa9a6 : #777775;
+    property <color> muted-2: dark ? #777673 : #a1a19e;
+    property <color> line: dark ? rgba(255,255,255,0.085) : rgba(25,25,25,0.09);
+    property <color> line-strong: dark ? rgba(255,255,255,0.14) : rgba(25,25,25,0.14);
+    property <color> glass: dark ? rgba(39,39,39,0.66) : rgba(255,255,255,0.62);
+    property <color> glass-strong: dark ? rgba(47,47,47,0.84) : rgba(255,255,255,0.82);
+    property <color> surface-soft: dark ? rgba(44,44,44,0.48) : rgba(255,255,255,0.42);
+    property <color> nav-bg: dark ? rgba(25,25,25,0.82) : rgba(248,248,247,0.77);
+    property <color> primary: dark ? #f0f0ee : #171717;
+    property <color> primary-text: dark ? #171717 : #ffffff;
+    property <color> scrim: dark ? rgba(0,0,0,0.58) : rgba(0,0,0,0.28);
+
     VerticalLayout {
-        TopBar {
-            title: "Group info";
-            back => { root.back(); }
+        padding-left: 0px;
+        padding-right: 0px;
+        padding-top: 0px;
+        padding-bottom: 0px;
+        spacing: 0px;
+
+        // Top bar
+        HorizontalLayout {
+            padding-left: 20px; padding-right: 20px;
+            padding-top: 10px; padding-bottom: 8px;
+            height: 66px;
+            alignment: start;
+            spacing: 0px;
+            TouchArea {
+                width: 40px; height: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.back(); }
+                Rectangle {
+                    width: 40px; height: 40px;
+                    border-radius: 15px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 12px;
+                    drop-shadow-color: rgba(0,0,0,0.035);
+                    drop-shadow-offset-y: 4px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: "←";
+                        font-size: 18px;
+                        color: ink;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+            Text {
+                horizontal-stretch: 1;
+                text: "Group info";
+                font-size: 15px;
+                font-weight: 650;
+                color: ink;
+                letter-spacing: -0.2px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+            TouchArea {
+                width: 40px; height: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.dark = !root.dark; Theme.is-dark = root.dark; }
+                Rectangle {
+                    width: 40px; height: 40px;
+                    border-radius: 15px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: root.dark ? "☀" : "☾";
+                        font-size: 17px;
+                        color: ink;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+            TouchArea {
+                width: 40px; height: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.sheet-open = true; }
+                Rectangle {
+                    width: 40px; height: 40px;
+                    border-radius: 15px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: "⋯";
+                        font-size: 18px;
+                        color: ink;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
         }
 
         Flickable {
             vertical-stretch: 1;
             VerticalLayout {
-                padding-left: Theme.sp-4;
-                padding-right: Theme.sp-4;
-                padding-top: 4px;
-                padding-bottom: Theme.sp-5;
-                spacing: Theme.sp-3;
+                padding-left: 20px;
+                padding-right: 20px;
+                padding-top: 22px;
+                padding-bottom: 18px;
+                spacing: 0px;
 
-                // Hero card
-                GlassCard {
-                    strong: true;
-                    height: 196px;
+                // Group hero
+                VerticalLayout {
+                    spacing: 0px;
+                    alignment: center;
+                    // avatar
+                    Rectangle {
+                        width: 104px; height: 104px;
+                        
+                        border-radius: 33px;
+                        background: @linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(205,205,202,0.58) 100%);
+                        border-width: 1px;
+                        border-color: rgba(255,255,255,0.8);
+                        drop-shadow-blur: 32px;
+                        drop-shadow-color: rgba(0,0,0,0.12);
+                        drop-shadow-offset-y: 16px;
+                        // edit button
+                        TouchArea {
+                            width: 31px; height: 31px;
+                            x: 73px; y: 73px;
+                            mouse-cursor: pointer;
+                            clicked => { }
+                            Rectangle {
+                                width: 31px; height: 31px;
+                                border-radius: 15.5px;
+                                background: primary;
+                                border-width: 2px;
+                                border-color: dark ? #101010 : #f4f4f3;
+                                drop-shadow-blur: 12px;
+                                drop-shadow-color: rgba(0,0,0,0.08);
+                                drop-shadow-offset-y: 4px;
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: "✎";
+                                    font-size: 13px;
+                                    color: primary-text;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+                        Text {
+                            width: parent.width; height: parent.height;
+                            text: root.group-initials;
+                            font-size: 32px;
+                            font-weight: 700;
+                            color: #333;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                    Text {
+                        text: root.group-name;
+                        font-size: 25px;
+                        font-weight: 720;
+                        color: ink;
+                        letter-spacing: -0.55px;
+                        horizontal-alignment: center;
+                        padding-top: 17px;
+                    }
+                    Text {
+                        text: "#" + root.group-name.to-lowercase().replace-all(" ", "-");
+                        font-size: 13px;
+                        color: muted;
+                        horizontal-alignment: center;
+                        padding-top: 7px;
+                    }
+                    Text {
+                        text: "Good people, good conversations, and plans that actually happen.";
+                        font-size: 13px;
+                        color: muted;
+                        horizontal-alignment: center;
+                        wrap: word-wrap;
+                        padding-top: 12px;
+                    }
+                    Text {
+                        text: "Created by Alex Morgan · 12 October 2026";
+                        font-size: 11px;
+                        color: muted-2;
+                        horizontal-alignment: center;
+                        padding-top: 12px;
+                    }
+                }
+
+                // Hero actions
+                HorizontalLayout {
+                    padding-top: 2px;
+                    padding-bottom: 23px;
+                    spacing: 9px;
+                    alignment: center;
+                    for action in ["Add", "Mute", "Search", "Share"]: TouchArea {
+                        horizontal-stretch: 1;
+                        height: 70px;
+                        mouse-cursor: pointer;
+                        clicked => {
+                            if (action == "Mute") { root.group-muted = !root.group-muted; }
+                        }
+                        Rectangle {
+                            width: parent.width; height: 70px;
+                            border-radius: 19px;
+                            background: glass;
+                            border-width: 1px;
+                            border-color: line;
+                            drop-shadow-blur: 12px;
+                            drop-shadow-color: rgba(0,0,0,0.045);
+                            drop-shadow-offset-y: 4px;
+                            VerticalLayout {
+                                alignment: center;
+                                spacing: 8px;
+                                Rectangle {
+                                    width: 53px; height: 53px;
+                                    x: (parent.width - 53px) / 2;
+                                    border-radius: 19px;
+                                    background: surface-soft;
+                                    border-width: 1px;
+                                    border-color: line;
+                                    Text {
+                                        width: parent.width; height: parent.height;
+                                        text: action == "Add" ? "＋" : (action == "Mute" ? (root.group-muted ? "🔇" : "🔔") : (action == "Search" ? "🔍" : "↗"));
+                                        font-size: 17px;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                                Text {
+                                    text: action == "Mute" ? (root.group-muted ? "Unmute" : "Mute") : action;
+                                    font-size: 10px;
+                                    font-weight: 650;
+                                    color: ink;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Members section
+                HorizontalLayout {
+                    padding-bottom: 11px;
+                    alignment: start;
+                    spacing: 0px;
+                    Text {
+                        text: "Members";
+                        font-size: 14px;
+                        font-weight: 680;
+                        color: ink;
+                        letter-spacing: -0.2px;
+                        vertical-alignment: center;
+                    }
+                    Text {
+                        text: " · " + root.member-count;
+                        font-size: 11px;
+                        color: muted;
+                        vertical-alignment: center;
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                    TouchArea {
+                        width: 30px; height: 30px;
+                        mouse-cursor: pointer;
+                        clicked => { }
+                        Rectangle {
+                            width: 30px; height: 30px;
+                            border-radius: 10px;
+                            background: glass;
+                            border-width: 1px;
+                            border-color: line;
+                            Text {
+                                width: parent.width; height: parent.height;
+                                text: "+";
+                                font-size: 18px;
+                                color: ink;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    border-radius: 24px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 16px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 6px;
+                    clip: true;
                     VerticalLayout {
-                        padding-top: 20px;
-                        padding-bottom: 18px;
-                        padding-left: 20px;
-                        padding-right: 20px;
+                        padding-left: 15px;
+                        padding-right: 15px;
+                        padding-top: 4px;
+                        padding-bottom: 4px;
+                        spacing: 0px;
+                        for m in root.members: HorizontalLayout {
+                            height: 62px;
+                            spacing: 12px;
+                            alignment: center;
+                            Rectangle {
+                                width: 43px; height: 43px;
+                                border-radius: 16px;
+                                background: @linear-gradient(145deg, #eee 0%, #bdbdb9 100%);
+                                border-width: 1px;
+                                border-color: rgba(255,255,255,0.65);
+                                drop-shadow-blur: 10px;
+                                drop-shadow-color: rgba(0,0,0,0.07);
+                                drop-shadow-offset-y: 4px;
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: m.initials;
+                                    font-size: 12px;
+                                    font-weight: 700;
+                                    color: #383836;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 4px;
+                                Text {
+                                    text: m.name;
+                                    font-size: 13px;
+                                    font-weight: 630;
+                                    color: ink;
+                                    letter-spacing: -0.15px;
+                                    overflow: elide;
+                                }
+                                Text {
+                                    text: m.handle;
+                                    font-size: 11px;
+                                    color: muted;
+                                    overflow: elide;
+                                }
+                            }
+                            Rectangle {
+                                width: 0px; // spacer
+                            }
+                            if m.admin: Rectangle {
+                                width: 60px; height: 22px;
+                                border-radius: 11px;
+                                background: surface-soft;
+                                border-width: 1px;
+                                border-color: line;
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: "Admin";
+                                    font-size: 10px;
+                                    color: muted;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                            if !m.admin: TouchArea {
+                                width: 30px; height: 30px;
+                                mouse-cursor: pointer;
+                                clicked => { }
+                                Rectangle {
+                                    width: 30px; height: 30px;
+                                    border-radius: 10px;
+                                    background: glass;
+                                    border-width: 1px;
+                                    border-color: line;
+                                    Text {
+                                        width: parent.width; height: parent.height;
+                                        text: "⋯";
+                                        font-size: 14px;
+                                        color: muted;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                            }
+
+                        }
+                        TouchArea {
+                            height: 54px;
+                            mouse-cursor: pointer;
+                            clicked => { }
+                            Rectangle {
+                                width: parent.width; height: 54px;
+                                HorizontalLayout {
+                                    padding-left: 15px; padding-right: 15px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle {
+                                        width: 33px; height: 33px;
+                                        border-radius: 12px;
+                                        background: surface-soft;
+                                        border-width: 1px;
+                                        border-color: line;
+                                        Text { width: parent.width; height: parent.height; text: "›"; font-size: 14px; color: muted; horizontal-alignment: center; vertical-alignment: center; }
+                                    }
+                                    Text {
+                                        horizontal-stretch: 1;
+                                        text: "View all members";
+                                        font-size: 12px;
+                                        font-weight: 630;
+                                        color: ink;
+                                        vertical-alignment: center;
+                                    }
+                                    Text {
+                                        text: "" + root.member-count;
+                                        font-size: 11px;
+                                        color: muted;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Tabs
+                HorizontalLayout {
+                    padding-top: 14px;
+                    padding-bottom: 13px;
+                    spacing: 6px;
+                    TouchArea {
+                        horizontal-stretch: 1;
+                        height: 34px;
+                        mouse-cursor: pointer;
+                        clicked => { root.tab = 0; }
+                        Rectangle {
+                            width: parent.width; height: 34px;
+                            border-radius: 12px;
+                            background: root.tab == 0 ? glass-strong : surface-soft;
+                            border-width: 1px;
+                            border-color: root.tab == 0 ? line-strong : line;
+                            drop-shadow-blur: root.tab == 0 ? 9px : 0px;
+                            drop-shadow-color: rgba(0,0,0,0.07);
+                            drop-shadow-offset-y: 3px;
+                            Text {
+                                width: parent.width; height: parent.height;
+                                text: "Members";
+                                font-size: 12px;
+                                font-weight: 620;
+                                color: ink;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                    TouchArea {
+                        horizontal-stretch: 1;
+                        height: 34px;
+                        mouse-cursor: pointer;
+                        clicked => { root.tab = 1; }
+                        Rectangle {
+                            width: parent.width; height: 34px;
+                            border-radius: 12px;
+                            background: root.tab == 1 ? glass-strong : surface-soft;
+                            border-width: 1px;
+                            border-color: root.tab == 1 ? line-strong : line;
+                            drop-shadow-blur: root.tab == 1 ? 9px : 0px;
+                            drop-shadow-color: rgba(0,0,0,0.07);
+                            drop-shadow-offset-y: 3px;
+                            Text {
+                                width: parent.width; height: parent.height;
+                                text: "Media & links";
+                                font-size: 12px;
+                                font-weight: 620;
+                                color: ink;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+
+                // Media panel (shown when tab == 1)
+                if root.tab == 1: Rectangle {
+                    border-radius: 24px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 16px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 6px;
+                    clip: true;
+                    VerticalLayout {
+                        padding: 14px;
                         spacing: 8px;
-                        cross-axis-alignment: center;
-                        Avatar {
-                            size: 80px;
-                            initials: root.group-initials;
-                            variant: root.group-variant;
+                        // media grid (3 columns, 2 rows)
+                        HorizontalLayout {
+                            spacing: 8px;
+                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #e8e8e5 0%, #bcbcb8 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "Photo"; font-size: 9px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #d4d4d1 0%, #999995 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "File"; font-size: 9px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #f0f0ed 0%, #c5c5c1 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "Link"; font-size: 9px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
                         }
+                        HorizontalLayout {
+                            spacing: 8px;
+                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #c5c5c1 0%, #858581 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "Document"; font-size: 9px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #ececea 0%, #aaa9a5 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "Shared"; font-size: 9px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { horizontal-stretch: 1; height: 80px; border-radius: 17px; background: @linear-gradient(145deg, #bdbdb9 0%, #ededeb 100%); border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "More"; font-size: 9px; font-weight: 650; color: #555; horizontal-alignment: center; vertical-alignment: center; } }
+                        }
+                    }
+                }
+
+                // Group settings
+                Text {
+                    text: "Group settings";
+                    font-size: 14px;
+                    font-weight: 680;
+                    color: ink;
+                    letter-spacing: -0.2px;
+                    padding-top: 14px;
+                    padding-bottom: 11px;
+                }
+                Rectangle {
+                    border-radius: 22px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 16px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 6px;
+                    clip: true;
+                    VerticalLayout {
+                        TouchArea {
+                            height: 54px;
+                            mouse-cursor: pointer;
+                            clicked => { }
+                            Rectangle {
+                                width: parent.width; height: 54px;
+                                HorizontalLayout {
+                                    padding-left: 15px; padding-right: 15px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle { width: 33px; height: 33px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "✎"; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Text { horizontal-stretch: 1; text: "Edit group details"; font-size: 12px; font-weight: 630; color: ink; vertical-alignment: center; }
+                                    Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                                }
+                            }
+                        }
+                        Rectangle { height: 1px; background: line; }
+                        TouchArea {
+                            height: 54px;
+                            mouse-cursor: pointer;
+                            clicked => { }
+                            Rectangle {
+                                width: parent.width; height: 54px;
+                                HorizontalLayout {
+                                    padding-left: 15px; padding-right: 15px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle { width: 33px; height: 33px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🛡"; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Text { horizontal-stretch: 1; text: "Group permissions"; font-size: 12px; font-weight: 630; color: ink; vertical-alignment: center; }
+                                    Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                                }
+                            }
+                        }
+                        Rectangle { height: 1px; background: line; }
+                        TouchArea {
+                            height: 54px;
+                            mouse-cursor: pointer;
+                            clicked => { }
+                            Rectangle {
+                                width: parent.width; height: 54px;
+                                HorizontalLayout {
+                                    padding-left: 15px; padding-right: 15px;
+                                    spacing: 12px;
+                                    alignment: center;
+                                    Rectangle { width: 33px; height: 33px; border-radius: 12px; background: surface-soft; border-width: 1px; border-color: line; Text { width: parent.width; height: parent.height; text: "🖼"; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; } }
+                                    Text { horizontal-stretch: 1; text: "Media visibility"; font-size: 12px; font-weight: 630; color: ink; vertical-alignment: center; }
+                                    Text { text: "Default"; font-size: 11px; color: muted; vertical-alignment: center; }
+                                    Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Leave group
+                TouchArea {
+                    height: 52px;
+                    mouse-cursor: pointer;
+                    clicked => { root.leave-open = true; }
+                    Rectangle {
+                        width: parent.width;
+                        height: 52px;
+                        border-radius: 16px;
+                        background: glass;
+                        border-width: 1px;
+                        border-color: line;
+                        drop-shadow-blur: 12px;
+                        drop-shadow-color: rgba(0,0,0,0.045);
+                        drop-shadow-offset-y: 4px;
                         Text {
-                            height: 28px;
-                            text: root.group-name;
-                            font-size: Theme.fs-title;
-                            font-weight: 800;
-                            color: Theme.c-text;
+                            width: parent.width; height: parent.height;
+                            text: "Leave group";
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: muted;
                             horizontal-alignment: center;
                             vertical-alignment: center;
                         }
-                        Text {
-                            height: 16px;
-                            text: root.member-count + " members";
-                            font-size: Theme.fs-small;
-                            color: Theme.c-text-2;
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
-                        }
                     }
                 }
 
-                GlassCard {
-                    height: 58px;
-                    VerticalLayout {
-                        ToggleRow {
-                            title: "Mute notifications";
-                            subtitle: "Silence this group";
-                            checked <=> root.muted;
-                        }
-                    }
+                Text {
+                    text: "NEMO · GROUP INFORMATION";
+                    font-size: 9px;
+                    color: muted;
+                    letter-spacing: 0.35px;
+                    horizontal-alignment: center;
+                    padding-top: 14px;
+                    padding-bottom: 12px;
                 }
+            }
+        }
 
-                SectionLabel { text: "MEMBERS · " + root.member-count; }
-                GlassCard {
-                    height: root.members.length * 60px;
-                    VerticalLayout {
-                        for m in root.members: MemberRow {
-                            member: m;
-                            viewer-admin: root.is-admin;
-                            remove => { }
+        // Bottom nav
+        Rectangle {
+            height: 90px;
+            VerticalLayout {
+                padding-left: 18px; padding-right: 18px;
+                
+                spacing: 0px;
+                Rectangle {
+                    height: 66px;
+                    border-radius: 24px;
+                    background: nav-bg;
+                    border-width: 1px;
+                    border-color: rgba(255,255,255,0.92);
+                    drop-shadow-blur: 30px;
+                    drop-shadow-color: rgba(0,0,0,0.10);
+                    drop-shadow-offset-y: 12px;
+                    HorizontalLayout {
+                        alignment: center;
+                        TouchArea {
+                            horizontal-stretch: 1; height: 66px;
+                            mouse-cursor: pointer;
+                            clicked => { root.back(); }
+                            Text { width: parent.width; height: parent.height; text: "Chats"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
                         }
-                    }
-                }
-
-                if root.is-admin: SectionLabel { text: "ADMIN"; }
-                if root.is-admin: GlassCard {
-                    height: 117px;
-                    VerticalLayout {
-                        LinkRow {
-                            title: "Add members";
-                            subtitle: "Invite friends to this group";
+                        TouchArea {
+                            horizontal-stretch: 1; height: 66px;
+                            mouse-cursor: pointer;
                             clicked => { }
+                            Text { width: parent.width; height: parent.height; text: "Find"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
                         }
-                        Hairline { }
-                        LinkRow {
-                            title: "Rename group";
+                        TouchArea {
+                            horizontal-stretch: 1; height: 66px;
+                            mouse-cursor: pointer;
                             clicked => { }
+                            Text { width: parent.width; height: parent.height; text: "Profile"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
                         }
                     }
                 }
+            }
+        }
+    }
 
-                GhostButton {
-                    text: "Leave group";
-                    danger: true;
-                    clicked => { root.leave(); }
+    // More options sheet
+    if root.sheet-open: Rectangle {
+        x: 0px; y: 0px;
+        width: parent.width; height: parent.height;
+        background: scrim;
+        TouchArea { clicked => { root.sheet-open = false; } }
+        Rectangle {
+            x: 12px; y: parent.height - 220px;
+            width: parent.width; height: 200px;
+            border-radius: 28px;
+            background: glass-strong;
+            border-width: 1px;
+            border-color: rgba(255,255,255,0.92);
+            drop-shadow-blur: 30px;
+            drop-shadow-color: rgba(0,0,0,0.12);
+            drop-shadow-offset-y: 10px;
+            clip: true;
+            VerticalLayout {
+                padding: 14px;
+                spacing: 0px;
+                Rectangle { height: 4px; width: 38px;  border-radius: 2px; background: muted; opacity: 0.45; }
+                Text { text: "Group options"; font-size: 15px; font-weight: 700; color: ink;  }
+                Text { text: "Manage this group and its appearance."; font-size: 11px; color: muted;  }
+                TouchArea {
+                    height: 44px;
+                    mouse-cursor: pointer;
+                    clicked => { root.sheet-open = false; }
+                    Rectangle {
+                        width: parent.width; height: 44px;
+                        
+                        HorizontalLayout {
+                            spacing: 11px; padding-left: 10px;
+                            Text { text: "☀"; font-size: 14px; vertical-alignment: center; }
+                            Text { text: "Light appearance"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
+                        }
+                    }
+                }
+                TouchArea {
+                    height: 44px;
+                    mouse-cursor: pointer;
+                    clicked => { root.sheet-open = false; }
+                    Rectangle {
+                        width: parent.width; height: 44px;
+                        
+                        HorizontalLayout {
+                            spacing: 11px; padding-left: 10px;
+                            Text { text: "☾"; font-size: 14px; vertical-alignment: center; }
+                            Text { text: "Dark appearance"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
+                        }
+                    }
+                }
+                TouchArea {
+                    height: 44px;
+                    mouse-cursor: pointer;
+                    clicked => { root.sheet-open = false; }
+                    Rectangle {
+                        width: parent.width; height: 44px;
+                        
+                        HorizontalLayout {
+                            spacing: 11px; padding-left: 10px;
+                            Text { text: "🔗"; font-size: 14px; vertical-alignment: center; }
+                            Text { text: "Copy group link"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
+                        }
+                    }
+                }
+                TouchArea {
+                    height: 45px;
+                    mouse-cursor: pointer;
+                    clicked => { root.sheet-open = false; }
+                    Rectangle {
+                        width: parent.width; height: 45px;
+                        border-radius: 13px;
+                        background: surface-soft;
+                        
+                        Text { width: parent.width; height: parent.height; text: "Close"; font-size: 12px; font-weight: 700; color: ink; horizontal-alignment: center; vertical-alignment: center; }
+                    }
+                }
+            }
+        }
+    }
+
+    // Leave group confirmation sheet
+    if root.leave-open: Rectangle {
+        x: 0px; y: 0px;
+        width: parent.width; height: parent.height;
+        background: scrim;
+        TouchArea { clicked => { root.leave-open = false; } }
+        Rectangle {
+            x: 12px; y: parent.height - 200px;
+            width: parent.width; height: 180px;
+            border-radius: 28px;
+            background: glass-strong;
+            border-width: 1px;
+            border-color: rgba(255,255,255,0.92);
+            drop-shadow-blur: 30px;
+            drop-shadow-color: rgba(0,0,0,0.12);
+            drop-shadow-offset-y: 10px;
+            clip: true;
+            VerticalLayout {
+                padding: 14px;
+                spacing: 0px;
+                Rectangle { height: 4px; width: 38px;  border-radius: 2px; background: muted; opacity: 0.45; }
+                Text { text: "Leave this group?"; font-size: 15px; font-weight: 700; color: ink;  }
+                Text { text: "You will stop receiving messages from The Weekend Crew. You can only return if a group member invites you again."; font-size: 11px; color: muted; wrap: word-wrap;  }
+                TouchArea {
+                    height: 44px;
+                    mouse-cursor: pointer;
+                    clicked => { root.leave-open = false; root.leave(); }
+                    Rectangle {
+                        width: parent.width; height: 44px;
+                        border-radius: 14px;
+                        background: primary;
+                        Text { width: parent.width; height: parent.height; text: "Leave group"; font-size: 12px; font-weight: 700; color: primary-text; horizontal-alignment: center; vertical-alignment: center; }
+                    }
+                }
+                TouchArea {
+                    height: 44px;
+                    mouse-cursor: pointer;
+                    clicked => { root.leave-open = false; }
+                    Rectangle {
+                        width: parent.width; height: 44px;
+                        border-radius: 14px;
+                        background: surface-soft;
+                        
+                        Text { width: parent.width; height: parent.height; text: "Stay in group"; font-size: 12px; font-weight: 700; color: ink; horizontal-alignment: center; vertical-alignment: center; }
+                    }
                 }
             }
         }
