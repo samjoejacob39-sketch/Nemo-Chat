@@ -1,18 +1,10 @@
-// App updates screen — Nemo UI preview channel.
-//
-// Talks to the public GitHub Releases feed for samjoejacob39-sketch/Nemo-Chat
-// and lets the user check, download and install a newer UI preview build.
-
 import { Theme } from "../theme.slint";
-import { ChevronLeft, Plus } from "../icons.slint";
-import {
-    GlassCard, Hairline, PrimaryButton, GhostButton, TopBar, PillTag, SectionLabel,
-} from "../widgets.slint";
 
+// App Updates screen — monochrome Liquid Glass (mobile-first).
 export component UpdatesScreen inherits Rectangle {
     in property <string> current-version: "0.1.0";
     in property <string> current-build: "#0";
-    in property <string> status: "idle";          // idle | checking | available | up-to-date | downloading | ready | error
+    in property <string> status: "idle";
     in property <string> latest-version: "";
     in property <string> latest-build: "";
     in property <string> notes: "";
@@ -26,273 +18,581 @@ export component UpdatesScreen inherits Rectangle {
     callback install;
     background: transparent;
 
+    in-out property <bool> dark: Theme.is-dark;
+    in-out property <bool> sheet-open: false;
+
+    property <color> ink: dark ? #f5f5f5 : #171717;
+    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
+    property <color> muted: dark ? #aaa : #777;
+    property <color> muted-2: dark ? #858585 : #999;
+    property <color> line: dark ? rgba(255,255,255,0.09) : rgba(0,0,0,0.09);
+    property <color> line-strong: dark ? rgba(255,255,255,0.15) : rgba(0,0,0,0.14);
+    property <color> glass: dark ? rgba(42,42,42,0.66) : rgba(255,255,255,0.62);
+    property <color> glass-strong: dark ? rgba(53,53,53,0.82) : rgba(255,255,255,0.82);
+    property <color> surface-soft: dark ? rgba(50,50,50,0.42) : rgba(255,255,255,0.38);
+    property <color> track: dark ? rgba(255,255,255,0.11) : rgba(0,0,0,0.09);
+    property <color> primary: dark ? #f1f1f1 : #171717;
+    property <color> primary-text: dark ? #171717 : #ffffff;
+    property <color> nav-bg: dark ? rgba(27,27,26,0.86) : rgba(250,250,249,0.78);
+    property <color> scrim: dark ? rgba(0,0,0,0.58) : rgba(0,0,0,0.34);
+
     VerticalLayout {
-        TopBar {
-            title: "App Updates";
-            back => { root.back(); }
+        padding-left: 22px;
+        padding-right: 22px;
+        padding-top: 15px;
+        padding-bottom: 28px;
+        spacing: 0px;
+
+        // Top bar
+        HorizontalLayout {
+            height: 44px;
+            spacing: 0px;
+            alignment: start;
+            TouchArea {
+                width: 44px; height: 44px;
+                mouse-cursor: pointer;
+                clicked => { root.back(); }
+                Rectangle {
+                    width: 44px; height: 44px;
+                    border-radius: 22px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 12px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 4px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: "←";
+                        font-size: 18px;
+                        color: ink;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+            Rectangle { horizontal-stretch: 1; }
+            Text {
+                text: "App Updates";
+                font-size: 14px;
+                font-weight: 650;
+                color: ink;
+                letter-spacing: 0.15px;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            // theme toggle (Light/Dark)
+            HorizontalLayout {
+                spacing: 3px;
+                padding: 4px;
+                Rectangle {
+                    border-radius: 999px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 12px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 4px;
+                    HorizontalLayout {
+                        spacing: 0px;
+                        TouchArea {
+                            width: 52px; height: 32px;
+                            mouse-cursor: pointer;
+                            clicked => { root.dark = false; Theme.is-dark = false; }
+                            Rectangle {
+                                width: 52px; height: 32px;
+                                border-radius: 16px;
+                                background: !root.dark ? primary : transparent;
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: "Light";
+                                    font-size: 10px;
+                                    font-weight: 650;
+                                    color: !root.dark ? primary-text : muted;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+                        TouchArea {
+                            width: 52px; height: 32px;
+                            mouse-cursor: pointer;
+                            clicked => { root.dark = true; Theme.is-dark = true; }
+                            Rectangle {
+                                width: 52px; height: 32px;
+                                border-radius: 16px;
+                                background: root.dark ? primary : transparent;
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: "Dark";
+                                    font-size: 10px;
+                                    font-weight: 650;
+                                    color: root.dark ? primary-text : muted;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        Flickable {
-            vertical-stretch: 1;
-            VerticalLayout {
-                padding-left: Theme.sp-5;
-                padding-right: Theme.sp-5;
-                padding-top: Theme.sp-3;
-                padding-bottom: Theme.sp-6;
-                spacing: Theme.sp-4;
+        // Eyebrow + heading
+        Text {
+            text: "NEMO • PREVIEW CHANNEL";
+            font-size: 10px;
+            font-weight: 750;
+            color: muted;
+            letter-spacing: 1.2px;
+            padding-top: 4px;
+        }
+        Text {
+            text: "Stay up to date.";
+            font-size: 34px;
+            font-weight: 760;
+            color: ink;
+            letter-spacing: -1.5px;
+        }
+        Text {
+            text: "Get the latest improvements, refinements and features for your Nemo app.";
+            font-size: 13px;
+            color: muted;
+            wrap: word-wrap;
+            padding-bottom: 18px;
+        }
 
-                // App identity card
-                GlassCard {
-                    strong: true;
-                    height: 150px;
-                    VerticalLayout {
-                        padding: Theme.sp-5;
-                        spacing: Theme.sp-2;
-                        cross-axis-alignment: center;
-                        Rectangle {
-                            width: 64px;
-                            height: 64px;
-                            border-radius: 18px;
-                            background: @linear-gradient(135deg, #4D8DFF 0%, #2F6BFF 100%);
-                            drop-shadow-blur: 16px;
-                            drop-shadow-color: rgba(47, 107, 255, 0.35);
-                            drop-shadow-offset-y: 6px;
+        // Installed card
+        Rectangle {
+            border-radius: 26px;
+            background: glass;
+            border-width: 1px;
+            border-color: line;
+            drop-shadow-blur: 24px;
+            drop-shadow-color: dark ? rgba(0,0,0,0.38) : rgba(0,0,0,0.09);
+            drop-shadow-offset-y: 18px;
+            clip: true;
+            // top specular
+            Rectangle {
+                x: 0px; y: 0px; width: parent.width; height: 1px;
+                background: @linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.92) 50%, transparent 100%);
+            }
+            VerticalLayout {
+                padding-left: 18px; padding-right: 18px;
+                 padding-bottom: 18px;
+                spacing: 14px;
+                // app mark + build pill
+                HorizontalLayout {
+                    spacing: 12px;
+                    alignment: start;
+                    Rectangle {
+                        width: 44px; height: 44px;
+                        border-radius: 14px;
+                        background: @linear-gradient(145deg, #e9e9e9 0%, #c9c9c9 100%);
+                        border-width: 1px;
+                        border-color: rgba(255,255,255,0.92);
+                        Text {
+                            width: parent.width; height: parent.height;
+                            text: "N";
+                            font-size: 20px;
+                            font-weight: 800;
+                            color: #272727;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                    Rectangle {
+                        width: 120px; height: 26px;
+                        border-radius: 13px;
+                        background: surface-soft;
+                        border-width: 1px;
+                        border-color: line;
+                        Text {
+                            width: parent.width; height: parent.height;
+                            text: "UI PREVIEW BUILD";
+                            font-size: 9px;
+                            font-weight: 800;
+                            color: muted;
+                            letter-spacing: 1.2px;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+                // hero copy
+                VerticalLayout {
+                    spacing: 4px;
+                    Text {
+                        text: "Nemo is up to date with your test track.";
+                        font-size: 16px;
+                        font-weight: 700;
+                        color: ink;
+                        letter-spacing: -0.3px;
+                        wrap: word-wrap;
+                    }
+                    Text {
+                        text: "This device is currently running a preview build. New test builds appear here when published.";
+                        font-size: 12px;
+                        color: muted;
+                        wrap: word-wrap;
+                    }
+                }
+                // version row
+                HorizontalLayout {
+                    spacing: 8px;
+                    Rectangle {
+                        horizontal-stretch: 1;
+                        height: 60px;
+                        border-radius: 14px;
+                        background: surface-soft;
+                        border-width: 1px;
+                        border-color: line;
+                        VerticalLayout {
+                            padding: 10px;
+                            spacing: 2px;
+                            Text { text: "Installed version"; font-size: 9px; color: muted; font-weight: 600; }
+                            Text { text: root.current-version; font-size: 15px; font-weight: 760; color: ink; }
+                        }
+                    }
+                    Rectangle {
+                        horizontal-stretch: 1;
+                        height: 60px;
+                        border-radius: 14px;
+                        background: surface-soft;
+                        border-width: 1px;
+                        border-color: line;
+                        VerticalLayout {
+                            padding: 10px;
+                            spacing: 2px;
+                            Text { text: "Installed build"; font-size: 9px; color: muted; font-weight: 600; }
+                            Text { text: root.current-build; font-size: 15px; font-weight: 760; color: ink; }
+                        }
+                    }
+                    Rectangle {
+                        horizontal-stretch: 1;
+                        height: 60px;
+                        border-radius: 14px;
+                        background: surface-soft;
+                        border-width: 1px;
+                        border-color: line;
+                        VerticalLayout {
+                            padding: 10px;
+                            spacing: 2px;
+                            Text { text: "Channel"; font-size: 9px; color: muted; font-weight: 600; }
+                            Text { text: "Testing"; font-size: 15px; font-weight: 760; color: ink; }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Latest available build
+        if root.status == "available" || root.status == "up-to-date" || root.status == "checking": VerticalLayout {
+            
+            spacing: 10px;
+            HorizontalLayout {
+                alignment: space-between;
+                Text {
+                    text: "Latest available build";
+                    font-size: 12px;
+                    font-weight: 700;
+                    color: ink;
+                }
+                Text {
+                    text: "Last checked just now";
+                    font-size: 10px;
+                    color: muted;
+                }
+            }
+            Rectangle {
+                border-radius: 26px;
+                background: glass;
+                border-width: 1px;
+                border-color: line;
+                drop-shadow-blur: 24px;
+                drop-shadow-color: dark ? rgba(0,0,0,0.38) : rgba(0,0,0,0.09);
+                drop-shadow-offset-y: 18px;
+                clip: true;
+                Rectangle {
+                    x: 0px; y: 0px; width: parent.width; height: 1px;
+                    background: @linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.92) 50%, transparent 100%);
+                }
+                VerticalLayout {
+                    padding-left: 18px; padding-right: 18px;
+                     padding-bottom: 18px;
+                    spacing: 12px;
+
+                    HorizontalLayout {
+                        spacing: 12px;
+                        alignment: start;
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            spacing: 2px;
                             Text {
-                                width: parent.width;
-                                height: parent.height;
-                                text: "N";
-                                font-size: 34px;
+                                text: root.latest-version != "" ? root.latest-version : "Nemo UI Preview 0.1.0";
+                                font-size: 15px;
+                                font-weight: 700;
+                                color: ink;
+                                letter-spacing: -0.2px;
+                            }
+                            Text {
+                                text: root.latest-build != "" ? (root.latest-build + " · 12 Nov 2026 · 18 MB") : "Build #14 · 12 Nov 2026 · 18 MB";
+                                font-size: 10px;
+                                color: muted;
+                            }
+                        }
+                        Rectangle {
+                            width: 110px; height: 24px;
+                            border-radius: 12px;
+                            background: root.status == "available" ? primary : surface-soft;
+                            Text {
+                                width: parent.width; height: parent.height;
+                                text: root.status == "available" ? "Update available" : (root.status == "checking" ? "Checking…" : "Up to date");
+                                font-size: 9px;
                                 font-weight: 800;
-                                color: white;
+                                color: root.status == "available" ? primary-text : muted;
                                 horizontal-alignment: center;
                                 vertical-alignment: center;
                             }
                         }
-                        Text {
-                            text: "Nemo";
-                            font-size: Theme.fs-title;
-                            font-weight: 800;
-                            color: Theme.c-text;
-                            horizontal-alignment: center;
-                        }
-                        PillTag {
-                            text: "UI PREVIEW BUILD";
+                    }
+
+                    Text {
+                        text: "A new preview is ready to try. This build focuses on a more refined conversation experience and smoother interface details.";
+                        font-size: 12px;
+                        color: muted;
+                        wrap: word-wrap;
+                    }
+
+                    // Notes
+                    VerticalLayout {
+                        spacing: 6px;
+                        for note in ["Refined Liquid Glass surfaces and reflections.", "Improved spacing across chats and profile.", "Smoother touch feedback and screen transitions.", "General fixes and stability improvements."]: HorizontalLayout {
+                            spacing: 8px;
+                            alignment: start;
+                            Text { text: "↗"; font-size: 11px; color: muted; vertical-alignment: top; }
+                            Text { text: note; font-size: 11px; color: muted; wrap: word-wrap; vertical-alignment: top; }
                         }
                     }
-                }
 
-                // Current build info
-                SectionLabel { text: "CURRENT BUILD"; }
-                GlassCard {
-                    height: 96px;
-                    VerticalLayout {
-                        padding: Theme.sp-4;
-                        spacing: 4px;
+                    // Actions
+                    HorizontalLayout {
+                        spacing: 9px;
+                        TouchArea {
+                            horizontal-stretch: 1;
+                            height: 48px;
+                            mouse-cursor: pointer;
+                            clicked => { root.download(); }
+                            Rectangle {
+                                width: parent.width; height: 48px;
+                                border-radius: 15px;
+                                background: primary;
+                                border-width: 1px;
+                                border-color: rgba(255,255,255,0.22);
+                                drop-shadow-blur: 16px;
+                                drop-shadow-color: rgba(0,0,0,0.12);
+                                drop-shadow-offset-y: 8px;
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: root.downloading ? "Downloading…" : "Download update";
+                                    font-size: 12px;
+                                    font-weight: 730;
+                                    color: primary-text;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+                        TouchArea {
+                            width: 120px; height: 48px;
+                            mouse-cursor: pointer;
+                            clicked => { root.check(); }
+                            Rectangle {
+                                width: 120px; height: 48px;
+                                border-radius: 15px;
+                                background: glass;
+                                border-width: 1px;
+                                border-color: line-strong;
+                                drop-shadow-blur: 8px;
+                                drop-shadow-color: rgba(0,0,0,0.045);
+                                drop-shadow-offset-y: 3px;
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: root.status == "checking" ? "Checking…" : "Check again";
+                                    font-size: 12px;
+                                    font-weight: 700;
+                                    color: ink;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+                    }
+
+                    // Progress
+                    if root.downloading || root.status == "ready": VerticalLayout {
+                        spacing: 6px;
                         HorizontalLayout {
                             Text {
-                                text: "Version";
-                                font-size: Theme.fs-small;
-                                color: Theme.c-text-2;
-                                horizontal-stretch: 1;
+                                text: root.status == "ready" ? "Download complete" : "Downloading update…";
+                                font-size: 11px;
+                                color: muted;
                                 vertical-alignment: center;
                             }
+                            Rectangle { horizontal-stretch: 1; }
                             Text {
-                                text: root.current-version;
-                                font-size: Theme.fs-small;
+                                text: root.progress + "%";
+                                font-size: 11px;
                                 font-weight: 700;
-                                color: Theme.c-text;
+                                color: ink;
                                 vertical-alignment: center;
                             }
-                        }
-                        Hairline { }
-                        HorizontalLayout {
-                            Text {
-                                text: "Build";
-                                font-size: Theme.fs-small;
-                                color: Theme.c-text-2;
-                                horizontal-stretch: 1;
-                                vertical-alignment: center;
-                            }
-                            Text {
-                                text: root.current-build;
-                                font-size: Theme.fs-small;
-                                font-weight: 700;
-                                color: Theme.c-text;
-                                vertical-alignment: center;
-                            }
-                        }
-                    }
-                }
-
-                // Status block
-                if root.status == "checking": GlassCard {
-                    height: 72px;
-                    VerticalLayout {
-                        padding: Theme.sp-4;
-                        spacing: Theme.sp-2;
-                        cross-axis-alignment: center;
-                        Text {
-                            text: "Checking for updates…";
-                            font-size: Theme.fs-body;
-                            font-weight: 600;
-                            color: Theme.c-text;
-                            horizontal-alignment: center;
-                        }
-                    }
-                }
-
-                if root.status == "up-to-date": GlassCard {
-                    height: 72px;
-                    VerticalLayout {
-                        padding: Theme.sp-4;
-                        cross-axis-alignment: center;
-                        Text {
-                            text: "You're up to date.";
-                            font-size: Theme.fs-body;
-                            font-weight: 600;
-                            color: Theme.c-text;
-                            horizontal-alignment: center;
-                        }
-                        Text {
-                            text: "You're using the latest Nemo UI preview.";
-                            font-size: Theme.fs-caption;
-                            color: Theme.c-text-2;
-                            horizontal-alignment: center;
-                        }
-                    }
-                }
-
-                if root.status == "available": VerticalLayout {
-                    spacing: Theme.sp-3;
-                    GlassCard {
-                        height: 150px;
-                        VerticalLayout {
-                            padding: Theme.sp-4;
-                            spacing: 4px;
-                            Text {
-                                text: "A new Nemo update is available.";
-                                font-size: Theme.fs-body;
-                                font-weight: 700;
-                                color: Theme.c-text;
-                            }
-                            HorizontalLayout {
-                                Text {
-                                    text: "Version";
-                                    font-size: Theme.fs-small;
-                                    color: Theme.c-text-2;
-                                    horizontal-stretch: 1;
-                                    vertical-alignment: center;
-                                }
-                                Text {
-                                    text: root.latest-version;
-                                    font-size: Theme.fs-small;
-                                    font-weight: 700;
-                                    color: Theme.accent;
-                                    vertical-alignment: center;
-                                }
-                            }
-                            HorizontalLayout {
-                                Text {
-                                    text: "Build";
-                                    font-size: Theme.fs-small;
-                                    color: Theme.c-text-2;
-                                    horizontal-stretch: 1;
-                                    vertical-alignment: center;
-                                }
-                                Text {
-                                    text: root.latest-build;
-                                    font-size: Theme.fs-small;
-                                    font-weight: 700;
-                                    color: Theme.accent;
-                                    vertical-alignment: center;
-                                }
-                            }
-                            if root.notes != "": Text {
-                                text: root.notes;
-                                font-size: Theme.fs-caption;
-                                color: Theme.c-text-2;
-                                wrap: word-wrap;
-                            }
-                        }
-                    }
-                    PrimaryButton {
-                        text: "Download Update";
-                        clicked => { root.download(); }
-                    }
-                }
-
-                if root.status == "downloading": GlassCard {
-                    height: 88px;
-                    VerticalLayout {
-                        padding: Theme.sp-4;
-                        spacing: Theme.sp-2;
-                        Text {
-                            text: "Downloading update… " + root.progress + "%";
-                            font-size: Theme.fs-body;
-                            font-weight: 600;
-                            color: Theme.c-text;
-                            horizontal-alignment: center;
                         }
                         Rectangle {
-                            height: 8px;
-                            border-radius: 4px;
-                            background: Theme.c-surface-alpha;
+                            height: 6px;
+                            border-radius: 3px;
+                            background: track;
                             Rectangle {
                                 width: parent.width * root.progress / 100;
-                                height: parent.height;
-                                border-radius: 4px;
-                                background: @linear-gradient(90deg, #4D8DFF 0%, #2F6BFF 100%);
-                                animate width { duration: 120ms; }
+                                height: 6px;
+                                border-radius: 3px;
+                                background: ink;
+                            }
+                        }
+                        HorizontalLayout {
+                            spacing: 6px;
+                            Text { text: "●"; font-size: 8px; color: muted; vertical-alignment: center; }
+                            Text {
+                                text: root.status == "ready" ? "Download finished. Tap install to continue." : "Connecting to release…";
+                                font-size: 10px;
+                                color: muted;
+                                vertical-alignment: center;
                             }
                         }
                     }
                 }
+            }
+        }
 
-                if root.status == "ready": GlassCard {
-                    height: 72px;
-                    VerticalLayout {
-                        padding: Theme.sp-4;
-                        cross-axis-alignment: center;
-                        Text {
-                            text: "Download complete.";
-                            font-size: Theme.fs-body;
-                            font-weight: 600;
-                            color: Theme.c-text;
-                            horizontal-alignment: center;
-                        }
-                        Text {
-                            text: "Tap install to update Nemo.";
-                            font-size: Theme.fs-caption;
-                            color: Theme.c-text-2;
-                            horizontal-alignment: center;
-                        }
-                    }
+        // Error state
+        if root.status == "error": Rectangle {
+            border-radius: 20px;
+            background: glass;
+            border-width: 1px;
+            border-color: line;
+            drop-shadow-blur: 16px;
+            drop-shadow-color: rgba(0,0,0,0.045);
+            drop-shadow-offset-y: 6px;
+            HorizontalLayout {
+                padding: 14px;
+                spacing: 10px;
+                alignment: start;
+                Text { text: "⚠"; font-size: 16px; color: muted; vertical-alignment: center; }
+                Text {
+                    horizontal-stretch: 1;
+                    text: root.error != "" ? root.error : "Something went wrong.";
+                    font-size: 11px;
+                    color: muted;
+                    wrap: word-wrap;
+                    vertical-alignment: center;
                 }
+            }
+        }
 
-                if root.status == "error": GlassCard {
-                    height: 72px;
-                    VerticalLayout {
-                        padding: Theme.sp-4;
-                        cross-axis-alignment: center;
-                        Text {
-                            text: root.error != "" ? root.error : "Something went wrong.";
-                            font-size: Theme.fs-small;
-                            color: Theme.danger;
-                            horizontal-alignment: center;
-                            wrap: word-wrap;
-                        }
-                    }
+        // Build information
+        Text {
+            text: "Build information";
+            font-size: 12px;
+            font-weight: 700;
+            color: ink;
+            
+            padding-bottom: 10px;
+        }
+        Rectangle {
+            border-radius: 22px;
+            background: glass;
+            border-width: 1px;
+            border-color: line;
+            drop-shadow-blur: 16px;
+            drop-shadow-color: rgba(0,0,0,0.045);
+            drop-shadow-offset-y: 6px;
+            clip: true;
+            VerticalLayout {
+                // rows
+                HorizontalLayout {
+                    padding-left: 16px; padding-right: 16px;
+                    padding-top: 12px; 
+                    spacing: 0px;
+                    Text { text: "Application"; font-size: 11px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
+                    Text { text: "Nemo"; font-size: 11px; font-weight: 650; color: ink; vertical-alignment: center; }
                 }
-
-                PrimaryButton {
-                    text: root.status == "checking" ? "Checking…" : "Check for Updates";
-                    enabled: root.status != "checking" && !root.downloading;
-                    clicked => { root.check(); }
+                Rectangle { height: 1px; background: line; }
+                HorizontalLayout {
+                    padding-left: 16px; padding-right: 16px;
+                    padding-top: 12px; 
+                    spacing: 0px;
+                    Text { text: "Package"; font-size: 11px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
+                    Text { text: "com.nemo.app"; font-size: 11px; font-weight: 650; color: ink; vertical-alignment: center; }
                 }
+                Rectangle { height: 1px; background: line; }
+                HorizontalLayout {
+                    padding-left: 16px; padding-right: 16px;
+                    padding-top: 12px; 
+                    spacing: 0px;
+                    Text { text: "Minimum Android"; font-size: 11px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
+                    Text { text: "Android 8.0+"; font-size: 11px; font-weight: 650; color: ink; vertical-alignment: center; }
+                }
+                Rectangle { height: 1px; background: line; }
+                HorizontalLayout {
+                    padding-left: 16px; padding-right: 16px;
+                    padding-top: 12px; 
+                    spacing: 0px;
+                    Text { text: "Update source"; font-size: 11px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
+                    Text { text: "GitHub Releases"; font-size: 11px; font-weight: 650; color: ink; vertical-alignment: center; }
+                }
+                Rectangle { height: 1px; background: line; }
+                HorizontalLayout {
+                    padding-left: 16px; padding-right: 16px;
+                    padding-top: 12px; 
+                    spacing: 0px;
+                    Text { text: "Release type"; font-size: 11px; color: muted; horizontal-stretch: 1; vertical-alignment: center; }
+                    Text { text: "Pre-release"; font-size: 11px; font-weight: 650; color: ink; vertical-alignment: center; }
+                }
+            }
+        }
 
-                if root.status == "ready": GhostButton {
-                    text: "Install Update";
-                    clicked => { root.install(); }
+        Text {
+            text: "Preview builds may contain unfinished features. Install updates only from the official Nemo release source. Your Android device will ask you to confirm installation.";
+            font-size: 9px;
+            color: muted;
+            wrap: word-wrap;
+            
+            
+        }
+
+        // Install button (when ready)
+        if root.status == "ready": TouchArea {
+            height: 52px;
+            mouse-cursor: pointer;
+            clicked => { root.install(); }
+            Rectangle {
+                width: parent.width;
+                height: 52px;
+                border-radius: 16px;
+                background: primary;
+                border-width: 1px;
+                border-color: rgba(255,255,255,0.22);
+                drop-shadow-blur: 16px;
+                drop-shadow-color: rgba(0,0,0,0.12);
+                drop-shadow-offset-y: 8px;
+                Text {
+                    width: parent.width; height: parent.height;
+                    text: "Continue to install";
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: primary-text;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
                 }
             }
         }
