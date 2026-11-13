@@ -1744,8 +1744,7 @@ export component FindScreen inherits Rectangle {
 
 // ---------------------------------------------------------------------------
 // Profile
-// ---------------------------------------------------------------------------
-
+// Profile screen — monochrome Liquid Glass (mobile-first).
 export component ProfileScreen inherits Rectangle {
     in property <string> display-name: "";
     in property <string> handle: "";
@@ -1763,41 +1762,137 @@ export component ProfileScreen inherits Rectangle {
     callback log-out;
     background: transparent;
 
-    VerticalLayout {
-        padding-left: Theme.sp-4;
-        padding-right: Theme.sp-4;
-        padding-top: 8px;
-        spacing: Theme.sp-3;
+    in-out property <bool> dark: Theme.is-dark;
+    in-out property <bool> edit-open: false;
+    in-out property <string> edit-name: "";
+    in-out property <string> edit-handle: "";
+    in-out property <string> edit-bio: "";
 
+    property <color> ink: dark ? #f2f2f1 : #171717;
+    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
+    property <color> muted: dark ? #aaa9a7 : #777776;
+    property <color> muted-2: dark ? #858482 : #989896;
+    property <color> line: dark ? rgba(255,255,255,0.085) : rgba(20,20,20,0.085);
+    property <color> line-strong: dark ? rgba(255,255,255,0.14) : rgba(20,20,20,0.13);
+    property <color> glass: dark ? rgba(43,43,43,0.68) : rgba(255,255,255,0.62);
+    property <color> glass-strong: dark ? rgba(48,48,48,0.56) : rgba(255,255,255,0.48);
+    property <color> surface-soft: dark ? rgba(48,48,48,0.56) : rgba(255,255,255,0.48);
+    property <color> surface-solid: dark ? #242424 : #ffffff;
+    property <color> nav-bg: dark ? rgba(28,28,28,0.82) : rgba(250,250,249,0.78);
+    property <color> primary: dark ? #f1f1ef : #171717;
+    property <color> primary-text: dark ? #151515 : #ffffff;
+    property <color> scrim: dark ? rgba(0,0,0,0.58) : rgba(0,0,0,0.32);
+
+    VerticalLayout {
+        padding-left: 0px;
+        padding-right: 0px;
+        padding-top: 0px;
+        padding-bottom: 0px;
+        spacing: 0px;
+
+        // Ambient
+        Rectangle {
+            height: 0px;
+            Rectangle {
+                x: -125px; y: 90px;
+                width: 220px; height: 220px;
+                border-radius: 110px;
+                background: dark ? rgba(255,255,255,0.07) : rgba(255,255,255,0.72);
+                opacity: 0.6;
+            }
+            Rectangle {
+                x: parent.width - 110px; y: 360px;
+                width: 180px; height: 180px;
+                border-radius: 90px;
+                background: dark ? rgba(255,255,255,0.07) : rgba(255,255,255,0.72);
+                opacity: 0.55;
+            }
+        }
+
+        // Top bar
         HorizontalLayout {
-            height: Theme.bar-h;
-            spacing: Theme.sp-2;
+            padding-left: 21px; padding-right: 21px;
+            padding-top: 17px; padding-bottom: 0px;
+            height: 58px;
+            alignment: start;
             Text {
-                text: "Profile";
-                font-size: Theme.fs-title;
-                font-weight: 800;
-                color: Theme.c-text;
+                text: "nemo.";
+                font-size: 17px;
+                font-weight: 760;
+                color: ink;
+                letter-spacing: -0.6px;
                 vertical-alignment: center;
             }
             Rectangle { horizontal-stretch: 1; }
             TouchArea {
-                width: 40px;
+                width: 40px; height: 40px;
+                mouse-cursor: pointer;
+                clicked => { root.dark = !root.dark; Theme.is-dark = root.dark; }
+                Rectangle {
+                    width: 40px; height: 40px;
+                    border-radius: 15px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 12px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 4px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: root.dark ? "☀" : "☾";
+                        font-size: 16px;
+                        color: ink;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+            TouchArea {
+                width: 40px; height: 40px;
                 mouse-cursor: pointer;
                 clicked => { root.open-settings(); }
                 Rectangle {
-                    width: 40px;
-                    height: 40px;
-                    y: (parent.height - 40px) / 2;
-                    border-radius: 20px;
-                    background: Theme.c-surface-alpha;
+                    width: 40px; height: 40px;
+                    border-radius: 15px;
+                    background: glass;
                     border-width: 1px;
-                    border-color: Theme.c-stroke-glass;
-                    Gear {
-                        x: (parent.width - 20px) / 2;
-                        y: (parent.height - 20px) / 2;
-                        size: 20px;
-                        tint: Theme.c-text;
+                    border-color: line;
+                    drop-shadow-blur: 12px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 4px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: "⚙";
+                        font-size: 16px;
+                        color: ink;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
                     }
+                }
+            }
+        }
+
+        // Page title
+        HorizontalLayout {
+            padding-left: 21px; padding-right: 21px;
+            padding-top: 17px; padding-bottom: 17px;
+            alignment: start;
+            spacing: 0px;
+            VerticalLayout {
+                spacing: 3px;
+                Text {
+                    text: "Your space";
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: muted;
+                    letter-spacing: 1.7px;
+                }
+                Text {
+                    text: "Profile";
+                    font-size: 31px;
+                    font-weight: 760;
+                    color: ink;
+                    letter-spacing: -1.35px;
                 }
             }
         }
@@ -1805,165 +1900,645 @@ export component ProfileScreen inherits Rectangle {
         Flickable {
             vertical-stretch: 1;
             VerticalLayout {
-                spacing: Theme.sp-3;
-                padding-bottom: 96px;
+                padding-left: 21px;
+                padding-right: 21px;
+                padding-bottom: 112px;
+                spacing: 0px;
 
                 // Hero card
-                GlassCard {
-                    strong: true;
-                    height: 306px;
+                Rectangle {
+                    border-radius: 25px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 24px;
+                    drop-shadow-color: dark ? rgba(0,0,0,0.32) : rgba(0,0,0,0.075);
+                    drop-shadow-offset-y: 18px;
+                    clip: true;
+
+                    // cover
+                    Rectangle {
+                        height: 108px;
+                        x: -21px; y: 0px;
+                        width: parent.width + 42px;
+                        background: dark
+                            ? @linear-gradient(145deg, #292929 0%, #484848 48%, #232323 100%)
+                            : @linear-gradient(145deg, #d7d7d6 0%, #f3f3f2 48%, #c7c7c6 100%);
+                        // concentric rings
+                        Rectangle {
+                            x: (parent.width - 250px) / 2;
+                            y: -65px;
+                            width: 250px; height: 110px;
+                            border-radius: 125px;
+                            border-width: 1px;
+                            border-color: dark ? rgba(255,255,255,0.17) : rgba(255,255,255,0.7);
+                        }
+                    }
+
+                    // identity
                     VerticalLayout {
-                        padding-top: 18px;
-                        padding-bottom: 16px;
-                        padding-left: 20px;
-                        padding-right: 20px;
-                        spacing: 6px;
-                        cross-axis-alignment: center;
-                        Avatar {
-                            size: 84px;
-                            initials: root.initials;
-                            variant: root.variant;
-                            online: root.online;
-                            has-image: root.has-avatar;
-                            image: root.avatar;
-                        }
-                        Text {
-                            height: 30px;
-                            text: root.display-name;
-                            font-size: Theme.fs-large;
-                            font-weight: 800;
-                            color: Theme.c-text;
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
-                        }
-                        Text {
-                            height: 16px;
-                            text: "@" + root.handle;
-                            font-size: Theme.fs-small;
-                            color: Theme.c-text-2;
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
-                        }
-                        Text {
-                            height: 16px;
-                            width: 280px;
-                            text: root.bio;
-                            font-size: Theme.fs-small;
-                            color: Theme.c-text-2;
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
-                            overflow: elide;
-                        }
+                        padding-left: 18px; padding-right: 18px;
+                        padding-top: 0px; padding-bottom: 19px;
+                        spacing: 0px;
+                        // avatar row
                         HorizontalLayout {
-                            height: 42px;
-                            spacing: Theme.sp-6;
-                            alignment: center;
-                            VerticalLayout {
-                                width: 80px;
-                                cross-axis-self-alignment: center;
-                                spacing: 0px;
-                                Text {
-                                    height: 26px;
-                                    text: root.friend-count;
-                                    font-size: Theme.fs-title;
-                                    font-weight: 800;
-                                    color: Theme.c-text;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
+                            spacing: 0px;
+                            alignment: space-between;
+                            Rectangle {
+                                width: 94px; height: 94px;
+                                border-radius: 30px;
+                                background: surface-solid;
+                                border-width: 1px;
+                                border-color: line;
+                                drop-shadow-blur: 28px;
+                                drop-shadow-color: rgba(0,0,0,0.13);
+                                drop-shadow-offset-y: 10px;
+                                Rectangle {
+                                    x: 4px; y: 4px;
+                                    width: 86px; height: 86px;
+                                    border-radius: 26px;
+                                    background: dark
+                                        ? @radial-gradient(circle, #777 0%, #454545 65%, #303030 100%)
+                                        : @radial-gradient(circle, #fefefe 0%, #c7c7c7 65%, #a2a2a2 100%);
+                                    Text {
+                                        width: parent.width; height: parent.height;
+                                        text: root.initials;
+                                        font-size: 29px;
+                                        font-weight: 780;
+                                        color: dark ? #f1f1f1 : #262626;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
                                 }
-                                Text {
-                                    height: 14px;
-                                    text: "Friends";
-                                    font-size: Theme.fs-caption;
-                                    color: Theme.c-text-3;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
+                                // edit button (overlap)
+                                TouchArea {
+                                    width: 29px; height: 29px;
+                                    x: 65px; y: 65px;
+                                    mouse-cursor: pointer;
+                                    clicked => { root.edit-open = true; }
+                                    Rectangle {
+                                        width: 29px; height: 29px;
+                                        border-radius: 11px;
+                                        background: primary;
+                                        border-width: 2px;
+                                        border-color: surface-solid;
+                                        Text {
+                                            width: parent.width; height: parent.height;
+                                            text: "✎";
+                                            font-size: 12px;
+                                            color: primary-text;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
+                                }
+                            }
+                            TouchArea {
+                                width: 110px; height: 41px;
+                                mouse-cursor: pointer;
+                                clicked => { root.edit-open = true; }
+                                Rectangle {
+                                    width: 110px; height: 41px;
+                                    border-radius: 14px;
+                                    background: glass;
+                                    border-width: 1px;
+                                    border-color: line-strong;
+                                    drop-shadow-blur: 12px;
+                                    drop-shadow-color: rgba(0,0,0,0.045);
+                                    drop-shadow-offset-y: 4px;
+                                    HorizontalLayout {
+                                        alignment: center;
+                                        spacing: 8px;
+                                        Text { text: "✎"; font-size: 12px; color: ink; vertical-alignment: center; }
+                                        Text { text: "Edit profile"; font-size: 12px; font-weight: 680; color: ink; vertical-alignment: center; }
+                                    }
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: root.display-name;
+                            font-size: 22px;
+                            font-weight: 760;
+                            color: ink;
+                            letter-spacing: -0.7px;
+                            padding-top: 15px;
+                        }
+                        Text {
+                            text: "@" + root.handle;
+                            font-size: 13px;
+                            color: muted;
+                            font-weight: 520;
+                        }
+                        Text {
+                            text: root.bio;
+                            font-size: 13px;
+                            color: muted;
+                            wrap: word-wrap;
+                            padding-top: 13px;
+                            padding-bottom: 16px;
+                        }
+
+                        HorizontalLayout {
+                            spacing: 8px;
+                            Rectangle {
+                                height: 28px;
+                                border-radius: 10px;
+                                background: surface-soft;
+                                border-width: 1px;
+                                border-color: line;
+                                HorizontalLayout {
+                                    padding-left: 9px; padding-right: 9px;
+                                    spacing: 6px;
+                                    alignment: center;
+                                    Text { text: "📅"; font-size: 10px; vertical-alignment: center; }
+                                    Text { text: "Joined November 2026"; font-size: 10px; color: muted; vertical-alignment: center; }
                                 }
                             }
                             Rectangle {
-                                width: 1px;
                                 height: 28px;
-                                background: Theme.c-hairline;
-                                cross-axis-self-alignment: center;
+                                border-radius: 10px;
+                                background: surface-soft;
+                                border-width: 1px;
+                                border-color: line;
+                                HorizontalLayout {
+                                    padding-left: 9px; padding-right: 9px;
+                                    spacing: 6px;
+                                    alignment: center;
+                                    Text { text: "👥"; font-size: 10px; vertical-alignment: center; }
+                                    Text { text: root.friend-count + " friends"; font-size: 10px; color: muted; vertical-alignment: center; }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // About you section
+                Text {
+                    text: "About you";
+                    font-size: 15px;
+                    font-weight: 730;
+                    color: ink;
+                    letter-spacing: -0.25px;
+                    padding-top: 25px;
+                    padding-bottom: 11px;
+                }
+                Rectangle {
+                    border-radius: 19px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 16px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 6px;
+                    clip: true;
+                    VerticalLayout {
+                        // Display name row
+                        HorizontalLayout {
+                            padding-left: 16px; padding-right: 16px;
+                            padding-top: 14px; padding-bottom: 14px;
+                            spacing: 12px;
+                            alignment: start;
+                            Rectangle {
+                                width: 35px; height: 35px;
+                                border-radius: 12px;
+                                background: surface-soft;
+                                border-width: 1px;
+                                border-color: line;
+                                Text { width: parent.width; height: parent.height; text: "👤"; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; }
                             }
                             VerticalLayout {
-                                width: 80px;
-                                cross-axis-self-alignment: center;
-                                spacing: 0px;
+                                horizontal-stretch: 1;
+                                spacing: 3px;
+                                Text { text: "Display name"; font-size: 10px; color: muted; }
+                                Text { text: root.display-name; font-size: 12px; font-weight: 630; color: ink; overflow: elide; }
+                            }
+                        }
+                        Rectangle { height: 1px; background: line; }
+                        // Username row
+                        HorizontalLayout {
+                            padding-left: 16px; padding-right: 16px;
+                            padding-top: 14px; padding-bottom: 14px;
+                            spacing: 12px;
+                            alignment: start;
+                            Rectangle {
+                                width: 35px; height: 35px;
+                                border-radius: 12px;
+                                background: surface-soft;
+                                border-width: 1px;
+                                border-color: line;
+                                Text { width: parent.width; height: parent.height; text: "@"; font-size: 14px; color: muted; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 3px;
+                                Text { text: "Username"; font-size: 10px; color: muted; }
+                                Text { text: "@" + root.handle; font-size: 12px; font-weight: 630; color: ink; overflow: elide; }
+                            }
+                            TouchArea {
+                                width: 60px; height: 30px;
+                                mouse-cursor: pointer;
+                                clicked => { }
                                 Text {
-                                    height: 26px;
-                                    text: root.group-count;
-                                    font-size: Theme.fs-title;
-                                    font-weight: 800;
-                                    color: Theme.c-text;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
-                                }
-                                Text {
-                                    height: 14px;
-                                    text: "Groups";
-                                    font-size: Theme.fs-caption;
-                                    color: Theme.c-text-3;
+                                    width: parent.width; height: parent.height;
+                                    text: "Copy";
+                                    font-size: 11px;
+                                    font-weight: 650;
+                                    color: muted;
                                     horizontal-alignment: center;
                                     vertical-alignment: center;
                                 }
                             }
                         }
-                        GhostButton {
-                            text: "Edit profile";
-                            clicked => { root.open-settings(); }
+                        Rectangle { height: 1px; background: line; }
+                        // Bio row
+                        HorizontalLayout {
+                            padding-left: 16px; padding-right: 16px;
+                            padding-top: 14px; padding-bottom: 14px;
+                            spacing: 12px;
+                            alignment: start;
+                            Rectangle {
+                                width: 35px; height: 35px;
+                                border-radius: 12px;
+                                background: surface-soft;
+                                border-width: 1px;
+                                border-color: line;
+                                Text { width: parent.width; height: parent.height; text: "💬"; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 3px;
+                                Text { text: "Bio"; font-size: 10px; color: muted; }
+                                Text { text: root.bio; font-size: 12px; font-weight: 630; color: ink; wrap: word-wrap; }
+                            }
+                            TouchArea {
+                                width: 50px; height: 30px;
+                                mouse-cursor: pointer;
+                                clicked => { root.edit-open = true; }
+                                Text {
+                                    width: parent.width; height: parent.height;
+                                    text: "Edit";
+                                    font-size: 11px;
+                                    font-weight: 650;
+                                    color: muted;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
                         }
                     }
                 }
 
-                SectionLabel { text: "ACCOUNT"; }
-                GlassCard {
-                    height: 117px;
-                    VerticalLayout {
-                        LinkRow {
-                            title: "Account settings";
-                            subtitle: "Password and recovery codes";
-                            clicked => { root.open-settings(); }
-                        }
-                        Hairline { }
-                        LinkRow {
-                            title: "Privacy & safety";
-                            subtitle: "Requests and blocked accounts";
-                            clicked => { root.open-settings(); }
-                        }
-                    }
-                }
-
-                GlassCard {
-                    height: 58px;
-                    VerticalLayout {
-                        LinkRow {
-                            title: "Log out";
-                            danger: true;
-                            clicked => { root.log-out(); }
-                        }
-                    }
-                }
-
+                // Your Nemo shortcuts
                 Text {
-                    height: 30px;
-                    text: "Nemo 0.1.0 · Rust + Slint";
-                    font-size: Theme.fs-caption;
-                    color: Theme.c-text-3;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
+                    text: "Your Nemo";
+                    font-size: 15px;
+                    font-weight: 730;
+                    color: ink;
+                    letter-spacing: -0.25px;
+                    padding-top: 25px;
+                    padding-bottom: 11px;
+                }
+                // My groups
+                TouchArea {
+                    height: 75px;
+                    mouse-cursor: pointer;
+                    clicked => { root.open-find(); }
+                    Rectangle {
+                        width: parent.width;
+                        height: 75px;
+                        border-radius: 19px;
+                        background: glass;
+                        border-width: 1px;
+                        border-color: line;
+                        drop-shadow-blur: 12px;
+                        drop-shadow-color: rgba(0,0,0,0.045);
+                        drop-shadow-offset-y: 4px;
+                        HorizontalLayout {
+                            padding-left: 13px; padding-right: 13px;
+                            spacing: 11px;
+                            alignment: center;
+                            Rectangle {
+                                width: 36px; height: 36px;
+                                border-radius: 13px;
+                                background: surface-soft;
+                                border-width: 1px;
+                                border-color: line;
+                                Text { width: parent.width; height: parent.height; text: "👥"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 3px;
+                                Text { text: "My groups"; font-size: 12px; font-weight: 650; color: ink; }
+                                Text { text: "View group chats"; font-size: 10px; color: muted; }
+                            }
+                            Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                        }
+                    }
+                }
+                // Settings
+                TouchArea {
+                    height: 75px;
+                    mouse-cursor: pointer;
+                    clicked => { root.open-settings(); }
+                    Rectangle {
+                        width: parent.width;
+                        height: 75px;
+                        border-radius: 19px;
+                        background: glass;
+                        border-width: 1px;
+                        border-color: line;
+                        drop-shadow-blur: 12px;
+                        drop-shadow-color: rgba(0,0,0,0.045);
+                        drop-shadow-offset-y: 4px;
+                        HorizontalLayout {
+                            padding-left: 13px; padding-right: 13px;
+                            spacing: 11px;
+                            alignment: center;
+                            Rectangle {
+                                width: 36px; height: 36px;
+                                border-radius: 13px;
+                                background: surface-soft;
+                                border-width: 1px;
+                                border-color: line;
+                                Text { width: parent.width; height: parent.height; text: "⚙"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 3px;
+                                Text { text: "Settings"; font-size: 12px; font-weight: 650; color: ink; }
+                                Text { text: "Account preferences"; font-size: 10px; color: muted; }
+                            }
+                            Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                        }
+                    }
+                }
+                // Share profile
+                TouchArea {
+                    height: 75px;
+                    mouse-cursor: pointer;
+                    clicked => { }
+                    Rectangle {
+                        width: parent.width;
+                        height: 75px;
+                        border-radius: 19px;
+                        background: glass;
+                        border-width: 1px;
+                        border-color: line;
+                        drop-shadow-blur: 12px;
+                        drop-shadow-color: rgba(0,0,0,0.045);
+                        drop-shadow-offset-y: 4px;
+                        HorizontalLayout {
+                            padding-left: 13px; padding-right: 13px;
+                            spacing: 11px;
+                            alignment: center;
+                            Rectangle {
+                                width: 36px; height: 36px;
+                                border-radius: 13px;
+                                background: surface-soft;
+                                border-width: 1px;
+                                border-color: line;
+                                Text { width: parent.width; height: parent.height; text: "↗"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 3px;
+                                Text { text: "Share profile"; font-size: 12px; font-weight: 650; color: ink; }
+                                Text { text: "Let friends find you"; font-size: 10px; color: muted; }
+                            }
+                            Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                        }
+                    }
+                }
+                // Privacy
+                TouchArea {
+                    height: 75px;
+                    mouse-cursor: pointer;
+                    clicked => { root.open-settings(); }
+                    Rectangle {
+                        width: parent.width;
+                        height: 75px;
+                        border-radius: 19px;
+                        background: glass;
+                        border-width: 1px;
+                        border-color: line;
+                        drop-shadow-blur: 12px;
+                        drop-shadow-color: rgba(0,0,0,0.045);
+                        drop-shadow-offset-y: 4px;
+                        HorizontalLayout {
+                            padding-left: 13px; padding-right: 13px;
+                            spacing: 11px;
+                            alignment: center;
+                            Rectangle {
+                                width: 36px; height: 36px;
+                                border-radius: 13px;
+                                background: surface-soft;
+                                border-width: 1px;
+                                border-color: line;
+                                Text { width: parent.width; height: parent.height; text: "🔒"; font-size: 15px; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 3px;
+                                Text { text: "Privacy"; font-size: 12px; font-weight: 650; color: ink; }
+                                Text { text: "Control your visibility"; font-size: 10px; color: muted; }
+                            }
+                            Text { text: "›"; font-size: 16px; color: muted-2; vertical-alignment: center; }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Bottom nav
+        Rectangle {
+            height: 90px;
+            VerticalLayout {
+                padding-left: 18px; padding-right: 18px;
+                padding-bottom: 14px;
+                spacing: 0px;
+                Rectangle {
+                    height: 63px;
+                    border-radius: 23px;
+                    background: nav-bg;
+                    border-width: 1px;
+                    border-color: rgba(255,255,255,0.92);
+                    drop-shadow-blur: 30px;
+                    drop-shadow-color: rgba(0,0,0,0.10);
+                    drop-shadow-offset-y: 12px;
+                    HorizontalLayout {
+                        alignment: center;
+                        TouchArea {
+                            horizontal-stretch: 1; height: 63px;
+                            mouse-cursor: pointer;
+                            clicked => { root.open-chats(); }
+                            Text { width: parent.width; height: parent.height; text: "Chats"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                        TouchArea {
+                            horizontal-stretch: 1; height: 63px;
+                            mouse-cursor: pointer;
+                            clicked => { root.open-find(); }
+                            Text { width: parent.width; height: parent.height; text: "Find"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                        TouchArea {
+                            horizontal-stretch: 1; height: 63px;
+                            mouse-cursor: pointer;
+                            clicked => { }
+                            Rectangle {
+                                width: parent.width; height: 63px;
+                                background: glass-strong;
+                                border-radius: 18px;
+                                Text { width: parent.width; height: parent.height; text: "Profile"; font-size: 9px; font-weight: 650; color: ink; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                        }
+                        TouchArea {
+                            horizontal-stretch: 1; height: 63px;
+                            mouse-cursor: pointer;
+                            clicked => { root.open-settings(); }
+                            Text { width: parent.width; height: parent.height; text: "Settings"; font-size: 9px; font-weight: 650; color: muted; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                    }
                 }
             }
         }
     }
 
-    NavBar {
-        x: (parent.width - self.width) / 2;
-        y: parent.height - self.height - 14px;
-        selected: 2;
-        select(i) => {
-            if (i == 0) { root.open-chats(); }
-            if (i == 1) { root.open-find(); }
+    // Edit profile sheet
+    if root.edit-open: Rectangle {
+        x: 0px; y: 0px;
+        width: parent.width; height: parent.height;
+        background: scrim;
+        TouchArea { clicked => { root.edit-open = false; } }
+        Rectangle {
+            x: 12px; y: parent.height - 360px;
+            width: parent.width - 24px;
+            height: 340px;
+            border-radius: 28px;
+            background: glass-strong;
+            border-width: 1px;
+            border-color: rgba(255,255,255,0.92);
+            drop-shadow-blur: 30px;
+            drop-shadow-color: rgba(0,0,0,0.12);
+            drop-shadow-offset-y: 10px;
+            clip: true;
+            VerticalLayout {
+                padding: 18px;
+                spacing: 0px;
+                Rectangle {
+                    height: 4px; width: 38px;
+                    x: (parent.width - 38px) / 2;
+                    border-radius: 2px;
+                    background: muted;
+                    opacity: 0.4;
+                }
+                Text {
+                    text: "Edit profile";
+                    font-size: 19px;
+                    font-weight: 700;
+                    color: ink;
+                    letter-spacing: -0.5px;
+                }
+                Text {
+                    text: "Update how your profile appears to your friends.";
+                    font-size: 12px;
+                    color: muted;
+                }
+                // Display name field
+                VerticalLayout {
+                    spacing: 7px;
+                    padding-bottom: 12px;
+                    Text { text: "Display name"; font-size: 11px; font-weight: 650; color: ink; }
+                    Rectangle {
+                        height: 44px;
+                        border-radius: 14px;
+                        background: glass;
+                        border-width: 1px;
+                        border-color: line-strong;
+                        HorizontalLayout {
+                            padding-left: 14px; padding-right: 14px;
+                            TextInput {
+                                text <=> root.edit-name;
+                                font-size: 13px;
+                                color: ink;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+                // Username field
+                VerticalLayout {
+                    spacing: 7px;
+                    padding-bottom: 12px;
+                    Text { text: "Username"; font-size: 11px; font-weight: 650; color: ink; }
+                    Rectangle {
+                        height: 44px;
+                        border-radius: 14px;
+                        background: glass;
+                        border-width: 1px;
+                        border-color: line-strong;
+                        HorizontalLayout {
+                            padding-left: 14px; padding-right: 14px;
+                            TextInput {
+                                text <=> root.edit-handle;
+                                font-size: 13px;
+                                color: ink;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+                // Bio field
+                VerticalLayout {
+                    spacing: 7px;
+                    padding-bottom: 17px;
+                    Text { text: "Bio"; font-size: 11px; font-weight: 650; color: ink; }
+                    Rectangle {
+                        height: 70px;
+                        border-radius: 14px;
+                        background: glass;
+                        border-width: 1px;
+                        border-color: line-strong;
+                        VerticalLayout {
+                            padding-left: 14px; padding-right: 14px; padding-top: 10px; padding-bottom: 10px;
+                            TextInput {
+                                text <=> root.edit-bio;
+                                font-size: 13px;
+                                color: ink;
+                            }
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    spacing: 9px;
+                    TouchArea {
+                        horizontal-stretch: 1;
+                        height: 47px;
+                        mouse-cursor: pointer;
+                        clicked => { root.edit-open = false; }
+                        Rectangle {
+                            width: parent.width; height: 47px;
+                            border-radius: 15px;
+                            background: surface-soft;
+                            border-width: 1px;
+                            border-color: line-strong;
+                            Text { width: parent.width; height: parent.height; text: "Cancel"; font-size: 12px; font-weight: 700; color: ink; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                    }
+                    TouchArea {
+                        horizontal-stretch: 1;
+                        height: 47px;
+                        mouse-cursor: pointer;
+                        clicked => { root.edit-open = false; }
+                        Rectangle {
+                            width: parent.width; height: 47px;
+                            border-radius: 15px;
+                            background: primary;
+                            border-width: 0px;
+                            Text { width: parent.width; height: parent.height; text: "Save changes"; font-size: 12px; font-weight: 700; color: primary-text; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                    }
+                }
+            }
         }
     }
 }
