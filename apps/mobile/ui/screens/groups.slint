@@ -136,8 +136,7 @@ component MemberRow inherits Rectangle {
 
 // ---------------------------------------------------------------------------
 // Create group
-// ---------------------------------------------------------------------------
-
+// Create Group screen — monochrome Liquid Glass (mobile-first).
 export component CreateGroupScreen inherits Rectangle {
     in property <[UiFriendPick]> friends;
     in property <int> selected-count: 0;
@@ -149,72 +148,509 @@ export component CreateGroupScreen inherits Rectangle {
     callback create;
     background: transparent;
 
+    in-out property <bool> dark: Theme.is-dark;
+    in-out property <bool> modal-open: false;
+
+    property <color> ink: dark ? #f4f4f3 : #171717;
+    property <color> ink-soft: dark ? #dadad7 : #3d3d3b;
+    property <color> muted: dark ? #aaa9a6 : #777775;
+    property <color> soft: dark ? #777673 : #a4a4a1;
+    property <color> line: dark ? rgba(255,255,255,0.10) : rgba(30,30,30,0.10);
+    property <color> glass: dark ? rgba(42,42,42,0.56) : rgba(255,255,255,0.54);
+    property <color> glass-strong: dark ? rgba(48,48,48,0.78) : rgba(255,255,255,0.76);
+    property <color> field: dark ? rgba(38,38,38,0.72) : rgba(255,255,255,0.60);
+    property <color> selected-bg: dark ? rgba(255,255,255,0.10) : rgba(20,20,20,0.085);
+    property <color> primary: dark ? #f1f1f0 : #171717;
+    property <color> primary-text: dark ? #171717 : #ffffff;
+    property <color> scrim: dark ? rgba(0,0,0,0.56) : rgba(0,0,0,0.28);
+
     VerticalLayout {
-        TopBar {
-            title: "New Group";
-            back => { root.back(); }
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-top: 12px;
+        padding-bottom: 0px;
+        spacing: 0px;
+
+        // Ambient
+        Rectangle {
+            height: 0px;
+            Rectangle {
+                x: parent.width - 160px; y: 190px;
+                width: 280px; height: 280px;
+                border-radius: 140px;
+                background: dark
+                    ? @radial-gradient(circle, rgba(255,255,255,0.75) 0%, transparent 70%)
+                    : @radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(120,120,120,0.04) 70%, transparent 100%);
+                opacity: dark ? 0.12 : 0.22;
+            }
         }
 
-        VerticalLayout {
-            padding-left: Theme.sp-4;
-            padding-right: Theme.sp-4;
-            padding-top: 4px;
-            padding-bottom: Theme.sp-3;
-            spacing: Theme.sp-3;
+        // Top bar
+        HorizontalLayout {
+            height: 48px;
+            spacing: 0px;
+            alignment: start;
+            TouchArea {
+                width: 42px; height: 42px;
+                mouse-cursor: pointer;
+                clicked => { root.back(); }
+                Rectangle {
+                    width: 42px; height: 42px;
+                    border-radius: 15px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 12px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 4px;
+                    Text {
+                        width: parent.width; height: parent.height;
+                        text: "←";
+                        font-size: 18px;
+                        color: ink;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+            Text {
+                text: "Nemo";
+                font-size: 13px;
+                font-weight: 730;
+                color: ink;
+                letter-spacing: -0.2px;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            TouchArea {
+                width: 90px; height: 42px;
+                mouse-cursor: pointer;
+                clicked => { root.dark = !root.dark; Theme.is-dark = root.dark; }
+                Rectangle {
+                    width: 90px; height: 42px;
+                    border-radius: 15px;
+                    background: glass;
+                    border-width: 1px;
+                    border-color: line;
+                    drop-shadow-blur: 12px;
+                    drop-shadow-color: rgba(0,0,0,0.045);
+                    drop-shadow-offset-y: 4px;
+                    HorizontalLayout {
+                        alignment: center;
+                        spacing: 8px;
+                        Text { text: root.dark ? "☀" : "☾"; font-size: 13px; color: ink; vertical-alignment: center; }
+                        Text { text: root.dark ? "Light" : "Dark"; font-size: 12px; font-weight: 650; color: ink; vertical-alignment: center; }
+                    }
+                }
+            }
+        }
 
-            // Group identity card
-            GlassCard {
-                height: 112px;
+        // Intro
+        VerticalLayout {
+            spacing: 4px;
+            padding-bottom: 22px;
+            Text {
+                text: "MAKE IT A GROUP";
+                font-size: 10px;
+                font-weight: 750;
+                color: muted;
+                letter-spacing: 1.8px;
+            }
+            Text {
+                text: "Create a group.";
+                font-size: 34px;
+                font-weight: 760;
+                color: ink;
+                letter-spacing: -1.7px;
+            }
+            Text {
+                text: "Bring your people together in one conversation.";
+                font-size: 14px;
+                color: muted;
+                wrap: word-wrap;
+            }
+        }
+
+        // Group card
+        Rectangle {
+            border-radius: 27px;
+            background: glass;
+            border-width: 1px;
+            border-color: line;
+            drop-shadow-blur: 24px;
+            drop-shadow-color: rgba(0,0,0,0.09);
+            drop-shadow-offset-y: 12px;
+            clip: true;
+            // top specular
+            Rectangle {
+                x: 12px; y: 0px; width: parent.width - 24px; height: 1px;
+                background: @linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.95) 50%, transparent 100%);
+            }
+
+            VerticalLayout {
+                padding-left: 17px;
+                padding-right: 17px;
+                padding-top: 17px;
+                padding-bottom: 17px;
+                spacing: 17px;
+
+                // Group photo + meta
                 HorizontalLayout {
-                    padding-left: 16px;
-                    padding-right: 16px;
                     spacing: 14px;
+                    alignment: start;
                     Rectangle {
-                        width: 56px;
-                        height: 56px;
-                        cross-axis-self-alignment: center;
-                        border-radius: 28px;
-                        background: Theme.c-accent-soft;
-                        Users {
-                            x: (parent.width - 28px) / 2;
-                            y: (parent.height - 28px) / 2;
-                            size: 28px;
-                            tint: Theme.accent;
+                        width: 66px; height: 66px;
+                        border-radius: 22px;
+                        background: glass-strong;
+                        border-width: 1px;
+                        border-color: line;
+                        drop-shadow-blur: 8px;
+                        drop-shadow-color: rgba(0,0,0,0.04);
+                        drop-shadow-offset-y: 3px;
+                        Text {
+                            width: parent.width; height: parent.height;
+                            text: "＋";
+                            font-size: 25px;
+                            font-weight: 300;
+                            color: muted;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
                         }
                     }
-                    NookField {
+                    VerticalLayout {
                         horizontal-stretch: 1;
+                        spacing: 4px;
                         cross-axis-self-alignment: center;
-                        label: "Group name";
-                        placeholder: "e.g. Trail Crew";
-                        text <=> root.name;
+                        Text {
+                            text: "Group photo";
+                            font-size: 14px;
+                            font-weight: 700;
+                            color: ink;
+                        }
+                        Text {
+                            text: "Optional · Add an image for your group";
+                            font-size: 12px;
+                            color: muted;
+                            wrap: word-wrap;
+                        }
                     }
                 }
-            }
 
-            SearchField {
-                text <=> root.query;
-                text-changed(t) => { root.search-changed(t); }
-            }
-
-            SectionLabel { text: "ADD PEOPLE"; }
-
-            Flickable {
-                vertical-stretch: 1;
+                // Fields
                 VerticalLayout {
-                    spacing: Theme.sp-2;
-                    padding-bottom: Theme.sp-3;
-                    for f in root.friends: FriendPickRow {
-                        friend: f;
-                        toggle => { root.toggle-member(f.id); }
+                    spacing: 11px;
+                    // Group name
+                    Rectangle {
+                        height: 53px;
+                        border-radius: 16px;
+                        background: field;
+                        border-width: 1px;
+                        border-color: line;
+                        drop-shadow-blur: 4px;
+                        drop-shadow-color: rgba(0,0,0,0.02);
+                        drop-shadow-offset-y: 2px;
+                        HorizontalLayout {
+                            padding-left: 15px; padding-right: 15px;
+                            spacing: 11px;
+                            alignment: center;
+                            Text { text: "📝"; font-size: 14px; color: muted; vertical-alignment: center; }
+                            TextInput {
+                                horizontal-stretch: 1;
+                                text <=> root.name;
+                                font-size: 14px;
+                                color: ink;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                    // Description
+                    Rectangle {
+                        height: 65px;
+                        border-radius: 16px;
+                        background: field;
+                        border-width: 1px;
+                        border-color: line;
+                        drop-shadow-blur: 4px;
+                        drop-shadow-color: rgba(0,0,0,0.02);
+                        drop-shadow-offset-y: 2px;
+                        VerticalLayout {
+                            padding-left: 15px; padding-right: 15px;
+                            padding-top: 3px; padding-bottom: 3px;
+                            spacing: 0px;
+                            HorizontalLayout {
+                                spacing: 11px;
+                                alignment: start;
+                                Text { text: "📝"; font-size: 14px; color: muted; vertical-alignment: center; }
+                                TextInput {
+                                    horizontal-stretch: 1;
+                                    text <=> root.query; // reuse query as description placeholder
+                                    font-size: 14px;
+                                    color: ink;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
                     }
                 }
             }
+        }
 
-            PrimaryButton {
-                text: "Create group (" + root.selected-count + ")";
-                enabled: root.name != "" && root.selected-count >= 1;
-                clicked => { root.create(); }
+        // Add friends section
+        HorizontalLayout {
+            padding-top: 22px;
+            padding-bottom: 12px;
+            alignment: space-between;
+            Text {
+                text: "Add friends";
+                font-size: 16px;
+                font-weight: 720;
+                color: ink;
+                letter-spacing: -0.25px;
+                vertical-alignment: center;
+            }
+            Text {
+                text: root.selected-count + " selected";
+                font-size: 12px;
+                color: muted;
+                vertical-alignment: center;
+            }
+        }
+
+        // Search
+        Rectangle {
+            height: 49px;
+            border-radius: 16px;
+            background: glass;
+            border-width: 1px;
+            border-color: line;
+            drop-shadow-blur: 8px;
+            drop-shadow-color: rgba(0,0,0,0.03);
+            drop-shadow-offset-y: 3px;
+            
+            HorizontalLayout {
+                padding-left: 14px; padding-right: 14px;
+                spacing: 10px;
+                alignment: center;
+                Text { text: "🔍"; font-size: 14px; color: muted; vertical-alignment: center; }
+                TextInput {
+                    horizontal-stretch: 1;
+                    text <=> root.query;
+                    font-size: 13px;
+                    color: ink;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // Selected panel
+        Rectangle {
+            border-radius: 20px;
+            background: glass;
+            border-width: 1px;
+            border-color: line;
+            drop-shadow-blur: 8px;
+            drop-shadow-color: rgba(0,0,0,0.03);
+            drop-shadow-offset-y: 3px;
+            
+            min-height: 62px;
+            VerticalLayout {
+                padding-left: 13px; padding-right: 13px;
+                padding-top: 13px; padding-bottom: 13px;
+                spacing: 9px;
+                HorizontalLayout {
+                    alignment: space-between;
+                    Text { text: "Selected members"; font-size: 12px; font-weight: 700; color: ink; vertical-alignment: center; }
+                    Text { text: root.selected-count >= 2 ? "Ready to create" : "Choose at least 2 friends"; font-size: 11px; color: muted; vertical-alignment: center; }
+                }
+                if root.selected-count == 0: Text {
+                    text: "Your selected friends will appear here";
+                    font-size: 11px;
+                    color: muted;
+                }
+            }
+        }
+
+        // Friend list
+        VerticalLayout {
+            spacing: 7px;
+            for f in root.friends: TouchArea {
+                height: 62px;
+                mouse-cursor: pointer;
+                clicked => { root.toggle-member(f.id); }
+                Rectangle {
+                    width: parent.width;
+                    height: 62px;
+                    border-radius: 19px;
+                    background: f.selected ? selected-bg : glass;
+                    border-width: 1px;
+                    border-color: f.selected ? line : transparent;
+                    HorizontalLayout {
+                        padding-left: 11px; padding-right: 11px;
+                        spacing: 12px;
+                        alignment: center;
+                        Rectangle {
+                            width: 43px; height: 43px;
+                            border-radius: 15px;
+                            background: @linear-gradient(145deg, #d4d4d2 0%, #b9b9b6 100%);
+                            Text {
+                                width: parent.width; height: parent.height;
+                                text: f.initials;
+                                font-size: 12px;
+                                font-weight: 800;
+                                color: #222;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            spacing: 3px;
+                            Text {
+                                text: f.name;
+                                font-size: 13px;
+                                font-weight: 680;
+                                color: ink;
+                            }
+                            Text {
+                                text: "@" + f.handle;
+                                font-size: 11px;
+                                color: muted;
+                            }
+                        }
+                        Rectangle {
+                            width: 23px; height: 23px;
+                            border-radius: 11.5px;
+                            border-width: 1.4px;
+                            border-color: f.selected ? primary : soft;
+                            background: f.selected ? primary : transparent;
+                            Text {
+                                width: parent.width; height: parent.height;
+                                text: f.selected ? "✓" : "";
+                                font-size: 11px;
+                                color: primary-text;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if root.friends.length == 0: Text {
+            text: "No friends match that search.";
+            font-size: 13px;
+            color: muted;
+            horizontal-alignment: center;
+            
+        }
+    }
+
+    // Bottom CTA
+    Rectangle {
+        height: 112px;
+        VerticalLayout {
+            padding-left: 20px; padding-right: 20px;
+            padding-top: 16px; padding-bottom: 15px;
+            spacing: 0px;
+            HorizontalLayout {
+                spacing: 12px;
+                alignment: center;
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    spacing: 2px;
+                    Text {
+                        text: root.selected-count == 0 ? "No members selected" : (root.selected-count + " " + (root.selected-count == 1 ? "friend" : "friends") + " selected");
+                        font-size: 12px;
+                        font-weight: 700;
+                        color: ink;
+                    }
+                    Text {
+                        text: root.selected-count >= 2 ? "Your group is almost ready" : "Select at least 2 friends";
+                        font-size: 11px;
+                        color: muted;
+                    }
+                }
+                TouchArea {
+                    width: 148px; height: 53px;
+                    mouse-cursor: pointer;
+                    clicked => {
+                        if (root.selected-count >= 2 && root.name != "") { root.modal-open = true; }
+                    }
+                    Rectangle {
+                        width: 148px; height: 53px;
+                        border-radius: 17px;
+                        background: (root.selected-count >= 2 && root.name != "") ? primary : rgba(23,23,23,0.36);
+                        opacity: (root.selected-count >= 2 && root.name != "") ? 1.0 : 0.36;
+                        drop-shadow-blur: (root.selected-count >= 2 && root.name != "") ? 22px : 0px;
+                        drop-shadow-color: rgba(0,0,0,0.14);
+                        drop-shadow-offset-y: 9px;
+                        HorizontalLayout {
+                            alignment: center;
+                            Text {
+                                text: "Create group";
+                                font-size: 13px;
+                                font-weight: 730;
+                                color: primary-text;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Confirmation modal
+    if root.modal-open: Rectangle {
+        x: 0px; y: 0px;
+        width: parent.width; height: parent.height;
+        background: scrim;
+        TouchArea { clicked => { root.modal-open = false; } }
+        Rectangle {
+            x: 12px; y: parent.height - 200px;
+            width: parent.width - 24px; height: 180px;
+            border-radius: 28px;
+            background: glass-strong;
+            border-width: 1px;
+            border-color: rgba(255,255,255,0.92);
+            drop-shadow-blur: 30px;
+            drop-shadow-color: rgba(0,0,0,0.12);
+            drop-shadow-offset-y: 10px;
+            clip: true;
+            VerticalLayout {
+                padding: 23px;
+                spacing: 0px;
+                Text { text: "Create this group?"; font-size: 18px; font-weight: 700; color: ink; letter-spacing: -0.3px; }
+                Text { text: "Your group will be created with the selected friends. This is a local UI preview, so no real group or invitation will be created."; font-size: 13px; color: muted; wrap: word-wrap;  }
+                HorizontalLayout {
+                    spacing: 9px;
+                    TouchArea {
+                        horizontal-stretch: 1; height: 47px;
+                        mouse-cursor: pointer;
+                        clicked => { root.modal-open = false; }
+                        Rectangle {
+                            width: parent.width; height: 47px;
+                            border-radius: 15px;
+                            background: glass;
+                            border-width: 1px;
+                            border-color: line;
+                            Text { width: parent.width; height: parent.height; text: "Cancel"; font-size: 13px; font-weight: 700; color: ink; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                    }
+                    TouchArea {
+                        horizontal-stretch: 1; height: 47px;
+                        mouse-cursor: pointer;
+                        clicked => { root.modal-open = false; root.create(); }
+                        Rectangle {
+                            width: parent.width; height: 47px;
+                            border-radius: 15px;
+                            background: primary;
+                            border-width: 0px;
+                            Text { width: parent.width; height: parent.height; text: "Preview group"; font-size: 13px; font-weight: 700; color: primary-text; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                    }
+                }
             }
         }
     }
