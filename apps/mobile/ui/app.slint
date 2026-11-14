@@ -105,6 +105,9 @@ export component AppWindow inherits Window {
     callback check-updates;
     callback download-update;
     callback install-update;
+    callback submit-signup(string, string, string);
+    callback submit-login(string, string);
+    callback accept-terms;
 
     // Demo data (fed from Rust by the preview binary).
     in property <[UiChat]> chats;
@@ -138,6 +141,13 @@ export component AppWindow inherits Window {
     in-out property <bool> update-downloading: false;
     in-out property <string> update-error: "";
 
+    // Auth state (driven from Rust).
+    in-out property <bool> signup-busy: false;
+    in-out property <string> signup-error: "";
+    in-out property <bool> login-busy: false;
+    in-out property <string> login-error: "";
+    in-out property <string> auth-token: "";
+
     ScreenBackground { }
 
     if screen == "welcome": WelcomeScreen {
@@ -146,7 +156,9 @@ export component AppWindow inherits Window {
     }
     if screen == "signup": SignUpScreen {
         back => { root.screen = "welcome"; }
-        submit(u, d, p) => { root.screen = "recovery"; }
+        error: root.signup-error;
+        busy: root.signup-busy;
+        submit(u, d, p) => { root.submit-signup(u, d, p); }
     }
     if screen == "recovery": RecoveryScreen {
         codes: root.recovery-codes;
@@ -155,13 +167,15 @@ export component AppWindow inherits Window {
     }
     if screen == "login": LoginScreen {
         back => { root.screen = "welcome"; }
-        submit(u, p) => { root.screen = "chats"; }
+        error: root.login-error;
+        busy: root.login-busy;
+        submit(u, p) => { root.submit-login(u, p); }
     }
     if screen == "terms": TermsScreen {
         doc-title: root.policy-title;
         sections: root.policy-sections;
         back => { root.screen = "signup"; }
-        continue-p => { root.screen = "chats"; }
+        continue-p => { root.accept-terms(); }
     }
     if screen == "chats": ChatsScreen {
         chats: root.chats;

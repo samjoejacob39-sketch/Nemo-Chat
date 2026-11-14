@@ -15,6 +15,7 @@ pub fn run() {
     load_demo_data(&app);
     app.set_demo_mode(true);
     wire_update_callbacks(&app);
+    wire_auth_callbacks(&app);
     app.run().expect("Nemo window crashed");
 }
 
@@ -380,5 +381,234 @@ fn wire_update_callbacks(app: &AppWindow) {
         if let Some(ui) = weak.upgrade() {
             ui.set_update_status("idle".into());
         }
+    });
+}
+// ---------------------------------------------------------------------------
+// Authentication (wired to the Nemo backend)
+// ---------------------------------------------------------------------------
+
+fn api_base() -> String {
+    if let Ok(v) = std::env::var("NOOK_API_BASE") {
+        if !v.is_empty() {
+            return v.trim_end_matches('/').to_string();
+        }
+    }
+    #[cfg(target_os = "android")]
+    {
+        "http://10.0.2.2:8080".to_string()
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        "http://127.0.0.1:8080".to_string()
+    }
+}
+
+fn token_path() -> std::path::PathBuf {
+    std::env::temp_dir().join("nemo_session_token.txt")
+}
+
+fn save_token(token: &str) {
+    let _ = std::fs::write(token_path(), token);
+}
+
+fn load_token() -> Option<String> {
+    std::fs::read_to_string(token_path()).ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty())
+}
+
+fn register_request(username: &str, display_name: &str, password: &str) -> Result<(String, String), String> {
+    use nook_shared::models::RegisterRequest;
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("Nemo-Mobile/1.0")
+        .timeout(std::time::Duration::from_secs(20))
+        .build()
+        .map_err(|e| e.to_string())?;
+    let body = RegisterRequest {
+        username: username.to_string(),
+        display_name: display_name.to_string(),
+        password: password.to_string(),
+    };
+    let resp = client
+        .post(format!("{}/api/auth/register", api_base()))
+        .json(&body)
+        .send()
+        .map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        let text = resp.text().unwrap_or_default();
+        return Err(if text.is_empty() { "Registration failed.".to_string() } else { text });
+    }
+    let parsed: serde_json::Value = resp.json().map_err(|e| e.to_string())?;
+    let token = parsed
+        .get("session")
+        .and_then(|s| s.get("token"))
+        .and_then(|t| t.as_str())
+        .unwrap_or("")
+        .to_string();
+    let recovery = parsed
+        .get("recovery_code")
+        .and_then(|r| r.as_str())
+        .unwrap_or("")
+        .to_string();
+    if token.is_empty() {
+        return Err("Server did not return a session token.".to_string());
+    }
+    Ok((token, recovery))
+}
+
+fn login_request(username: &str, password: &str) -> Result<(String, bool), String> {
+    use nook_shared::models::LoginRequest;
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("Nemo-Mobile/1.0")
+        .timeout(std::time::Duration::from_secs(20))
+        .build()
+        .map_err(|e| e.to_string())?;
+    let body = LoginRequest {
+        username: username.to_string(),
+        password: password.to_string(),
+    };
+    let resp = client
+        .post(format!("{}/api/auth/login", api_base()))
+        .json(&body)
+        .send()
+        .map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        let text = resp.text().unwrap_or_default();
+        return Err(if text.is_empty() { "Login failed.".to_string() } else { text });
+    }
+    let parsed: serde_json::Value = resp.json().map_err(|e| e.to_string())?;
+    let token = parsed
+        .get("session")
+        .and_then(|s| s.get("token"))
+        .and_then(|t| t.as_str())
+        .unwrap_or("")
+        .to_string();
+    let onboarding = parsed
+        .get("onboarding_required")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    if token.is_empty() {
+        return Err("Server did not return a session token.".to_string());
+    }
+    Ok((token, onboarding))
+}
+
+fn accept_terms_request(token: &str) -> Result<(), String> {
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("Nemo-Mobile/1.0")
+        .timeout(std::time::Duration::from_secs(20))
+        .build()
+        .map_err(|e| e.to_string())?;
+    // Accept the current policy version advertised by the server.
+    let body = serde_json::json!({ "version": nook_shared::policies::POLICY_VERSION });
+    let resp = client
+        .post(format!("{}/api/me/terms", api_base()))
+        .bearer_auth(token)
+        .json(&body)
+        .send()
+        .map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        let text = resp.text().unwrap_or_default();
+        return Err(if text.is_empty() { "Could not accept terms.".to_string() } else { text });
+    }
+    Ok(())
+}
+
+fn wire_auth_callbacks(app: &AppWindow) {
+    use slint::ComponentHandle;
+    let weak = app.as_weak();
+
+    // Sign up
+    let w = weak.clone();
+    app.on_submit_signup(move |u, d, p| {
+        let username = u.to_string();
+        let display_name = d.to_string();
+        let password = p.to_string();
+        if let Some(ui) = w.upgrade() {
+            ui.set_signup_busy(true);
+            ui.set_signup_error("".into());
+        }
+        let w2 = w.clone();
+        std::thread::spawn(move || {
+            let result = register_request(&username, &display_name, &password);
+            let _ = slint::invoke_from_event_loop(move || {
+                if let Some(ui) = w2.upgrade() {
+                    match result {
+                        Ok((token, recovery)) => {
+                            save_token(&token);
+                            ui.set_auth_token(token.into());
+                            let mut codes: Vec<slint::SharedString> = Vec::new();
+                            if !recovery.is_empty() {
+                                codes.push(recovery.into());
+                            }
+                            use slint::{ModelRc, VecModel};
+                            use std::rc::Rc;
+                            ui.set_recovery_codes(ModelRc::from(Rc::new(VecModel::from(codes))));
+                            ui.set_signup_busy(false);
+                            ui.set_screen("recovery".into());
+                        }
+                        Err(e) => {
+                            ui.set_signup_error(e.into());
+                            ui.set_signup_busy(false);
+                        }
+                    }
+                }
+            });
+        });
+    });
+
+    // Login
+    let w = weak.clone();
+    app.on_submit_login(move |u, p| {
+        let username = u.to_string();
+        let password = p.to_string();
+        if let Some(ui) = w.upgrade() {
+            ui.set_login_busy(true);
+            ui.set_login_error("".into());
+        }
+        let w2 = w.clone();
+        std::thread::spawn(move || {
+            let result = login_request(&username, &password);
+            let _ = slint::invoke_from_event_loop(move || {
+                if let Some(ui) = w2.upgrade() {
+                    match result {
+                        Ok((token, onboarding)) => {
+                            save_token(&token);
+                            ui.set_auth_token(token.into());
+                            ui.set_login_busy(false);
+                            if onboarding {
+                                ui.set_screen("terms".into());
+                            } else {
+                                ui.set_screen("chats".into());
+                            }
+                        }
+                        Err(e) => {
+                            ui.set_login_error(e.into());
+                            ui.set_login_busy(false);
+                        }
+                    }
+                }
+            });
+        });
+    });
+
+    // Accept terms
+    let w = weak.clone();
+    app.on_accept_terms(move || {
+        let token = load_token().unwrap_or_default();
+        if token.is_empty() {
+            if let Some(ui) = w.upgrade() {
+                ui.set_screen("chats".into());
+            }
+            return;
+        }
+        let w2 = w.clone();
+        std::thread::spawn(move || {
+            let result = accept_terms_request(&token);
+            let _ = slint::invoke_from_event_loop(move || {
+                if let Some(ui) = w2.upgrade() {
+                    let _ = result;
+                    ui.set_screen("chats".into());
+                }
+            });
+        });
     });
 }
