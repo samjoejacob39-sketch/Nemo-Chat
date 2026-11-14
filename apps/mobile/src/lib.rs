@@ -16,6 +16,8 @@ pub fn run() {
     app.set_demo_mode(true);
     wire_update_callbacks(&app);
     wire_auth_callbacks(&app);
+    wire_conversation_callbacks(&app);
+    wire_send_callbacks(&app);
     app.run().expect("Nemo window crashed");
 }
 
@@ -37,11 +39,11 @@ fn load_demo_data(app: &AppWindow) {
     use std::rc::Rc;
 
     let chats = vec![
-        UiChat { index: 0, title: "Maya Chen".into(), subtitle: "Perfect. I'll bring the good beans 🙂".into(), time: "10:12".into(), unread: 2, initials: "MC".into(), variant: 1, has_avatar: false, avatar: slint::Image::default(), online: true, muted: false, pinned: false },
-        UiChat { index: 1, title: "Trail Crew 🚀".into(), subtitle: "Sam: pushing the fix now".into(), time: "09:58".into(), unread: 0, initials: "TC".into(), variant: 2, has_avatar: false, avatar: slint::Image::default(), online: false, muted: true, pinned: true },
-        UiChat { index: 2, title: "Sam Okafor".into(), subtitle: "see you at practice".into(), time: "Yesterday".into(), unread: 0, initials: "SO".into(), variant: 3, has_avatar: false, avatar: slint::Image::default(), online: true, muted: false, pinned: false },
-        UiChat { index: 3, title: "Nadia Farouk".into(), subtitle: "typing…".into(), time: "Yesterday".into(), unread: 1, initials: "NF".into(), variant: 4, has_avatar: false, avatar: slint::Image::default(), online: true, muted: false, pinned: false },
-        UiChat { index: 4, title: "Alex Rivera".into(), subtitle: "sent a photo".into(), time: "Mon".into(), unread: 0, initials: "AR".into(), variant: 5, has_avatar: false, avatar: slint::Image::default(), online: false, muted: false, pinned: false },
+        UiChat { id: "demo-0".into(), index: 0, title: "Maya Chen".into(), subtitle: "Perfect. I'll bring the good beans 🙂".into(), time: "10:12".into(), unread: 2, initials: "MC".into(), variant: 1, has_avatar: false, avatar: slint::Image::default(), online: true, muted: false, pinned: false },
+        UiChat { id: "demo-1".into(), index: 1, title: "Trail Crew 🚀".into(), subtitle: "Sam: pushing the fix now".into(), time: "09:58".into(), unread: 0, initials: "TC".into(), variant: 2, has_avatar: false, avatar: slint::Image::default(), online: false, muted: true, pinned: true },
+        UiChat { id: "demo-2".into(), index: 2, title: "Sam Okafor".into(), subtitle: "see you at practice".into(), time: "Yesterday".into(), unread: 0, initials: "SO".into(), variant: 3, has_avatar: false, avatar: slint::Image::default(), online: true, muted: false, pinned: false },
+        UiChat { id: "demo-3".into(), index: 3, title: "Nadia Farouk".into(), subtitle: "typing…".into(), time: "Yesterday".into(), unread: 1, initials: "NF".into(), variant: 4, has_avatar: false, avatar: slint::Image::default(), online: true, muted: false, pinned: false },
+        UiChat { id: "demo-4".into(), index: 4, title: "Alex Rivera".into(), subtitle: "sent a photo".into(), time: "Mon".into(), unread: 0, initials: "AR".into(), variant: 5, has_avatar: false, avatar: slint::Image::default(), online: false, muted: false, pinned: false },
     ];
     app.set_chats(ModelRc::from(Rc::new(VecModel::from(chats))));
 
@@ -437,6 +439,7 @@ fn register_request(username: &str, display_name: &str, password: &str) -> Resul
         return Err(if text.is_empty() { "Registration failed.".to_string() } else { text });
     }
     let parsed: serde_json::Value = resp.json().map_err(|e| e.to_string())?;
+    store_user_id(&parsed);
     let token = parsed
         .get("session")
         .and_then(|s| s.get("token"))
@@ -475,6 +478,7 @@ fn login_request(username: &str, password: &str) -> Result<(String, bool), Strin
         return Err(if text.is_empty() { "Login failed.".to_string() } else { text });
     }
     let parsed: serde_json::Value = resp.json().map_err(|e| e.to_string())?;
+    store_user_id(&parsed);
     let token = parsed
         .get("session")
         .and_then(|s| s.get("token"))
@@ -534,7 +538,11 @@ fn wire_auth_callbacks(app: &AppWindow) {
                     match result {
                         Ok((token, recovery)) => {
                             save_token(&token);
+                            let tok = token.clone();
                             ui.set_auth_token(token.into());
+                            if let Ok(chats) = fetch_conversations(&tok) {
+                                ui.set_chats(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(chats))));
+                            }
                             let mut codes: Vec<slint::SharedString> = Vec::new();
                             if !recovery.is_empty() {
                                 codes.push(recovery.into());
@@ -572,7 +580,11 @@ fn wire_auth_callbacks(app: &AppWindow) {
                     match result {
                         Ok((token, onboarding)) => {
                             save_token(&token);
+                            let tok = token.clone();
                             ui.set_auth_token(token.into());
+                            if let Ok(chats) = fetch_conversations(&tok) {
+                                ui.set_chats(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(chats))));
+                            }
                             ui.set_login_busy(false);
                             if onboarding {
                                 ui.set_screen("terms".into());
@@ -610,5 +622,223 @@ fn wire_auth_callbacks(app: &AppWindow) {
                 }
             });
         });
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Conversations & messages (REST)
+// ---------------------------------------------------------------------------
+
+static CONVERSATION_IDS: std::sync::Mutex<Vec<String>> = std::sync::Mutex::new(Vec::new());
+static CURRENT_USER_ID: std::sync::Mutex<Option<String>> = std::sync::Mutex::new(None);
+static CURRENT_CONVERSATION: std::sync::Mutex<Option<String>> = std::sync::Mutex::new(None);
+
+fn store_user_id(parsed: &serde_json::Value) {
+    if let Some(id) = parsed.get("session").and_then(|s| s.get("user")).and_then(|u| u.get("id")).and_then(|v| v.as_str()) {
+        *CURRENT_USER_ID.lock().unwrap() = Some(id.to_string());
+    }
+}
+
+fn initials_for(name: &str) -> String {
+    name.split_whitespace()
+        .filter_map(|w| w.chars().next())
+        .take(2)
+        .collect::<String>()
+        .to_uppercase()
+}
+
+fn fetch_conversations(token: &str) -> Result<Vec<UiChat>, String> {
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("Nemo-Mobile/1.0")
+        .timeout(std::time::Duration::from_secs(20))
+        .build()
+        .map_err(|e| e.to_string())?;
+    let resp = client
+        .get(format!("{}/api/conversations", api_base()))
+        .bearer_auth(token)
+        .send()
+        .map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(format!("HTTP {}", resp.status()));
+    }
+    let parsed: serde_json::Value = resp.json().map_err(|e| e.to_string())?;
+    let arr = parsed.as_array().cloned().unwrap_or_default();
+    let mut ids = Vec::new();
+    let mut chats = Vec::new();
+    for (i, c) in arr.iter().enumerate() {
+        let id = c.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+        ids.push(id.clone());
+        let title = c.get("title").and_then(|v| v.as_str()).unwrap_or("Chat").to_string();
+        let last = c.get("last_message");
+        let subtitle = last
+            .and_then(|m| m.get("body"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let time = last
+            .and_then(|m| m.get("created_at"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.get(11..16).unwrap_or(s).to_string())
+            .unwrap_or_default();
+        let unread = c.get("unread_count").and_then(|v| v.as_u64()).unwrap_or(0) as i32;
+        let pinned = c.get("pinned").and_then(|v| v.as_bool()).unwrap_or(false);
+        let muted = c.get("muted").and_then(|v| v.as_bool()).unwrap_or(false);
+        let online = c.get("other_online").and_then(|v| v.as_bool()).unwrap_or(false);
+        chats.push(UiChat {
+            id: id.into(),
+            index: i as i32,
+            title: title.clone().into(),
+            subtitle: subtitle.into(),
+            time: time.into(),
+            unread,
+            initials: initials_for(&title).into(),
+            variant: (i % 6) as i32,
+            has_avatar: false,
+            avatar: slint::Image::default(),
+            online,
+            muted,
+            pinned,
+        });
+    }
+    *CONVERSATION_IDS.lock().unwrap() = ids;
+    Ok(chats)
+}
+
+fn fetch_messages(token: &str, conversation_id: &str) -> Result<Vec<UiBubble>, String> {
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("Nemo-Mobile/1.0")
+        .timeout(std::time::Duration::from_secs(20))
+        .build()
+        .map_err(|e| e.to_string())?;
+    let resp = client
+        .get(format!("{}/api/conversations/{}/messages", api_base(), conversation_id))
+        .bearer_auth(token)
+        .send()
+        .map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(format!("HTTP {}", resp.status()));
+    }
+    let parsed: serde_json::Value = resp.json().map_err(|e| e.to_string())?;
+    // Response may be { messages: [...] } or bare array.
+    let arr = parsed
+        .get("messages")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .or_else(|| parsed.as_array().cloned())
+        .unwrap_or_default();
+    let me = CURRENT_USER_ID.lock().unwrap().clone().unwrap_or_default();
+    let mut bubbles = Vec::new();
+    for (i, m) in arr.iter().enumerate() {
+        let text = m.get("body").and_then(|v| v.as_str()).unwrap_or("").to_string();
+        let sender_name = m
+            .get("sender")
+            .and_then(|s| s.get("display_name"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let sender_id = m
+            .get("sender")
+            .and_then(|s| s.get("id"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let mine = !me.is_empty() && sender_id == me;
+        let time = m
+            .get("created_at")
+            .and_then(|v| v.as_str())
+            .map(|s| s.get(11..16).unwrap_or(s).to_string())
+            .unwrap_or_default();
+        let kind = match m.get("kind").and_then(|v| v.as_str()).unwrap_or("text") {
+            "image" => 1,
+            "system" => 2,
+            _ => 0,
+        };
+        let has_image = m.get("attachment").is_some();
+        bubbles.push(UiBubble {
+            index: i as i32,
+            kind,
+            text: text.into(),
+            mine,
+            read: true,
+            time: time.into(),
+            day: "".into(),
+            is_day_sep: false,
+            sender: sender_name.into(),
+            has_image,
+            image: slint::Image::default(),
+        });
+    }
+    Ok(bubbles)
+}
+
+fn send_message_request(token: &str, conversation_id: &str, body: &str) -> Result<(), String> {
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("Nemo-Mobile/1.0")
+        .timeout(std::time::Duration::from_secs(20))
+        .build()
+        .map_err(|e| e.to_string())?;
+    let payload = serde_json::json!({ "kind": "text", "body": body });
+    let resp = client
+        .post(format!("{}/api/conversations/{}/messages", api_base(), conversation_id))
+        .bearer_auth(token)
+        .json(&payload)
+        .send()
+        .map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        return Err(format!("HTTP {}", resp.status()));
+    }
+    Ok(())
+}
+
+fn wire_conversation_callbacks(app: &AppWindow) {
+    use slint::ComponentHandle;
+    let weak = app.as_weak();
+
+    // Load conversations into chats list (call after auth).
+    let w = weak.clone();
+    app.on_open_chat(move |idx| {
+        let token = load_token().unwrap_or_default();
+        let conv_id = CONVERSATION_IDS
+            .lock()
+            .unwrap()
+            .get(idx as usize)
+            .cloned()
+            .unwrap_or_default();
+        if conv_id.is_empty() {
+            if let Some(ui) = w.upgrade() {
+                ui.set_screen("chat".into());
+            }
+            return;
+        }
+        // Set current conversation id in a global-ish way via token file? Store in static.
+        *CURRENT_CONVERSATION.lock().unwrap() = Some(conv_id.clone());
+        if let Some(ui) = w.upgrade() {
+            if let Ok(msgs) = fetch_messages(&token, &conv_id) {
+                ui.set_messages(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(msgs))));
+            }
+            ui.set_screen("chat".into());
+        }
+    });
+
+    // Send message
+    let w = weak.clone();
+    // ChatScreen send callback not wired at root level yet; expose via a new root callback.
+}
+
+fn wire_send_callbacks(app: &AppWindow) {
+    let weak = app.as_weak();
+    app.on_send_message(move |text| {
+        let token = load_token().unwrap_or_default();
+        let conv = CURRENT_CONVERSATION.lock().unwrap().clone().unwrap_or_default();
+        let body = text.to_string();
+        if conv.is_empty() || body.trim().is_empty() {
+            return;
+        }
+        let _ = send_message_request(&token, &conv, &body);
+        if let Ok(msgs) = fetch_messages(&token, &conv) {
+            if let Some(ui) = weak.upgrade() {
+                ui.set_messages(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(msgs))));
+            }
+        }
     });
 }

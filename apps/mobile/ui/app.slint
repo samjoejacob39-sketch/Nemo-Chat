@@ -108,6 +108,8 @@ export component AppWindow inherits Window {
     callback submit-signup(string, string, string);
     callback submit-login(string, string);
     callback accept-terms;
+    callback open-chat(int);
+    callback send-message(string);
 
     // Demo data (fed from Rust by the preview binary).
     in property <[UiChat]> chats;
@@ -181,7 +183,7 @@ export component AppWindow inherits Window {
         chats: root.chats;
         request-count: 2;
         unseen-activity: 2;
-        open-chat(i) => { root.screen = "chat"; }
+        open-chat(i) => { root.open-chat(i); }
         open-notifications => { root.screen = "notifications"; }
         open-find => { root.screen = "find"; }
         open-profile => { root.screen = "profile"; }
@@ -198,6 +200,7 @@ export component AppWindow inherits Window {
         chat-index: 0;
         back => { root.screen = "chats"; }
         open-info => { root.screen = "groupinfo"; }
+        send(text) => { root.send-message(text); }
     }
     if screen == "notifications": NotificationsScreen {
         requests: root.requests;
