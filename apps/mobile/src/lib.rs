@@ -544,6 +544,10 @@ fn wire_auth_callbacks(app: &AppWindow) {
                             if let Ok(chats) = fetch_conversations(&tok) {
                                 ui.set_chats(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(chats))));
                             }
+                            fetch_me(&tok);
+                            let (reqs, acts) = fetch_notifications(&tok);
+                            ui.set_requests(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(reqs))));
+                            ui.set_activity(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(acts))));
                             let mut codes: Vec<slint::SharedString> = Vec::new();
                             if !recovery.is_empty() {
                                 codes.push(recovery.into());
@@ -586,6 +590,10 @@ fn wire_auth_callbacks(app: &AppWindow) {
                             if let Ok(chats) = fetch_conversations(&tok) {
                                 ui.set_chats(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(chats))));
                             }
+                            fetch_me(&tok);
+                            let (reqs, acts) = fetch_notifications(&tok);
+                            ui.set_requests(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(reqs))));
+                            ui.set_activity(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(acts))));
                             ui.set_login_busy(false);
                             if onboarding {
                                 ui.set_screen("terms".into());
@@ -998,4 +1006,43 @@ fn wire_friends_callbacks(app: &AppWindow) {
             ui.set_pending_count(pc);
         }
     });
+}
+
+// ---------------------------------------------------------------------------
+// Me / notifications (REST)
+// ---------------------------------------------------------------------------
+
+fn fetch_me(token: &str) {
+    let client = match reqwest::blocking::Client::builder().user_agent("Nemo-Mobile/1.0").timeout(std::time::Duration::from_secs(20)).build() { Ok(c) => c, Err(_) => return };
+    let resp = match client.get(format!("{}/api/me", api_base())).bearer_auth(token).send() { Ok(r) => r, Err(_) => return };
+    if !resp.status().is_success() { return; }
+    let parsed: serde_json::Value = match resp.json() { Ok(v) => v, Err(_) => return };
+    // Store user id
+    if let Some(id) = parsed.get("id").and_then(|v| v.as_str()) {
+        *CURRENT_USER_ID.lock().unwrap() = Some(id.to_string());
+    }
+}
+
+fn fetch_notifications(token: &str) -> (Vec<UiPerson>, Vec<UiActivity>) {
+    let client = match reqwest::blocking::Client::builder().user_agent("Nemo-Mobile/1.0").timeout(std::time::Duration::from_secs(20)).build() { Ok(c) => c, Err(_) => return (Vec::new(), Vec::new()) };
+    let resp = match client.get(format!("{}/api/notifications", api_base())).bearer_auth(token).send() { Ok(r) => r, Err(_) => return (Vec::new(), Vec::new()) };
+    if !resp.status().is_success() { return (Vec::new(), Vec::new()) };
+    let parsed: serde_json::Value = match resp.json() { Ok(v) => v, Err(_) => return (Vec::new(), Vec::new()) };
+    let arr = parsed.get("notifications").and_then(|v| v.as_array()).cloned()
+        .or_else(|| parsed.as_array().cloned()).unwrap_or_default();
+    let mut requests = Vec::new();
+    let mut activity = Vec::new();
+    for n in &arr {
+        let name = n.get("actor").and_then(|a| a.get("display_name")).and_then(|v| v.as_str()).unwrap_or("Someone").to_string();
+        let initials = initials_for(&name);
+        let action = n.get("type").and_then(|v| v.as_str()).unwrap_or("activity").to_string();
+        let time = n.get("created_at").and_then(|v| v.as_str()).map(|s| s.get(11..16).unwrap_or(s).to_string()).unwrap_or_default();
+        let unread = n.get("read").and_then(|v| v.as_bool()).map(|r| !r).unwrap_or(true);
+        let id = n.get("id").and_then(|v| v.as_str()).unwrap_or("").bytes().fold(0i32, |a,b| a.wrapping_mul(31).wrapping_add(b as i32)).abs();
+        if action.contains("request") {
+            requests.push(UiPerson { id, name: name.clone().into(), handle: "".into(), initials: initials.clone().into(), variant: 0, online: false, subtitle: "".into(), state: 0, has_avatar: false, avatar: slint::Image::default() });
+        }
+        activity.push(UiActivity { id, name: name.into(), initials: initials.into(), variant: 0, action: action.into(), time: time.into(), unread });
+    }
+    (requests, activity)
 }
