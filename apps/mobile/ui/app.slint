@@ -110,6 +110,10 @@ export component AppWindow inherits Window {
     callback accept-terms;
     callback open-chat(int);
     callback send-message(string);
+    callback search-friends(string);
+    callback add-friend(int);
+    callback accept-friend-request(int);
+    callback decline-friend-request(int);
 
     // Demo data (fed from Rust by the preview binary).
     in property <[UiChat]> chats;
@@ -121,6 +125,7 @@ export component AppWindow inherits Window {
     in property <[UiPerson]> requests;
     in property <[UiActivity]> activity;
     in property <[UiPerson]> find-results;
+    in property <int> pending-count: 0;
     in property <string> me-name: "";
     in property <string> me-handle: "";
     in property <string> me-bio: "";
@@ -216,9 +221,11 @@ export component AppWindow inherits Window {
         suggested: root.find-results;
         requests: root.requests;
         friends: root.find-results;
-        pending-count: 2;
-        search-changed(q) => { }
-        add-friend(id) => { }
+        pending-count: root.pending-count;
+        search-changed(q) => { root.search-friends(q); }
+        add-friend(id) => { root.add-friend(id); }
+        accept-request(id) => { root.accept-friend-request(id); }
+        decline-request(id) => { root.decline-friend-request(id); }
         open-chats => { root.screen = "chats"; }
         open-profile => { root.screen = "profile"; }
     }

@@ -18,6 +18,7 @@ pub fn run() {
     wire_auth_callbacks(&app);
     wire_conversation_callbacks(&app);
     wire_send_callbacks(&app);
+    wire_friends_callbacks(&app);
     app.run().expect("Nemo window crashed");
 }
 
@@ -839,6 +840,162 @@ fn wire_send_callbacks(app: &AppWindow) {
             if let Some(ui) = weak.upgrade() {
                 ui.set_messages(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(msgs))));
             }
+        }
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Friends & Find
+// ---------------------------------------------------------------------------
+
+static SUGGESTED_USER_IDS: std::sync::Mutex<Vec<String>> = std::sync::Mutex::new(Vec::new());
+static REQUEST_IDS: std::sync::Mutex<Vec<String>> = std::sync::Mutex::new(Vec::new());
+
+fn to_ui_person(u: &serde_json::Value, state: i32) -> UiPerson {
+    let id_str = u.get("id").and_then(|v| v.as_str()).unwrap_or("");
+    // Map UUID to a stable-ish int via simple hash for UI identity.
+    let id = id_str.bytes().fold(0i32, |a, b| a.wrapping_mul(31).wrapping_add(b as i32)).abs();
+    let name = u.get("display_name").and_then(|v| v.as_str()).unwrap_or("").to_string();
+    let handle = u.get("username").and_then(|v| v.as_str()).unwrap_or("").to_string();
+    let initials = initials_for(&name);
+    UiPerson {
+        id,
+        name: name.into(),
+        handle: handle.into(),
+        initials: initials.into(),
+        variant: 0,
+        online: false,
+        subtitle: "".into(),
+        state,
+        has_avatar: false,
+        avatar: slint::Image::default(),
+    }
+}
+
+fn fetch_search(token: &str, query: &str) -> Vec<UiPerson> {
+    let client = match reqwest::blocking::Client::builder().user_agent("Nemo-Mobile/1.0").timeout(std::time::Duration::from_secs(20)).build() {
+        Ok(c) => c,
+        Err(_) => return Vec::new(),
+    };
+    let url = format!("{}/api/users/search?q={}", api_base(), query.replace(' ', "%20"));
+    let resp = match client.get(url).bearer_auth(token).send() { Ok(r) => r, Err(_) => return Vec::new() };
+    if !resp.status().is_success() { return Vec::new(); }
+    let parsed: serde_json::Value = match resp.json() { Ok(v) => v, Err(_) => return Vec::new() };
+    let arr = parsed.get("users").and_then(|v| v.as_array()).cloned()
+        .or_else(|| parsed.as_array().cloned()).unwrap_or_default();
+    let mut ids = Vec::new();
+    let mut people = Vec::new();
+    for u in &arr {
+        if let Some(id) = u.get("id").and_then(|v| v.as_str()) { ids.push(id.to_string()); }
+        people.push(to_ui_person(u, 0));
+    }
+    *SUGGESTED_USER_IDS.lock().unwrap() = ids;
+    people
+}
+
+fn fetch_friends(token: &str) -> Vec<UiPerson> {
+    let client = match reqwest::blocking::Client::builder().user_agent("Nemo-Mobile/1.0").timeout(std::time::Duration::from_secs(20)).build() {
+        Ok(c) => c, Err(_) => return Vec::new(),
+    };
+    let resp = match client.get(format!("{}/api/friends", api_base())).bearer_auth(token).send() { Ok(r) => r, Err(_) => return Vec::new() };
+    if !resp.status().is_success() { return Vec::new(); }
+    let parsed: serde_json::Value = match resp.json() { Ok(v) => v, Err(_) => return Vec::new() };
+    let arr = parsed.get("friends").and_then(|v| v.as_array()).cloned()
+        .or_else(|| parsed.as_array().cloned()).unwrap_or_default();
+    arr.iter().map(|u| to_ui_person(u, 2)).collect()
+}
+
+fn fetch_friend_requests(token: &str) -> Vec<UiPerson> {
+    let client = match reqwest::blocking::Client::builder().user_agent("Nemo-Mobile/1.0").timeout(std::time::Duration::from_secs(20)).build() {
+        Ok(c) => c, Err(_) => return Vec::new(),
+    };
+    let resp = match client.get(format!("{}/api/friend-requests", api_base())).bearer_auth(token).send() { Ok(r) => r, Err(_) => return Vec::new() };
+    if !resp.status().is_success() { return Vec::new(); }
+    let parsed: serde_json::Value = match resp.json() { Ok(v) => v, Err(_) => return Vec::new() };
+    let arr = parsed.get("requests").and_then(|v| v.as_array()).cloned()
+        .or_else(|| parsed.as_array().cloned()).unwrap_or_default();
+    let mut ids = Vec::new();
+    let mut people = Vec::new();
+    for r in &arr {
+        if let Some(id) = r.get("id").and_then(|v| v.as_str()) { ids.push(id.to_string()); }
+        // The other user info may be under "from" or "user"
+        let user = r.get("from").or_else(|| r.get("user")).unwrap_or(r);
+        people.push(to_ui_person(user, 0));
+    }
+    *REQUEST_IDS.lock().unwrap() = ids;
+    people
+}
+
+fn wire_friends_callbacks(app: &AppWindow) {
+    use slint::ComponentHandle;
+    let weak = app.as_weak();
+
+    // search
+    let w = weak.clone();
+    app.on_search_friends(move |q| {
+        let token = load_token().unwrap_or_default();
+        let query = q.to_string();
+        let suggested = if query.trim().is_empty() { Vec::new() } else { fetch_search(&token, &query) };
+        let friends = fetch_friends(&token);
+        let requests = fetch_friend_requests(&token);
+        let pending = requests.len() as i32;
+        if let Some(ui) = w.upgrade() {
+            ui.set_find_results(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(suggested))));
+            ui.set_requests(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(requests))));
+            ui.set_pending_count(pending);
+        }
+    });
+
+    // add friend
+    let w = weak.clone();
+    app.on_add_friend(move |idx| {
+        let token = load_token().unwrap_or_default();
+        let user_id = SUGGESTED_USER_IDS.lock().unwrap().get(idx as usize).cloned().unwrap_or_default();
+        if user_id.is_empty() { return; }
+        let client = match reqwest::blocking::Client::builder().user_agent("Nemo-Mobile/1.0").timeout(std::time::Duration::from_secs(20)).build() { Ok(c) => c, Err(_) => return };
+        let _ = client.post(format!("{}/api/friend-requests", api_base())).bearer_auth(&token).json(&serde_json::json!({"user_id": user_id})).send();
+        // refresh
+        let suggested = fetch_search(&token, "");
+        let friends = fetch_friends(&token);
+        let requests = fetch_friend_requests(&token);
+        if let Some(ui) = w.upgrade() {
+            ui.set_find_results(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(suggested))));
+            let pc = requests.len() as i32;
+            ui.set_requests(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(requests))));
+            ui.set_pending_count(pc);
+        }
+    });
+
+    // accept request
+    let w = weak.clone();
+    app.on_accept_friend_request(move |idx| {
+        let token = load_token().unwrap_or_default();
+        let rid = REQUEST_IDS.lock().unwrap().get(idx as usize).cloned().unwrap_or_default();
+        if rid.is_empty() { return; }
+        let client = match reqwest::blocking::Client::builder().user_agent("Nemo-Mobile/1.0").timeout(std::time::Duration::from_secs(20)).build() { Ok(c) => c, Err(_) => return };
+        let _ = client.post(format!("{}/api/friend-requests/{}/accept", api_base(), rid)).bearer_auth(&token).send();
+        let requests = fetch_friend_requests(&token);
+        let friends = fetch_friends(&token);
+        if let Some(ui) = w.upgrade() {
+            let pc = requests.len() as i32;
+            ui.set_requests(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(requests))));
+            ui.set_pending_count(pc);
+        }
+    });
+
+    // decline request
+    let w = weak.clone();
+    app.on_decline_friend_request(move |idx| {
+        let token = load_token().unwrap_or_default();
+        let rid = REQUEST_IDS.lock().unwrap().get(idx as usize).cloned().unwrap_or_default();
+        if rid.is_empty() { return; }
+        let client = match reqwest::blocking::Client::builder().user_agent("Nemo-Mobile/1.0").timeout(std::time::Duration::from_secs(20)).build() { Ok(c) => c, Err(_) => return };
+        let _ = client.post(format!("{}/api/friend-requests/{}/decline", api_base(), rid)).bearer_auth(&token).send();
+        let requests = fetch_friend_requests(&token);
+        if let Some(ui) = w.upgrade() {
+            let pc = requests.len() as i32;
+            ui.set_requests(slint::ModelRc::from(std::rc::Rc::new(slint::VecModel::from(requests))));
+            ui.set_pending_count(pc);
         }
     });
 }
